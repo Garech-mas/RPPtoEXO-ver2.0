@@ -1,5 +1,5 @@
 #####################################################################################
-#               RPP to EXO ver 2.00 b0.1                                            #
+#               RPP to EXO ver 2.00 b0.2                                            #
 #                                                                       2022/07/11  #
 #       Written by Maimai (@Maimai22015/YTPMV.info)                                 #
 #                                                                                   #
@@ -7,20 +7,16 @@
 #       協力：SHI(@sbt54864666), Garech(@Garec_)                                    #
 #####################################################################################
 
-import os
-import re
-import subprocess
-import sys
+import binascii
 import configparser
-import tkinter
+import os
+import subprocess
+import threading
 from tkinter import *
-from tkinter import ttk
 from tkinter import filedialog
 from tkinter import messagebox
-import binascii
-import threading
-
-import chardet
+from tkinter import ttk
+import cv2
 
 EffDict = {
     #   "効果名"        :       [["設定１","デフォルト設定"],["設定２","デフォルト設定"],["設定３","デフォルト設定"]], 各設定3つ目に-1でチェックボックス
@@ -126,11 +122,22 @@ srch_type = {"VIDEO": "VIDEO",  # 動画ファイル
              "WAVE": "AUDIO",  # WAV ファイル
              "MP3": "AUDIO",  # MP3 ファイル
              "VORBIS": "AUDIO",  # OGG ファイル
+             "FLAC": "AUDIO",  # FLAC ファイル
              "MIDI": "XMIDI",  # MIDI アイテム
              "LTC": "XLTC",  # タイムコード ジェネレータ
              "CLICK": "XCLICK"  # メトロノーム ソース
              }
 
+item_pos = [-1]
+item_length = [-1]
+item_loop = [-1]
+item_soffs = [-1]
+item_playrate = [-1]
+item_fileidx = [-1]
+item_filetype = [-1]
+
+file_path = []
+file_fps = []
 
 def add_filter_to_exo(mydict, item_count):
     count = 1
@@ -170,7 +177,6 @@ def add_script_control(item_count, eff_num):
     script_text = binascii.hexlify(script_text.encode("UTF-16LE"))
     script_text = str(script_text)[:-1][2:]
     script_text = script_text + "0" * (4096 - len(str(script_text)))
-    # ######################### EXOの形式への変換とReturn　TODO
     return tmp_text + script_text
 
 
@@ -179,48 +185,9 @@ def main():
     root['cursor'] = 'watch'
     button6["text"] = "実行中..."
 
-    bf = 0.0  # アイテム一つ前の最終フレーム  ==Endframe
-    layer = 1  # オブジェクトのあるレイヤー（RPP上で複数トラックある場合は別トラックに配置する）
-    item_pos = [-1]
-    item_length = [-1]
-    item_loop = [-1]
-    item_soffs = [-1]
-    item_playrate = [-1]
-    item_fileidx = [-1]
-    item_filetype = [-1]
-
-    item_filepath = []
-
-    # EXOの設定
-    exo_ary = "[exedit]\nwidth=" + str(1280) + "\nheight=" + str(720) + "\nrate=" + str(
-        60) + "\nscale=1\nlength=10914\naudio_rate=44100\naudio_ch=2"
-    item_count = 0
-    exo_1 = "\n["  # item_count
-    exo_2 = "]\nstart="  # StartFrame
-    exo_3 = "\nend="  # EndFrame
-    exo_4 = "\nlayer="  # layer
-    exo_4_2 = "\ngroup=1\noverlay=1\nclipping=" + \
-              str(mydict["clipping"]) + "\ncamera=0\n["  # item_count
-    exo_5 = ".0]\n_name=動画ファイル\n再生位置=" + str(mydict["SrcPosition"]) + "\n再生速度=" + str(mydict["SrcRate"]) + \
-            "\nループ再生=" + str(mydict["IsLoop"]) + "\nアルファチャンネルを読み込む=" + \
-            str(mydict["IsAlpha"]) + "\nfile=" + str(mydict["SrcPath"])
-    if str(v10.get()) == str(1):  # 画像オブジェクトの場合の処理
-        exo_5 = ".0]\n_name=画像ファイル\nfile=" + str(mydict["SrcPath"])
-    if str(v11.get()) == str(1):  # シーンオブジェクトの場合の処理
-        exo_5 = ".0]\n_name=シーン\n再生位置=" + str(mydict["SrcPosition"]) + "\n再生速度=" + str(mydict["SrcRate"]) + \
-                "\nループ再生=" + str(mydict["IsLoop"]) + "\nscene=" + str(mydict["SceneIdx"])
-
-    # この間にエフェクトの設定
-    exo_6 = "\n["  # item_count
-    # exo_7 item_countによる分岐のため後のループ内で記述
-    exo_7 = ""
-
-    exo_eff = ""  # エフェクト設定用、先に宣言だけしておく。item_countを必要とするから後のループ内で処理
-    exo_script = ""  # スクリプト制御用
-
     # RPPからのPOSITIONとLENGTHの読み込み。すべて"<ITEM"の次、３行後にあるものとする。
     # 素材自動検出モードの時はLOOP, SOFFS, PLAYRATE(１番目), FILEも読み込む
-    with open(mydict["RPPPath"], mode='r', encoding='CP932', errors='replace') as f:
+    with open(mydict["RPPPath"], mode='r', encoding='utf-8', errors='replace') as f:
         rpp_ary = f.readlines()
 
         index = 0
@@ -274,17 +241,17 @@ def main():
                     for srch in srch_type.keys():  # ここ以下ファイルパス処理
                         keyy = "SOURCE " + srch + "/FILE"
                         if "SOURCE SECTION/" + keyy in itemdict:
-                            path = str(' '.join(itemdict["SOURCE SECTION/" + keyy]))
-                            if path not in item_filepath:
-                                item_filepath.append(path)
-                            item_fileidx.append(item_filepath.index(path))
+                            path = str(' '.join(itemdict["SOURCE SECTION/" + keyy])).replace('"', '')
+                            if path not in file_path:
+                                file_path.append(path)
+                            item_fileidx.append(file_path.index(path))
                             item_filetype.append(srch_type[srch])
                             srchflg = 1
                         elif keyy in itemdict:
-                            path = str(' '.join(itemdict[keyy]))
-                            if path not in item_filepath:
-                                item_filepath.append(path)
-                            item_fileidx.append(item_filepath.index(path))
+                            path = str(' '.join(itemdict[keyy])).replace('"', '')
+                            if path not in file_path:
+                                file_path.append(path)
+                            item_fileidx.append(file_path.index(path))
                             item_filetype.append(srch_type[srch])
                             srchflg = 1
                     if not srchflg:
@@ -292,31 +259,74 @@ def main():
                         item_filetype.append("OTHER")
 
             index += 1
+    make_exo()
 
-    # オブジェクト最初のフレームと長さの計算
+
+def make_exo():
+    exo_result = "[exedit]\nwidth=" + str(1280) + "\nheight=" + str(720) + "\nrate=" + str(
+        60) + "\nscale=1\nlength=10914\naudio_rate=44100\naudio_ch=2"
+    item_count = 0
+    exo_1 = "\n["  # item_count
+    exo_2 = "]\nstart="  # StartFrame
+    exo_3 = "\nend="  # EndFrame
+    exo_4 = "\nlayer="  # layer
+    exo_4_2 = "\ngroup=1\noverlay=1\nclipping=" + \
+              str(mydict["clipping"]) + "\ncamera=0\n["  # item_count
+    exo_5 = ".0]\n_name=動画ファイル\n再生位置=" + str(mydict["SrcPosition"]) + "\n再生速度=" + str(mydict["SrcRate"]) + \
+            "\nループ再生=" + str(mydict["IsLoop"]) + "\nアルファチャンネルを読み込む=" + \
+            str(mydict["IsAlpha"]) + "\nfile=" + str(mydict["SrcPath"])
+    if str(v10.get()) == str(1):  # 画像オブジェクトの場合の処理
+        exo_5 = ".0]\n_name=画像ファイル\nfile=" + str(mydict["SrcPath"])
+    if str(v11.get()) == str(1):  # シーンオブジェクトの場合の処理
+        exo_5 = ".0]\n_name=シーン\n再生位置=" + str(mydict["SrcPosition"]) + "\n再生速度=" + str(mydict["SrcRate"]) + \
+                "\nループ再生=" + str(mydict["IsLoop"]) + "\nscene=" + str(mydict["SceneIdx"])
+    # #テキストオブジェクトの場合の処理
+    #     exo_5 = ".0]\n_name=テキスト\nサイズ=100\n表示速度=0.0\n文字毎に個別オブジェクト=0\n移動座標上に表示する=0" + \
+    #             "\n自動スクロール=0\nB=0\nI=0\ntype=0\nautoadjust=0\nsoft=1\nmonospace=0\nalign=4" + \
+    #             "\nspacing_x=0\nspacing_y=0\nprecision=1\ncolor=ffffff\ncolor2=000000\nfont=HGS明朝E" + \
+    #             "\ntext=~~~"
+    exo_6 = "\n["  # item_count
+    # exo_7 item_countによる分岐のため後のループ内で記述
+    exo_7 = ""
+
+    exo_eff = ""  # エフェクト設定用、先に宣言だけしておく。item_countを必要とするから後のループ内で処理
+    exo_script = ""  # スクリプト制御用
+    bf = 0.0  # アイテム一つ前の最終フレーム  ==Endframe
+    layer = 1  # オブジェクトのあるレイヤー（RPP上で複数トラックある場合は別トラックに配置する）
+
+    # 各動画ファイルを読み込み、必要な情報を格納する
+    for index in range(len(file_path)):
+        if not v12.get():
+            break
+        path = file_path[index]
+        cap = cv2.VideoCapture(path.replace('\\', '/'))
+        fps = float(cap.get(cv2.CAP_PROP_FPS))
+        if fps == 0.0:
+            print("動画として読み込めませんでした。>", end="")
+            fps = 1.0
+        print(path + "; fps: " + str(fps))
+        cap.release()
+        file_fps.append(fps)
+
     for index in range(1, len(item_length)):
         lfff_count = 0
         asc_count = 0
-        # EXO+=exo_1+str(item_count)+exo_2+exo_3+exo_4+str(item_count)+exo_5+exo_6+str(item_count)+exo_7
 
+        # オブジェクト最初のフレームと長さの計算
         obj_frame_pos = item_pos[index] * float(mydict["fps"]) + 1
         next_obj_frame_pos = item_pos[index + 1] * float(mydict["fps"]) + 1 if index != len(item_length) - 1 else -1
         obj_frame_length = item_length[index] * float(mydict["fps"])
-
         if round(obj_frame_pos) == bf:  # 一つ前のオブジェクトとフレームがかぶらないようにする処理
             obj_frame_pos += 1
             obj_frame_length -= 1
         if round(obj_frame_pos + obj_frame_length) == round(next_obj_frame_pos) - 1:  # 一つ後のオブジェクトとの間に1フレームの空きがある場合の処理
             obj_frame_length += 1
-
         if obj_frame_pos < bf:
             bf = 0
             layer += 1 + int(v7.get())
             if obj_frame_pos < 0:
                 continue
         bf = obj_frame_pos + obj_frame_length - 1
-
-        # 隙間なく配置するための処理
         if v9.get() == "1":
             if obj_frame_pos < round(next_obj_frame_pos) - 1:
                 bf = next_obj_frame_pos - 1
@@ -334,11 +344,35 @@ def main():
             a, b = load_filter_from_file(item_count)
             exo_eff += a
             lfff_count += b
+
         # 偶数番目オブジェクトをひとつ下のレイヤに配置する
         if str(v7.get()) == str(1) and item_count % 2 == 1:
             exo_4 = "\nlayer=" + str(layer + 1)  # layer
         else:
             exo_4 = "\nlayer=" + str(layer)
+
+        # オブジェクトの種類等の設定
+        if not v12.get():
+            exo_5 = ".0]\n_name=動画ファイル\n再生位置=" + str(mydict["SrcPosition"]) + "\n再生速度=" + str(mydict["SrcRate"]) + \
+                    "\nループ再生=" + str(mydict["IsLoop"]) + "\nアルファチャンネルを読み込む=" + \
+                    str(mydict["IsAlpha"]) + "\nfile=" + str(mydict["SrcPath"])
+            if str(v10.get()) == str(1):  # 画像オブジェクトの場合の処理
+                exo_5 = ".0]\n_name=画像ファイル\nfile=" + str(mydict["SrcPath"])
+            if str(v11.get()) == str(1):  # シー+.ンオブジェクトの場合の処理
+                exo_5 = ".0]\n_name=シーン\n再生位置=" + str(mydict["SrcPosition"]) + "\n再生速度=" + str(mydict["SrcRate"]) + \
+                        "\nループ再生=" + str(mydict["IsLoop"]) + "\nscene=" + str(mydict["SceneIdx"])
+        else:  # 素材自動検出モード時の処理
+
+            # if item_filetype[index] == "VIDEO":
+            is_alpha = 0
+            if file_path[item_fileidx[index]][file_path[item_fileidx[index]].find('.'):] == ".avi":
+                is_alpha = 1
+            exo_5 = ".0]\n_name=動画ファイル" \
+                    "\n再生位置=" + str(int(item_soffs[index] * file_fps[item_fileidx[index]] + 1)) \
+                    + "\n再生速度=" + str(int(item_playrate[index] * 1000) / 10.0) + \
+                    "\nループ再生=" + str(item_loop[index]) + "\nアルファチャンネルを読み込む=" + str(is_alpha) + \
+                    "\nfile=" + str(file_path[item_fileidx[index]])
+            # exo_5 = ".0]\n_name=動画ファイル\n再生位置=" + str(int(item_soffs[index] * file_fps[item_fileidx[index]] + 1)) + "\n再生速度=" + str(int(item_playrate[index] * 1000) / 10.0) + "\nループ再生=" + str(item_loop[index]) + "\nアルファチャンネルを読み込む=" + str(is_alpha) + "\nfile=" + str(file_path[item_fileidx[index]])
 
         # 動画ファイル　偶数番目オブジェクト（反転○）
         if int(mydict["IsAddFilterAsMediaObj"]) == 0 and int(mydict["IsFlipHEvenObj"]) == 1 and item_count % 2 == 1:
@@ -366,7 +400,7 @@ def main():
                         "\n中心Z=" + str(mydict["ZCenter"]) + \
                         "\n裏面を表示しない=0" + "\nblend=" + str(mydict["Blend"])
 
-            exo_ary = (exo_ary + exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) +
+            exo_result = (exo_result + exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) +
                        exo_4 + exo_4_2 + str(item_count) + exo_5 + exo_eff + exo_script + exo_6 + str(
                         item_count) + exo_7)
         # 動画ファイル　奇数番目オブジェクト（反転×）
@@ -392,7 +426,7 @@ def main():
                         "\n中心Z=" + str(mydict["ZCenter"]) + \
                         "\n裏面を表示しない=0" + "\nblend=" + str(mydict["Blend"])
 
-            exo_ary = (exo_ary + exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) + exo_4 +
+            exo_result = (exo_result + exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) + exo_4 +
                        exo_4_2 + str(item_count) + exo_5 + exo_eff + exo_script + exo_6 + str(item_count) + exo_7)
         # フィルタ効果　奇数番目オブジェクト（反転×）
         elif int(mydict["IsAddFilterAsMediaObj"]) == 1 and (int(mydict["IsFlipHEvenObj"]) == 0 or item_count % 2 == 0):
@@ -403,7 +437,7 @@ def main():
             exo_4_2 = "\ngroup=1\noverlay=1"
             # 何も効果がかかっていないとエラー吐くので（多分）とりあえず座標0,0,0を掛けておく
             exo_5 = "\n[" + str(item_count) + ".0]\n_name=座標\nX=0.0\nY=0.0\nZ=0.0"
-            exo_ary = (exo_ary + exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) +
+            exo_result = (exo_result + exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) +
                        exo_3 + str(bf) + exo_4 + exo_4_2 + exo_5 + exo_eff + exo_script)
         # フィルタ効果　偶数番目オブジェクト（反転〇）
         elif int(mydict["IsAddFilterAsMediaObj"]) == 1 and int(mydict["IsFlipHEvenObj"]) == 1 and item_count % 2 == 1:
@@ -415,19 +449,28 @@ def main():
             exo_5 = ""
             exo_eff += "\n[" + str(item_count) + "." + str(len(mydict["Effect"]) + asc_count + lfff_count) + \
                        "]\n_name=反転\n上下反転=0\n左右反転=1\n輝度反転=0\n色相反転=0\n透明度反転=0"
-            exo_ary = (exo_ary + exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) +
+            exo_result = (exo_result + exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) +
                        exo_3 + str(bf) + exo_4 + exo_4_2 + exo_5 + exo_eff + exo_script)
 
         item_count = item_count + 1
 
     try:
         with open(mydict["EXOPath"], mode='w', encoding='shift_jis') as f:
-            f.write(exo_ary)
+            line = ""
+            for t in exo_result:
+                f.write(t)
+                line += t
+                if t == '\n':
+                    line = ""
             ret = messagebox.askyesno("正常終了", "正常に生成されました。\n保存先のフォルダを開きますか？")
             if ret:
                 subprocess.Popen(['explorer', os.path.dirname(mydict["EXOPath"]).replace('/', '\\')], shell=True)
-    except:
+    except PermissionError:
         messagebox.showerror("エラー", "EXOファイルへの出力に失敗しました。\n上書き先のEXOファイルが開かれているか、読み取り専用になっています。")
+    except UnicodeEncodeError:
+        messagebox.showerror("エラー", "EXOファイルへの出力に失敗しました。\nAviUtl で使用できない文字がパス名に含まれています。\n"
+                             "パス名に含まれる該当文字を削除し、再度設定し直してください。\n\n"
+                              + line + '　『' + t + '』')
 
     button6['state'] = 'normal'
     root['cursor'] = 'arrow'
