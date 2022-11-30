@@ -16,7 +16,20 @@ from tkinter import *
 from tkinter import filedialog
 from tkinter import messagebox
 from tkinter import ttk
+from ttkwidgets import CheckboxTreeview
 import cv2
+
+# やりたいこと
+# TODO: RPPのアイテムが特殊な場合（逆再生・セクション・テイク）にも対応する
+# TODO: アイテムがMIDIだった場合、中身のMIDIの音符から自動配置をする
+# TODO: ソースコードのクラス化・ファイル分割
+# TODO: 素材自動検出のとき、ソースファイル（の再生位置）によって参照すべきソースを変えるGUI・機能の作成
+#          ＞ GUI上で再生位置を決めるとき、動画ファイルのサムネイルを表示してあげる
+# TODO: 空のアイテムの除去 or テキスト化の処理
+# エフェクト効果の表記をAviUtlのUI寄りにし、更に親しみやすい操作にできるようにしたい
+# 移動方法やスクリプトなどをAviUtlのフォルダから読み取って設定できるようにする機能
+# Google Colabにそのまま引き継げるような仕組みづくり
+# GUIの表記を英語にも対応し、多言語にも対応しやすいようにしたい
 
 EffDict = {
     #   "効果名"        :       [["設定１","デフォルト設定"],["設定２","デフォルト設定"],["設定３","デフォルト設定"]], 各設定3つ目に-1でチェックボックス
@@ -56,7 +69,7 @@ mydict = {
     "EXOPath": "test.exo",
     "SrcPath": "C:\\Users\\USER\\Documents\\ytpmv_script\\movie.mp4",  # ファイルパス。絶対パスが必要。
     "SrcPosition": 1,  # 再生位置
-    "SrcRate": 100,  # 再生速度
+    "SrcRate": 100.0,  # 再生速度
     "IsAlpha": 0,  # アルファチャンネルを読み込む
     "IsLoop": 0,  # ループ再生
     "X": 0.0,  # x座標
@@ -85,12 +98,13 @@ mydict = {
     "EffNum": 0,  # 現時点で追加されているパラメータ数（GUI用）
     "EffCount": 0,  # エフェクト数（GUI用）
     "EffCount2": 0,
-    "EffCbNum": 0,  # パラメータ　チェックボックスの数
+    "EffCbNum": 0,  # パラメータ  チェックボックスの数
 
     # 独自設定
     "IsFlipHEvenObj": 0,  # 偶数オブジェクトを左右反転するか
-    "IsAddFilterAsMediaObj": 0,  # 動画ファイルとしてでなく
+    "OutputType": 0,  # 1=動画  2=画像  3=フィルタ  4=シーン  として出力
     "IsExSet": 0,  # 拡張描画を有効にするか
+    "AutoSrc": 0,  # 素材自動検出が有効か
 
     # 設定
     "RPPLastDir": os.path.abspath(os.path.dirname(__file__)),
@@ -128,16 +142,8 @@ srch_type = {"VIDEO": "VIDEO",  # 動画ファイル
              "CLICK": "XCLICK"  # メトロノーム ソース
              }
 
-item_pos = [-1]
-item_length = [-1]
-item_loop = [-1]
-item_soffs = [-1]
-item_playrate = [-1]
-item_fileidx = [-1]
-item_filetype = [-1]
+rpp_ary = []
 
-file_path = []
-file_fps = []
 
 def add_filter_to_exo(mydict, item_count):
     count = 1
@@ -168,12 +174,9 @@ def load_filter_from_file(item_count):
 
 
 def add_script_control(item_count, eff_num):
-    tmp_text = ""
-    script_text = ""
     tmp_text = "\n[" + str(item_count) + "." + str(eff_num) + "]\n_name=スクリプト制御\ntext="
     # スクリプト制御を追加するためのその場しのぎ関数。こんなやり方じゃいつか詰むぞ
     script_text = file10_text.get('1.0', 'end-1c')
-    print(script_text)
     script_text = binascii.hexlify(script_text.encode("UTF-16LE"))
     script_text = str(script_text)[:-1][2:]
     script_text = script_text + "0" * (4096 - len(str(script_text)))
@@ -184,102 +187,98 @@ def main():
     button6['state'] = 'disable'
     root['cursor'] = 'watch'
     button6["text"] = "実行中..."
+    file_path = []
+    objDict = {
+        "pos": [-1],
+        "length": [-1],
+        "loop": [-1],
+        "soffs": [-1],
+        "playrate": [-1],
+        "fileidx": [-1],
+        "filetype": [-1],
+    }
 
-    # RPPからのPOSITIONとLENGTHの読み込み。すべて"<ITEM"の次、３行後にあるものとする。
-    # 素材自動検出モードの時はLOOP, SOFFS, PLAYRATE(１番目), FILEも読み込む
-    with open(mydict["RPPPath"], mode='r', encoding='utf-8', errors='replace') as f:
-        rpp_ary = f.readlines()
+    # RPPを読み込み、必要な情報をitemdictに格納していく
+    index = 0
+    track_index = 0
 
-        index = 0
-        track_index = 0
+    while index < len(rpp_ary):
 
-        # for index in range(len(rpp_ary)):
-        while index < len(rpp_ary):
+        if rpp_ary[index].find("<TRACK") != -1:  # トラック境目
+            track_index += 1
+            if objDict["pos"][-1] != -1:  # トラックが切り替わる位置に-1を入れる
+                objDict["pos"].append(-1)
+                objDict["length"].append(-1)
+                objDict["loop"].append(-1)
+                objDict["soffs"].append(-1)
+                objDict["playrate"].append(-1)
+                objDict["fileidx"].append(-1)
+                objDict["filetype"].append(-1)
 
-            if rpp_ary[index].find("<TRACK") != -1:  # トラック境目
-                track_index += 1
-                if item_pos[-1] != -1:  # トラックが切り替わる位置に-1を入れる
-                    item_pos.append(-1)
-                    item_length.append(-1)
-                    item_loop.append(-1)
-                    item_soffs.append(-1)
-                    item_playrate.append(-1)
-                    item_fileidx.append(-1)
-                    item_filetype.append(-1)
-
-            if ((not mydict["Track"] or track_index in mydict["Track"])
-                    and rpp_ary[index].find("<ITEM") != -1):  # 該当トラックのITEMセクションに入ったら
-                itemdict = {}
-                prefix = ""
-                item_lyr = 1
-                index += 1
-                while item_lyr > 0:  # <ITEM >を辞書化し、管理しやすくする
-                    if rpp_ary[index].find("<") != -1:  # 深い階層に入る
-                        prefix += rpp_ary[index][rpp_ary[index].find("<") + 1:-1] + "/"
-                        item_lyr += 1
-                    elif rpp_ary[index].find(">") != -1:  # 階層を下る
-                        slash_pos = prefix.find("/")
-                        prefix = prefix[slash_pos + 1:] if slash_pos != len(prefix) - 1 else ""
-                        item_lyr -= 1
-                    else:
-                        spl = rpp_ary[index].split()
-                        key = prefix + spl.pop(0)
-                        itemdict[key] = spl
-                    index += 1
-
-                index -= 2
-                item_pos.append(float(itemdict["POSITION"][0]))
-                item_length.append(float(itemdict["LENGTH"][0]))
-                if v12.get():  # 素材自動検出モードの処理
-                    item_loop.append(int(itemdict["LOOP"][0]))
-                    item_soffs.append(float(itemdict["SOFFS"][0])) if "SOFFS" in itemdict \
-                        else item_soffs.append(0.0)
-                    item_playrate.append(float(itemdict["PLAYRATE"][0])) if "PLAYRATE" in itemdict \
-                        else item_playrate.append(1.0)
-                    srchflg = 0
-
-                    for srch in srch_type.keys():  # ここ以下ファイルパス処理
-                        keyy = "SOURCE " + srch + "/FILE"
-                        if "SOURCE SECTION/" + keyy in itemdict:
-                            path = str(' '.join(itemdict["SOURCE SECTION/" + keyy])).replace('"', '')
-                            if path not in file_path:
-                                file_path.append(path)
-                            item_fileidx.append(file_path.index(path))
-                            item_filetype.append(srch_type[srch])
-                            srchflg = 1
-                        elif keyy in itemdict:
-                            path = str(' '.join(itemdict[keyy])).replace('"', '')
-                            if path not in file_path:
-                                file_path.append(path)
-                            item_fileidx.append(file_path.index(path))
-                            item_filetype.append(srch_type[srch])
-                            srchflg = 1
-                    if not srchflg:
-                        item_fileidx.append(-1)
-                        item_filetype.append("OTHER")
-
+        if ((str(track_index) in mydict["Track"])
+                and rpp_ary[index].find("<ITEM") != -1):  # 該当トラックのITEMセクションに入ったら
+            itemdict = {}
+            prefix = ""
+            item_lyr = 1
             index += 1
-    make_exo()
+            while item_lyr > 0:  # <ITEM >を辞書化し、管理しやすくする
+                if rpp_ary[index].find("<") != -1:  # 深い階層に入る
+                    prefix += rpp_ary[index][rpp_ary[index].find("<") + 1:-1] + "/"
+                    item_lyr += 1
+                elif rpp_ary[index].find(">") != -1:  # 階層を下る
+                    slash_pos = prefix.find("/")
+                    prefix = prefix[slash_pos + 1:] if slash_pos != len(prefix) - 1 else ""
+                    item_lyr -= 1
+                else:
+                    spl = rpp_ary[index].split()
+                    key = prefix + spl.pop(0)
+                    itemdict[key] = spl
+                index += 1
+
+            index -= 2
+            objDict["pos"].append(float(itemdict["POSITION"][0]))
+            objDict["length"].append(float(itemdict["LENGTH"][0]))
+            if mydict["AutoSrc"]:  # 素材自動検出モードの処理
+                objDict["loop"].append(int(itemdict["LOOP"][0]))
+                objDict["soffs"].append(float(itemdict["SOFFS"][0])) if "SOFFS" in itemdict \
+                    else objDict["soffs"].append(0.0)
+                objDict["playrate"].append(float(itemdict["PLAYRATE"][0])) if "PLAYRATE" in itemdict \
+                    else objDict["playrate"].append(1.0)
+                srchflg = 0
+
+                for srch in srch_type.keys():  # ここ以下ファイルパス処理
+                    keyy = "SOURCE " + srch + "/FILE"
+                    if "SOURCE SECTION/" + keyy in itemdict:
+                        path = str(' '.join(itemdict["SOURCE SECTION/" + keyy])).replace('"', '')
+                        if path not in file_path:
+                            file_path.append(path)
+                        objDict["fileidx"].append(file_path.index(path))
+                        objDict["filetype"].append(srch_type[srch])
+                        srchflg = 1
+                    elif keyy in itemdict:
+                        path = str(' '.join(itemdict[keyy])).replace('"', '')
+                        if path not in file_path:
+                            file_path.append(path)
+                        objDict["fileidx"].append(file_path.index(path))
+                        objDict["filetype"].append(srch_type[srch])
+                        srchflg = 1
+                if not srchflg:
+                    objDict["fileidx"].append(-1)
+                    objDict["filetype"].append("OTHER")
+
+        index += 1
+    make_exo(objDict, file_path)
 
 
-def make_exo():
+def make_exo(objDict, file_path):
     exo_result = "[exedit]\nwidth=" + str(1280) + "\nheight=" + str(720) + "\nrate=" + str(
-        60) + "\nscale=1\nlength=10914\naudio_rate=44100\naudio_ch=2"
+        60) + "\nscale=1\nlength=99999\naudio_rate=44100\naudio_ch=2"
     item_count = 0
     exo_1 = "\n["  # item_count
     exo_2 = "]\nstart="  # StartFrame
     exo_3 = "\nend="  # EndFrame
     exo_4 = "\nlayer="  # layer
-    exo_4_2 = "\ngroup=1\noverlay=1\nclipping=" + \
-              str(mydict["clipping"]) + "\ncamera=0\n["  # item_count
-    exo_5 = ".0]\n_name=動画ファイル\n再生位置=" + str(mydict["SrcPosition"]) + "\n再生速度=" + str(mydict["SrcRate"]) + \
-            "\nループ再生=" + str(mydict["IsLoop"]) + "\nアルファチャンネルを読み込む=" + \
-            str(mydict["IsAlpha"]) + "\nfile=" + str(mydict["SrcPath"])
-    if str(v10.get()) == str(1):  # 画像オブジェクトの場合の処理
-        exo_5 = ".0]\n_name=画像ファイル\nfile=" + str(mydict["SrcPath"])
-    if str(v11.get()) == str(1):  # シーンオブジェクトの場合の処理
-        exo_5 = ".0]\n_name=シーン\n再生位置=" + str(mydict["SrcPosition"]) + "\n再生速度=" + str(mydict["SrcRate"]) + \
-                "\nループ再生=" + str(mydict["IsLoop"]) + "\nscene=" + str(mydict["SceneIdx"])
+    exo_4_2 = "\ngroup=1\noverlay=1\nclipping=" + str(mydict["clipping"]) + "\ncamera=0\n["  # item_count
     # #テキストオブジェクトの場合の処理
     #     exo_5 = ".0]\n_name=テキスト\nサイズ=100\n表示速度=0.0\n文字毎に個別オブジェクト=0\n移動座標上に表示する=0" + \
     #             "\n自動スクロール=0\nB=0\nI=0\ntype=0\nautoadjust=0\nsoft=1\nmonospace=0\nalign=4" + \
@@ -294,9 +293,12 @@ def make_exo():
     bf = 0.0  # アイテム一つ前の最終フレーム  ==Endframe
     layer = 1  # オブジェクトのあるレイヤー（RPP上で複数トラックある場合は別トラックに配置する）
 
+    bfidx = 1
+    file_fps = []
+
     # 各動画ファイルを読み込み、必要な情報を格納する
     for index in range(len(file_path)):
-        if not v12.get():
+        if not mydict["AutoSrc"]:
             break
         path = file_path[index]
         cap = cv2.VideoCapture(path.replace('\\', '/'))
@@ -308,14 +310,15 @@ def make_exo():
         cap.release()
         file_fps.append(fps)
 
-    for index in range(1, len(item_length)):
+    for index in range(1, len(objDict["length"])):
         lfff_count = 0
         asc_count = 0
 
         # オブジェクト最初のフレームと長さの計算
-        obj_frame_pos = item_pos[index] * float(mydict["fps"]) + 1
-        next_obj_frame_pos = item_pos[index + 1] * float(mydict["fps"]) + 1 if index != len(item_length) - 1 else -1
-        obj_frame_length = item_length[index] * float(mydict["fps"])
+        obj_frame_pos = objDict["pos"][index] * float(mydict["fps"]) + 1
+        next_obj_frame_pos = objDict["pos"][index + 1] * float(mydict["fps"]) + 1 \
+            if index != len(objDict["length"]) - 1 else -1
+        obj_frame_length = objDict["length"][index] * float(mydict["fps"])
         if round(obj_frame_pos) == bf:  # 一つ前のオブジェクトとフレームがかぶらないようにする処理
             obj_frame_pos += 1
             obj_frame_length -= 1
@@ -323,6 +326,7 @@ def make_exo():
             obj_frame_length += 1
         if obj_frame_pos < bf:
             bf = 0
+            bfidx = index
             layer += 1 + int(v7.get())
             if obj_frame_pos < 0:
                 continue
@@ -346,36 +350,35 @@ def make_exo():
             lfff_count += b
 
         # 偶数番目オブジェクトをひとつ下のレイヤに配置する
-        if str(v7.get()) == str(1) and item_count % 2 == 1:
+        if str(v7.get()) == str(1) and (bfidx + item_count) % 2 == 0:
             exo_4 = "\nlayer=" + str(layer + 1)  # layer
         else:
             exo_4 = "\nlayer=" + str(layer)
 
         # オブジェクトの種類等の設定
-        if not v12.get():
+        if not mydict["AutoSrc"]:
             exo_5 = ".0]\n_name=動画ファイル\n再生位置=" + str(mydict["SrcPosition"]) + "\n再生速度=" + str(mydict["SrcRate"]) + \
                     "\nループ再生=" + str(mydict["IsLoop"]) + "\nアルファチャンネルを読み込む=" + \
                     str(mydict["IsAlpha"]) + "\nfile=" + str(mydict["SrcPath"])
-            if str(v10.get()) == str(1):  # 画像オブジェクトの場合の処理
+            if mydict["OutputType"] == 2:  # 画像オブジェクトの場合の処理
                 exo_5 = ".0]\n_name=画像ファイル\nfile=" + str(mydict["SrcPath"])
-            if str(v11.get()) == str(1):  # シー+.ンオブジェクトの場合の処理
+            if mydict["OutputType"] == 4:  # シーンオブジェクトの場合の処理
                 exo_5 = ".0]\n_name=シーン\n再生位置=" + str(mydict["SrcPosition"]) + "\n再生速度=" + str(mydict["SrcRate"]) + \
                         "\nループ再生=" + str(mydict["IsLoop"]) + "\nscene=" + str(mydict["SceneIdx"])
         else:  # 素材自動検出モード時の処理
 
-            # if item_filetype[index] == "VIDEO":
+            # if objDict["filetype"][index] == "VIDEO":
             is_alpha = 0
-            if file_path[item_fileidx[index]][file_path[item_fileidx[index]].find('.'):] == ".avi":
+            if file_path[objDict["fileidx"][index]][file_path[objDict["fileidx"][index]].find('.'):] == ".avi":
                 is_alpha = 1
             exo_5 = ".0]\n_name=動画ファイル" \
-                    "\n再生位置=" + str(int(item_soffs[index] * file_fps[item_fileidx[index]] + 1)) \
-                    + "\n再生速度=" + str(int(item_playrate[index] * 1000) / 10.0) + \
-                    "\nループ再生=" + str(item_loop[index]) + "\nアルファチャンネルを読み込む=" + str(is_alpha) + \
-                    "\nfile=" + str(file_path[item_fileidx[index]])
-            # exo_5 = ".0]\n_name=動画ファイル\n再生位置=" + str(int(item_soffs[index] * file_fps[item_fileidx[index]] + 1)) + "\n再生速度=" + str(int(item_playrate[index] * 1000) / 10.0) + "\nループ再生=" + str(item_loop[index]) + "\nアルファチャンネルを読み込む=" + str(is_alpha) + "\nfile=" + str(file_path[item_fileidx[index]])
+                    "\n再生位置=" + str(int(objDict["soffs"][index] * file_fps[objDict["fileidx"][index]] + 1)) \
+                    + "\n再生速度=" + str(int(objDict["playrate"][index] * 1000) / 10.0) + \
+                    "\nループ再生=" + str(objDict["loop"][index]) + "\nアルファチャンネルを読み込む=" + str(is_alpha) + \
+                    "\nfile=" + str(file_path[objDict["fileidx"][index]])
 
-        # 動画ファイル　偶数番目オブジェクト（反転○）
-        if int(mydict["IsAddFilterAsMediaObj"]) == 0 and int(mydict["IsFlipHEvenObj"]) == 1 and item_count % 2 == 1:
+        # メディアオブジェクト  偶数番目（反転○）
+        if mydict["OutputType"] != 3 and int(mydict["IsFlipHEvenObj"]) == 1 and (bfidx + item_count) % 2 == 0:
             exo_eff += "\n[" + str(item_count) + "." + str(len(mydict["Effect"]) + 1 + lfff_count) + \
                        "]\n_name=反転\n上下反転=0\n左右反転=1\n輝度反転=0\n色相反転=0\n透明度反転=0"
 
@@ -400,11 +403,10 @@ def make_exo():
                         "\n中心Z=" + str(mydict["ZCenter"]) + \
                         "\n裏面を表示しない=0" + "\nblend=" + str(mydict["Blend"])
 
-            exo_result = (exo_result + exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) +
-                       exo_4 + exo_4_2 + str(item_count) + exo_5 + exo_eff + exo_script + exo_6 + str(
-                        item_count) + exo_7)
-        # 動画ファイル　奇数番目オブジェクト（反転×）
-        elif int(mydict["IsAddFilterAsMediaObj"]) == 0 and (int(mydict["IsFlipHEvenObj"]) == 0 or item_count % 2 == 0):
+            exo_result = (exo_result + exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) + exo_4 +
+                          exo_4_2 + str(item_count) + exo_5 + exo_eff + exo_script + exo_6 + str(item_count) + exo_7)
+        # メディアオブジェクト  奇数番目（反転×）
+        elif mydict["OutputType"] != 3 and (int(mydict["IsFlipHEvenObj"]) == 0 or (bfidx + item_count) % 2 == 1):
             if file10_text.get('1.0', 'end-1c') != "":  # スクリプト制御追加する場合
                 exo_script = add_script_control(item_count, len(mydict["Effect"]) + 1 + lfff_count)
                 asc_count = 1
@@ -427,21 +429,19 @@ def make_exo():
                         "\n裏面を表示しない=0" + "\nblend=" + str(mydict["Blend"])
 
             exo_result = (exo_result + exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) + exo_4 +
-                       exo_4_2 + str(item_count) + exo_5 + exo_eff + exo_script + exo_6 + str(item_count) + exo_7)
-        # フィルタ効果　奇数番目オブジェクト（反転×）
-        elif int(mydict["IsAddFilterAsMediaObj"]) == 1 and (int(mydict["IsFlipHEvenObj"]) == 0 or item_count % 2 == 0):
-            # フィルタのみの場合 左右反転なし
+                          exo_4_2 + str(item_count) + exo_5 + exo_eff + exo_script + exo_6 + str(item_count) + exo_7)
+        # フィルタ効果  奇数番目（反転×）
+        elif mydict["OutputType"] == 3 and (int(mydict["IsFlipHEvenObj"]) == 0 or (bfidx + item_count) % 2 == 1):
             if file10_text.get('1.0', 'end-1c') != "":  # スクリプト制御追加する場合
                 exo_script = add_script_control(item_count, len(mydict["Effect"]) + 1 + lfff_count)
                 asc_count = 1
             exo_4_2 = "\ngroup=1\noverlay=1"
             # 何も効果がかかっていないとエラー吐くので（多分）とりあえず座標0,0,0を掛けておく
             exo_5 = "\n[" + str(item_count) + ".0]\n_name=座標\nX=0.0\nY=0.0\nZ=0.0"
-            exo_result = (exo_result + exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) +
-                       exo_3 + str(bf) + exo_4 + exo_4_2 + exo_5 + exo_eff + exo_script)
-        # フィルタ効果　偶数番目オブジェクト（反転〇）
-        elif int(mydict["IsAddFilterAsMediaObj"]) == 1 and int(mydict["IsFlipHEvenObj"]) == 1 and item_count % 2 == 1:
-            # フィルタのみの場合 左右反転あり
+            exo_result = (exo_result + exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) + exo_4 +
+                          exo_4_2 + exo_5 + exo_eff + exo_script)
+        # フィルタ効果  偶数番目（反転〇）
+        elif mydict["OutputType"] == 3 and int(mydict["IsFlipHEvenObj"]) == 1 and (bfidx + item_count) % 2 == 0:
             if file10_text.get('1.0', 'end-1c') != "":  # スクリプト制御追加する場合
                 exo_script = add_script_control(item_count, len(mydict["Effect"]) + 2 + lfff_count)
                 asc_count = 1
@@ -449,8 +449,8 @@ def make_exo():
             exo_5 = ""
             exo_eff += "\n[" + str(item_count) + "." + str(len(mydict["Effect"]) + asc_count + lfff_count) + \
                        "]\n_name=反転\n上下反転=0\n左右反転=1\n輝度反転=0\n色相反転=0\n透明度反転=0"
-            exo_result = (exo_result + exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) +
-                       exo_3 + str(bf) + exo_4 + exo_4_2 + exo_5 + exo_eff + exo_script)
+            exo_result = (exo_result + exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) + exo_4 +
+                          exo_4_2 + exo_5 + exo_eff + exo_script)
 
         item_count = item_count + 1
 
@@ -462,15 +462,16 @@ def make_exo():
                 line += t
                 if t == '\n':
                     line = ""
-            ret = messagebox.askyesno("正常終了", "正常に生成されました。\n保存先のフォルダを開きますか？")
-            if ret:
-                subprocess.Popen(['explorer', os.path.dirname(mydict["EXOPath"]).replace('/', '\\')], shell=True)
     except PermissionError:
         messagebox.showerror("エラー", "EXOファイルへの出力に失敗しました。\n上書き先のEXOファイルが開かれているか、読み取り専用になっています。")
     except UnicodeEncodeError:
         messagebox.showerror("エラー", "EXOファイルへの出力に失敗しました。\nAviUtl で使用できない文字がパス名に含まれています。\n"
-                             "パス名に含まれる該当文字を削除し、再度設定し直してください。\n\n"
-                              + line + '　『' + t + '』')
+                                    "パス名に含まれる該当文字を削除し、再度実行し直してください。\n\n"
+                             + line + '  『' + t + '』')
+    else:
+        ret = messagebox.askyesno("正常終了", "正常に生成されました。\n保存先のフォルダを開きますか？")
+        if ret:
+            subprocess.Popen(['explorer', os.path.dirname(mydict["EXOPath"]).replace('/', '\\')], shell=True)
 
     button6['state'] = 'normal'
     root['cursor'] = 'arrow'
@@ -501,7 +502,7 @@ def write_cfg(filepath, setting_type):  # 設定保存
 def slct_rpp():  # 参照ボタン
     filetype = [("REAPERプロジェクトファイル", "*.rpp")]
     filepath = filedialog.askopenfilename(
-        filetypes=filetype, initialdir=mydict["RPPLastDir"])
+        filetypes=filetype, initialdir=mydict["RPPLastDir"], title="RPPファイルを選択")
     if filepath != '':
         file1.set(filepath)
         write_cfg(filepath, "RPPDir")
@@ -509,11 +510,11 @@ def slct_rpp():  # 参照ボタン
 
 
 def slct_source():  # 素材選択
-    filetype = [("動画ファイル", "*")]
+    filetype = [("動画ファイル", "*")] if trgt_radio.get() == 1 else [("画像ファイル", "*")]
     filepath = filedialog.askopenfilename(
-        filetypes=filetype, initialdir=mydict["SrcLastDir"])
+        filetypes=filetype, initialdir=mydict["SrcLastDir"], title="参照する素材ファイルの選択")
     if filepath != '':
-        file4.set(filepath)
+        file3.set(filepath)
         write_cfg(filepath, "SrcDir")
 
 
@@ -536,23 +537,56 @@ def save_exo():  # EXO保存ボタン
 
 
 def load_track_name():  # トラック名読み込み
+    file8_tree.delete(*file8_tree.get_children())
     filepath = file1_entry.get().replace('"', '')  # パスをコピペした場合のダブルコーテーションを削除
+    file8_tree.insert("", "end", text="＊全トラック", iid="all", open=True)
+    file8_tree.change_state("all", 'checked')
+    global rpp_ary
     if ".rpp" in filepath.lower():
-        tracklist = []
-        tracklist.append("全トラック")
-
+        track_list = ["全トラック"]
         with open(filepath, mode='r', encoding='UTF-8', errors='replace') as f:
             rpp_ary = f.readlines()
-            track_index = 0
-            for index in range(len(rpp_ary)):
-                if rpp_ary[index].find("<TRACK") != -1:
-                    track_index += 1
-                    tracklist.append(str(track_index) + ": " + rpp_ary[index + 1][9:])
-
-        file8_combo.set("全トラック")
-        file8_combo.config(values=tracklist)
-
+        tree = make_treedict(1)[0]
+        insert_treedict(tree, "", 0)
     return True
+
+
+def make_treedict(index):
+    global rpp_ary
+    value = {}
+    while True:
+        index += 1
+        while rpp_ary[index].find("<TRACK") == -1:
+            index += 1
+            if index >= len(rpp_ary):
+                return value, index, 0
+
+        name = rpp_ary[index + 1][9:-1]
+        isbus = rpp_ary[index + 9].split()  # [1] > フォルダ始端・終端 [2] > 階層を何個下るか
+        while name in value:
+            name += " "
+        value[name] = {}
+
+        if isbus[1] == "1":
+            value[name], index, skip = make_treedict(index)
+            if skip < 0:
+                return value, index, skip + 1
+        elif isbus[1] == "2":
+            return value, index, int(isbus[2]) + 1
+
+
+def insert_treedict(tree, prefix, iid):
+    for k in tree:
+        iid += 1
+        if k == next(reversed(tree.keys()), None):
+            file8_tree.insert("all", "end", text=prefix + "└" + k, iid=str(iid))
+            if tree[k] != {}:
+                iid = insert_treedict(tree[k], prefix + "　", iid)
+        else:
+            file8_tree.insert("all", "end", text=prefix + "├" + k, iid=str(iid))
+            if tree[k] != {}:
+                iid = insert_treedict(tree[k], prefix + "│", iid)
+    return iid
 
 
 # 動的なエフェクト設定生成
@@ -701,12 +735,13 @@ def del_filter_label():  # 効果パラメータ入力画面破棄
 def run():
     mydict["RPPPath"] = file1.get().replace('"', '')
     mydict["EXOPath"] = file2.get().replace('"', '')
-    mydict["IsAddFilterAsMediaObj"] = v1.get()
-    mydict["SrcPath"] = file4.get().replace('"', '')
+    mydict["OutputType"] = trgt_radio.get()
+    mydict["SrcPath"] = file3.get().replace('"', '').replace('/', '\\')
     mydict["EffPath"] = file9.get().replace('"', '')
     mydict["IsAlpha"] = v4.get()
     mydict["IsLoop"] = v5.get()
     mydict["SrcPosition"] = file6.get()
+    mydict["SrcRate"] = file4a.get()
     mydict["fps"] = file5.get()
     mydict["IsFlipHEvenObj"] = v3.get()
     mydict["clipping"] = v6.get()
@@ -724,32 +759,20 @@ def run():
     mydict["YCenter"] = ParamEntry12.get()
     mydict["ZCenter"] = ParamEntry13.get()
     mydict["SceneIdx"] = int(file11.get() or 0)
-    mydict["AutoSrc"] = v12.get()
+    mydict["AutoSrc"] = int(trgt_radio.get() == 0)
 
-    if ':' in file8disp.get():
-        file8 = StringVar(value=file8disp.get()[:file8disp.get().find(':')])  # file8にdispの内容を保存。この先の処理との互換維持
-    else:
-        file8 = file8disp
-
-    if file8.get() != "":
-        track = file8.get().split(",")
-
-        mydict["Track"] = []
-        for t in track:
-            if t.isdecimal():
-                mydict["Track"].append(int(t))
-    else:
-        mydict["Track"] = None
+    mydict["Track"] = file8_tree.get_checked()
 
     if mydict["RPPPath"] == "" or mydict["EXOPath"] == "" or mydict["fps"] == "":
-        messagebox.showinfo("エラー", "値を入力して実行")
+        messagebox.showinfo("エラー", "必須項目（RPP/EXO/FPS）が入力されていません。")
         return 0
-    if (mydict["SceneIdx"] <= 0 or mydict["SceneIdx"] > 100) and v11.get() == "1":
-        messagebox.showinfo("エラー", "正しいシーン番号を入力")
+    if (mydict["SceneIdx"] <= 0 or mydict["SceneIdx"] >= 50) and mydict["OutputType"] == 4:
+        messagebox.showinfo("エラー", "正しいシーン番号を入力してください。（範囲 : 1 ~ 49）")
         return 0
-    if v10.get() == "1" and v11.get() == "1":
-        messagebox.showinfo("エラー", "画像/シーンとして配置オプションはどちらか一つを選択")
-        return 0
+    elif mydict["SceneIdx"] != 1 and mydict["OutputType"] == 4:
+        messagebox.showinfo(
+            "注意", "AviUtlのバグの影響により、シーン番号は反映されません。\nインポート後、個別に設定してください。"
+                  "\n拡張編集0.93rc か patch.aul導入済 の環境の方は無視できます。")
 
     count = mydict["EffCount"]
     runcount = 0
@@ -766,7 +789,7 @@ def run():
                     mydict["Effect"][i].append(eff)
                 else:  # 移動ありの場合
                     if str(hEntryE[runcount].get()) == "":
-                        messagebox.showinfo("エラー", "値を入力して実行")
+                        messagebox.showinfo("エラー", "追加フィルタ効果の終点が入力されていません。")
                         return 0
                     eff = [EffDict[mydict["Effect"][i][0]][x][0],
                            str(hEntryS[runcount].get()) + "," + str(hEntryE[runcount].get()) + "," + str(
@@ -774,7 +797,8 @@ def run():
                     if XDict[hEntryX[runcount].get()] != "":
                         eff[1] += str(hEntryConf[runcount].get())
                         messagebox.showinfo(
-                            "注意", "AviUtlのバグのため設定の値は反映されません。インポート後設定してください\n拡張編集0.93rc か patch.aul導入済 の環境は影響を受けません")
+                            "注意", "AviUtlのバグの影響により、移動の設定の値は反映されません。\nインポート後、個別に設定してください。"
+                                  "\n拡張編集0.93rc か patch.aul導入済 の環境の方は無視できます。")
                     if XDict[hEntryX[runcount].get()] != "" and hEntryConf[runcount].get() != "":
                         eff = [EffDict[mydict["Effect"][i][0]][x][0],
                                str(hEntryS[runcount].get()) + "," + str(hEntryE[runcount].get()) + "," + str(
@@ -791,11 +815,24 @@ def run():
     thread.start()
 
 
+def trgt_command():
+    if trgt_radio.get() == 1 or trgt_radio.get() == 2:
+        button4['state'] = 'enable'
+        file3_entry['state'] = 'enable'
+    else:
+        button4['state'] = 'disable'
+        file3_entry['state'] = 'disable'
+    if trgt_radio.get() == 4:
+        scene_entry['state'] = 'enable'
+    else:
+        scene_entry['state'] = 'disable'
+
+
 if __name__ == '__main__':
     read_cfg()
     # root
     root = Tk()
-    root.title('RPPtoEXO v1.8')
+    root.title('RPPtoEXO v2.0 Developing')
     root.columnconfigure(1, weight=1)
 
     LFrame = ttk.Frame(root)
@@ -809,10 +846,10 @@ if __name__ == '__main__':
     # Frame1 RPP選択
     frame1 = ttk.Frame(LFrame, padding=5)
     frame1.grid(row=0, column=0, sticky=N)
-    button1 = ttk.Button(frame1, text='参照', command=slct_rpp)
+    button1 = ttk.Button(frame1, text='参照…', command=slct_rpp)
     button1.grid(row=0, column=2)
     s1 = StringVar()
-    s1.set('.RPP : ')
+    s1.set('* RPP : ')
     label1 = ttk.Label(frame1, textvariable=s1)
     label1.grid(row=0, column=0)
     file1 = StringVar()
@@ -825,106 +862,77 @@ if __name__ == '__main__':
     # Frame2 EXO指定
     frame2 = ttk.Frame(LFrame, padding=5)
     frame2.grid(row=1, column=0)
-    button2 = ttk.Button(frame2, text='参照', command=save_exo)
+    button2 = ttk.Button(frame2, text='保存先…', command=save_exo)
     button2.grid(row=1, column=2)
     s2 = StringVar()
-    s2.set('.EXO : ')
+    s2.set('* EXO : ')
     label2 = ttk.Label(frame2, textvariable=s2)
     label2.grid(row=1, column=0)
     file2 = StringVar()
     file2_entry = ttk.Entry(frame2, textvariable=file2, width=50)
     file2_entry.grid(row=1, column=1)
 
-    # # Frame3a 追加対象指定
-    # trgt_radio = IntVar()
-    # trgt_radio.set(0)
-    #
-    # frame3a = ttk.Frame(LFrame, padding=5)
-    # frame3a.grid(row=2, column=0)
-    # str_trgt = StringVar()
-    # str_trgt.set('追加対象 : ')
-    # label3a = ttk.Label(frame3a, textvariable=str_trgt)
-    # label3a.grid(row=0, column=0, sticky=W)
-    # trgt_radio1 = ttk.Radiobutton(frame3a, value=0, variable=trgt_radio, text='動画')
-    # trgt_radio1.grid(row=0, column=1)
-    # trgt_radio2 = ttk.Radiobutton(frame3a, value=1, variable=trgt_radio, text='画像')
-    # trgt_radio2.grid(row=0, column=2)
-    # trgt_radio3 = ttk.Radiobutton(frame3a, value=2, variable=trgt_radio, text='フィルタ')
-    # trgt_radio3.grid(row=0, column=3)
-    # trgt_radio4 = ttk.Radiobutton(frame3a, value=3, variable=trgt_radio, text='シーン (番号 : )')
-    # trgt_radio4.grid(row=0, column=4)
-    # file11 = StringVar()
-    # trgt_entry = ttk.Entry(frame3a, textvariable=file11, width=3)
-    # trgt_entry.grid(row=0, column=5)
+    # frame3 追加対象オブジェクト・素材指定
+    trgt_radio = IntVar()
+    trgt_radio.set(0)
 
-    # Frame3 IsAddFilterAsMediaObj IsFlipHEvenObj FPS他
-    frame3 = ttk.Frame(LFrame, padding=10)
-    frame3.grid(row=2, column=0)  # ###################################################################元はrow=2
-    v1 = StringVar()
-    v1.set(0)
-    cb1 = ttk.Checkbutton(
-        frame3,
-        padding=5,
-        text='フィルタのみを追加する',
-        onvalue=1,
-        offvalue=0,
-        variable=v1)
-    cb1.grid(row=0, column=0, sticky=W)
+    frame3 = ttk.Frame(LFrame, padding=5)
+    frame3.grid(row=2, column=0)
+    str_trgt = StringVar()
+    str_trgt.set('追加対象 : ')
+    label3 = ttk.Label(frame3, textvariable=str_trgt)
+    label3.grid(row=0, column=0, sticky=W)
+    trgt_radio1 = ttk.Radiobutton(frame3, value=0, variable=trgt_radio, text='自動検出', width=10, command=trgt_command)
+    trgt_radio1.grid(row=0, column=1)
+    trgt_radio2 = ttk.Radiobutton(frame3, value=1, variable=trgt_radio, text='動画', command=trgt_command)
+    trgt_radio2.grid(row=0, column=2)
+    trgt_radio3 = ttk.Radiobutton(frame3, value=2, variable=trgt_radio, text='画像', command=trgt_command)
+    trgt_radio3.grid(row=0, column=3)
+    trgt_radio4 = ttk.Radiobutton(frame3, value=3, variable=trgt_radio, text='フィルタ効果', command=trgt_command)
+    trgt_radio4.grid(row=0, column=4)
+    trgt_radio5 = ttk.Radiobutton(frame3, value=4, variable=trgt_radio, text='シーン 番号: ', command=trgt_command)
+    trgt_radio5.grid(row=0, column=5)
+    file11 = StringVar()
+    scene_entry = ttk.Entry(frame3, textvariable=file11, width=3, state='disable')
+    scene_entry.grid(row=0, column=6)
 
-    s5 = StringVar()
-    s5.set('FPS : ')
-    label5 = ttk.Label(frame3, textvariable=s5)
-    label5.grid(row=0, column=3, sticky=(W + E))
-    file5 = StringVar()
-    file5_entry = ttk.Entry(frame3, textvariable=file5, width=3)
-    file5_entry.grid(row=0, column=4, sticky=(W + E))
-    file5_entry.insert(END, "60")
+    s3 = StringVar()
+    s3.set('素材 : ')
+    label4 = ttk.Label(frame3, textvariable=s3)
+    label4.grid(row=1, column=0, sticky=E)
+    file3 = StringVar()
+    file3_entry = ttk.Entry(frame3, textvariable=file3, width=46, state="disable")
+    file3_entry.grid(row=1, column=1, columnspan=5, sticky=W)
+    button4 = ttk.Button(frame3, text='参照…', command=slct_source, state="disable")
+    button4.grid(row=1, column=5, columnspan=2, sticky=E)
+
+    #frame4  オブジェクト設定
+    frame4 = ttk.Frame(LFrame, padding=1)
+    frame4.grid(row=3, column=0)
+
+    s4a = StringVar()
+    s4a.set('再生速度 : ')
+    label4a = ttk.Label(frame4, textvariable=s4a)
+    label4a.grid(row=0, column=3, sticky=E, padx=(36, 0))
+    file4a = StringVar()
+    file4a_entry = ttk.Entry(frame4, textvariable=file4a, width=10)
+    file4a_entry.grid(row=0, column=4, sticky=W+E)
+    file4a_entry.insert(END, "100.0")
 
     s6 = StringVar()
     s6.set('再生位置 : ')
-    label6 = ttk.Label(frame3, textvariable=s6)
-    label6.grid(row=1, column=3, sticky=(W + E))
+    label6 = ttk.Label(frame4, textvariable=s6)
+    label6.grid(row=1, column=3, sticky=E, padx=(36, 0))
     file6 = StringVar()
-    file6_entry = ttk.Entry(frame3, textvariable=file6, width=3)
-    file6_entry.grid(row=1, column=4, sticky=(W + E))
+    file6_entry = ttk.Entry(frame4, textvariable=file6, width=10)
+    file6_entry.grid(row=1, column=4, sticky=W+E)
     file6_entry.insert(END, "1")
 
-    s10 = StringVar()
-    s10.set('ｼｰﾝ番号 : ')
-    label16 = ttk.Label(frame3, textvariable=s10)
-    label16.grid(row=4, column=3, sticky=(W + E))
-    file11 = StringVar()
-    file11_entry = ttk.Entry(frame3, textvariable=file11, width=3)
-    file11_entry.grid(row=4, column=4, sticky=(W + E))
-    file11_entry.insert(END, "")
 
-    s8 = StringVar()
-    s8.set('トラック : ')
-    label8 = ttk.Label(frame3, textvariable=s8)
-    label8.grid(row=2, column=3, sticky=(W + E))
-    # file8 = StringVar()
-    # file8_entry = ttk.Entry(frame3, textvariable=file8, width=3)
-    # file8_entry.grid(row=2, column=4, sticky=(W + E))
-    # file8_entry.insert(END, "")
-    file8disp = StringVar()
-    file8_combo = ttk.Combobox(frame3, textvariable=file8disp, width=3)
-    file8_combo.grid(columnspan=2, row=3, column=3, sticky=(W + E))
-    file8_combo.insert(END, "")
-
-    v3 = StringVar()
-    v3.set(0)
-    cb2 = ttk.Checkbutton(
-        frame3,
-        padding=5,
-        text='左右反転',
-        onvalue=1,
-        offvalue=0,
-        variable=v3)
-    cb2.grid(row=0, column=1, sticky=(W))
     v4 = StringVar()
     v4.set(0)
     cb4 = ttk.Checkbutton(
-        frame3,
+        frame4,
         padding=5,
         text='アルファチャンネルを読み込む',
         onvalue=1,
@@ -934,7 +942,7 @@ if __name__ == '__main__':
     v5 = StringVar()
     v5.set(0)
     cb5 = ttk.Checkbutton(
-        frame3,
+        frame4,
         padding=5,
         text='ループ再生',
         onvalue=1,
@@ -944,84 +952,68 @@ if __name__ == '__main__':
     v6 = StringVar()
     v6.set(0)
     cb6 = ttk.Checkbutton(
-        frame3,
+        frame4,
         padding=5,
         text='上のオブジェクトでクリッピング',
         onvalue=1,
         offvalue=0,
         variable=v6)
-    cb6.grid(row=2, column=0, sticky=(W))
-    v7 = StringVar()
-    v7.set(0)
-    cb7 = ttk.Checkbutton(
-        frame3,
-        padding=5,
-        text='偶数番目Objを別レイヤ配置',
-        onvalue=1,
-        offvalue=0,
-        variable=v7)
-    cb7.grid(row=2, column=1, sticky=(W))
+    cb6.grid(row=0, column=0, sticky=(W))
     v8 = StringVar()
     v8.set(0)
     cb8 = ttk.Checkbutton(
-        frame3,
+        frame4,
         padding=5,
         text='拡張描画',
         onvalue=1,
         offvalue=0,
         variable=v8)
-    cb8.grid(row=3, column=0, sticky=(W))
+    cb8.grid(row=0, column=1, sticky=W)
+
+    # Frame4a ソフト独自設定 / トラック選択
+    frame4a = ttk.Frame(LFrame, padding=10)
+    frame4a.grid(row=4, column=0)
+
+    v3 = StringVar()
+    v3.set(0)
+    cb2 = ttk.Checkbutton(
+        frame4a,
+        padding=5,
+        text='左右反転',
+        onvalue=1,
+        offvalue=0,
+        variable=v3)
+    cb2.grid(row=0, column=0, sticky=(W))
     v9 = StringVar()
     v9.set(0)
     cb9 = ttk.Checkbutton(
-        frame3,
+        frame4a,
         padding=5,
         text='隙間なく配置',
         onvalue=1,
         offvalue=0,
         variable=v9)
-    cb9.grid(row=3, column=1, sticky=(W))
-    v10 = StringVar()
-    v10.set(0)
-    cb10 = ttk.Checkbutton(
-        frame3,
+    cb9.grid(row=1, column=0, sticky=(W))
+    v7 = StringVar()
+    v7.set(0)
+    cb7 = ttk.Checkbutton(
+        frame4a,
         padding=5,
-        text='画像として配置',
+        text='偶数番目Objを\n別レイヤ配置',
         onvalue=1,
         offvalue=0,
-        variable=v10)
-    cb10.grid(row=4, column=0, sticky=(W))
-    v11 = StringVar()
-    v11.set(0)
-    cb11 = ttk.Checkbutton(
-        frame3,
-        padding=5,
-        text='シーンとして配置',
-        onvalue=1,
-        offvalue=0,
-        variable=v11)
-    cb11.grid(row=4, column=1, sticky=(W))
-    v12 = StringVar()
-    v12.set(0)
-    cb12 = ttk.Checkbutton(frame3, padding=5, text='素材自動選択', onvalue=1, offvalue=0, variable=v12)
-    cb12.grid(row=5, column=0, sticky=W)
+        variable=v7)
+    cb7.grid(row=2, column=0, sticky=(W))
 
-    # Frame4 動画素材選択
-    frame4 = ttk.Frame(LFrame, padding=10)
-    frame4.grid(row=3, column=0)
-    button4 = ttk.Button(frame4, text='参照', command=slct_source)
-    button4.grid(row=3, column=2)
-    s4 = StringVar()
-    s4.set('素材 : ')
-    label4 = ttk.Label(frame4, textvariable=s4)
-    label4.grid(row=3, column=0, sticky=(W))
-    file4 = StringVar()
-    file4_entry = ttk.Entry(frame4, textvariable=file4, width=50)
-    file4_entry.grid(row=3, column=1)
+    file8disp = StringVar()
+    file8_tree = CheckboxTreeview(frame4a, show='tree', height=5)
+    file8_tree.grid(row=0, column=1, rowspan=3, sticky=N+S+E+W)
+    file8_tree.column("#0", width=300)
+    ttk.Style().configure('Checkbox.Treeview', rowheight=15, borderwidth=1, relief='sunken', indent=0)
 
     # Frame5 エフェクト追加/削除
     frame5 = ttk.Frame(LFrame, padding=10)
-    frame5.grid(row=4, column=0)
+    frame5.grid(row=5, column=0)
     v2 = StringVar()
     cb = ttk.Combobox(frame5, textvariable=v2)
     cb['values'] = list(EffDict.keys())
@@ -1034,11 +1026,11 @@ if __name__ == '__main__':
 
     # Frame9 効果をファイルから読み込む
     frame9 = ttk.Frame(LFrame, padding=10)
-    frame9.grid(row=5, column=0)
-    button7 = ttk.Button(frame9, text='参照', command=slct_filter_cfg_file)
+    frame9.grid(row=6, column=0)
+    button7 = ttk.Button(frame9, text='参照…', command=slct_filter_cfg_file)
     button7.grid(row=3, column=2)
     s7 = StringVar()
-    s7.set('効果をファイルから読み込む ')
+    s7.set('効果ファイル ')
     label10 = ttk.Label(frame9, textvariable=s7)
     label10.grid(row=3, column=0, sticky=(W))
     file9 = StringVar()
@@ -1047,7 +1039,7 @@ if __name__ == '__main__':
 
     # Frame10スクリプト制御
     frame10 = ttk.Frame(LFrame, padding=10)
-    frame10.grid(row=6, column=0)
+    frame10.grid(row=7, column=0)
     s9 = StringVar()
     s9.set('スクリプト制御 ')
     label15 = ttk.Label(frame10, textvariable=s9)
@@ -1188,9 +1180,17 @@ if __name__ == '__main__':
 
     # Frame7実行
     frame7 = ttk.Frame(LFrame, padding=(0, 5))
-    frame7.grid(row=7, column=0)
+    frame7.grid(row=8, column=0)
+    s5 = StringVar()
+    s5.set('* FPS : ')
+    label5 = ttk.Label(frame7, textvariable=s5)
+    label5.grid(row=0, column=0, sticky=(W + E))
+    file5 = StringVar()
+    file5_entry = ttk.Entry(frame7, textvariable=file5, width=10)
+    file5_entry.grid(row=0, column=1, sticky=(W + E), padx=10)
+    file5_entry.insert(END, "60")
     button6 = ttk.Button(frame7, text='実行', command=run)
-    button6.grid()
+    button6.grid(row=0, column=2)
 
     file1.set("D:/Reaper_Media/Editing Project/rpptest.rpp")
     file2.set("D:/Aviutl  編集ファイル/RPP_to_EXO/test.exo")
