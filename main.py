@@ -20,8 +20,6 @@ from ttkwidgets import CheckboxTreeview
 import cv2
 
 # やりたいこと
-# TODO: RPPのアイテムが特殊な場合（逆再生・セクション・テイク）にも対応する
-# TODO: アイテムがMIDIだった場合、中身のMIDIの音符から自動配置をする
 # TODO: ソースコードのクラス化・ファイル分割
 # TODO: 素材自動検出のとき、ソースファイル（の再生位置）によって参照すべきソースを変えるGUI・機能の作成
 #          ＞ GUI上で再生位置を決めるとき、動画ファイルのサムネイルを表示してあげる
@@ -186,16 +184,17 @@ def add_script_control(item_count, eff_num):
 def main():
     button6['state'] = 'disable'
     root['cursor'] = 'watch'
-    button6["text"] = "実行中..."
+    button6["text"] = "実行中 (1/3)"
+    exist_mode2 = False
     file_path = []
     objDict = {
-        "pos": [-1],
-        "length": [-1],
+        "pos": [-1.0],
+        "length": [-1.0],
         "loop": [-1],
-        "soffs": [-1],
-        "playrate": [-1],
+        "soffs": [-1.0],
+        "playrate": [-1.0],
         "fileidx": [-1],
-        "filetype": [-1],
+        "filetype": [''],
     }
 
     # RPPを読み込み、必要な情報をitemdictに格納していく
@@ -204,35 +203,49 @@ def main():
 
     while index < len(rpp_ary):
 
-        if rpp_ary[index].find("<TRACK") != -1:  # トラック境目
+        if rpp_ary[index].split()[0] == "<TRACK":  # トラック境目
             track_index += 1
             if objDict["pos"][-1] != -1:  # トラックが切り替わる位置に-1を入れる
                 objDict["pos"].append(-1)
                 objDict["length"].append(-1)
                 objDict["loop"].append(-1)
                 objDict["soffs"].append(-1)
-                objDict["playrate"].append(-1)
+                objDict["playrate"].append(0)
                 objDict["fileidx"].append(-1)
-                objDict["filetype"].append(-1)
+                objDict["filetype"].append('')
 
-        if ((str(track_index) in mydict["Track"])
-                and rpp_ary[index].find("<ITEM") != -1):  # 該当トラックのITEMセクションに入ったら
+        if str(track_index) in mydict["Track"] and rpp_ary[index].split()[0] == "<ITEM":  # 該当トラックのITEMチャンクに入ったら
             itemdict = {}
+            tempdict = {}
             prefix = ""
+            can_assign = True
             item_lyr = 1
             index += 1
+
             while item_lyr > 0:  # <ITEM >を辞書化し、管理しやすくする
-                if rpp_ary[index].find("<") != -1:  # 深い階層に入る
+                if rpp_ary[index].split()[0].startswith("<"):  # 深い階層に入る
                     prefix += rpp_ary[index][rpp_ary[index].find("<") + 1:-1] + "/"
                     item_lyr += 1
-                elif rpp_ary[index].find(">") != -1:  # 階層を下る
+                elif rpp_ary[index].split()[0] == ">":  # 階層を下る
                     slash_pos = prefix.find("/")
                     prefix = prefix[slash_pos + 1:] if slash_pos != len(prefix) - 1 else ""
                     item_lyr -= 1
                 else:
                     spl = rpp_ary[index].split()
                     key = prefix + spl.pop(0)
-                    itemdict[key] = spl
+                    if can_assign:
+                        itemdict[key] = spl
+                    if key == 'TAKE':
+                        if not spl:  # テイクが選択されていなかったら
+                            can_assign = False
+                        else:
+                            can_assign = True
+                            tempdict["POSITION"] = itemdict["POSITION"]
+                            tempdict["LENGTH"] = itemdict["LENGTH"]
+                            tempdict["LOOP"] = itemdict["LOOP"]
+                            itemdict.clear()
+                            itemdict = tempdict
+
                 index += 1
 
             index -= 2
@@ -245,6 +258,9 @@ def main():
                 objDict["playrate"].append(float(itemdict["PLAYRATE"][0])) if "PLAYRATE" in itemdict \
                     else objDict["playrate"].append(1.0)
                 srchflg = 0
+
+                if "SOURCE SECTION/MODE" in itemdict and int(itemdict["SOURCE SECTION/MODE"][0]) >= 2:  # アイテムが逆再生
+                    objDict["playrate"][-1] *= -1
 
                 for srch in srch_type.keys():  # ここ以下ファイルパス処理
                     keyy = "SOURCE " + srch + "/FILE"
@@ -265,12 +281,55 @@ def main():
                 if not srchflg:
                     objDict["fileidx"].append(-1)
                     objDict["filetype"].append("OTHER")
+            if ("SOURCE SECTION/LENGTH" in itemdict and
+                    ("SOURCE SECTION/MODE" not in itemdict or itemdict["SOURCE SECTION/MODE"][0] != "3")):
+                end_length = objDict["length"][-1]
+                sec_length = float(itemdict["SOURCE SECTION/LENGTH"][0]) / float(itemdict["PLAYRATE"][0])
+                sec_count = 1
+                objDict["soffs"][-1] = float(itemdict["SOURCE SECTION/STARTPOS"][0])
+                if objDict["loop"][-1] == 1:
+                    objDict["loop"][-1] = 0
+                    while sec_length * sec_count < end_length:  # セクションアイテムをUtl上で複数オブジェクトに分割していく
+                        objDict["length"][-1] = sec_length
+                        objDict["pos"].append(objDict["pos"][-1] + sec_length)
+                        objDict["length"].append(-1)
+                        objDict["loop"].append(0)
+                        objDict["soffs"].append(objDict["soffs"][-1])
+                        objDict["playrate"].append(objDict["playrate"][-1])
+                        objDict["fileidx"].append(objDict["fileidx"][-1])
+                        objDict["filetype"].append(objDict["filetype"][-1])
+                        sec_count += 1
+                objDict["length"][-1] = sec_length * (sec_count + 1) - end_length
+                if "SOURCE SECTION/MODE" in itemdict and itemdict["SOURCE SECTION/MODE"][0] == "2":
+                    exist_mode2 = True
 
         index += 1
-    make_exo(objDict, file_path)
+    end_code = make_exo(objDict, file_path)
+    if exist_mode2:
+        messagebox.showwarning("警告", "RPP内にセクション・逆再生付きのアイテムが存在したため、\n"
+                                     "該当アイテムが正常に生成できませんでした。\n")
+        end_code = 2
+    if end_code == 1:
+        messagebox.showwarning("警告", "出力処理時にEXOのレイヤー数が100を超えたため、\n"
+                                     "正常に生成できませんでした。\n")
+    if end_code != 0:
+        ret = messagebox.askyesno("警告", "正常に生成できませんでした。\n保存先のフォルダを開きますか？", icon="warning")
+    else:
+        ret = messagebox.askyesno("正常終了", "正常に生成されました。\n保存先のフォルダを開きますか？")
+
+    if ret:
+        path = os.path.dirname(mydict["EXOPath"]).replace('/', '\\')
+        if path == "":
+            path = os.getcwd()
+        subprocess.Popen(['explorer', path], shell=True)
+
+    button6['state'] = 'normal'
+    root['cursor'] = 'arrow'
+    button6["text"] = "実行"
 
 
 def make_exo(objDict, file_path):
+    button6["text"] = "実行中 (2/3)"
     exo_result = "[exedit]\nwidth=" + str(1280) + "\nheight=" + str(720) + "\nrate=" + str(
         60) + "\nscale=1\nlength=99999\naudio_rate=44100\naudio_ch=2"
     item_count = 0
@@ -310,9 +369,13 @@ def make_exo(objDict, file_path):
         cap.release()
         file_fps.append(fps)
 
+    button6["text"] = "実行中 (3/3)"
     for index in range(1, len(objDict["length"])):
         lfff_count = 0
         asc_count = 0
+
+        if layer > 100:
+            break
 
         # オブジェクト最初のフレームと長さの計算
         obj_frame_pos = objDict["pos"][index] * float(mydict["fps"]) + 1
@@ -367,15 +430,19 @@ def make_exo(objDict, file_path):
                         "\nループ再生=" + str(mydict["IsLoop"]) + "\nscene=" + str(mydict["SceneIdx"])
         else:  # 素材自動検出モード時の処理
 
-            # if objDict["filetype"][index] == "VIDEO":
+            if objDict["filetype"][index] == "VIDEO":
+                file = file_path[objDict["fileidx"][index]]
+            else:
+                file = ""
             is_alpha = 0
-            if file_path[objDict["fileidx"][index]][file_path[objDict["fileidx"][index]].find('.'):] == ".avi":
+            if file[file.find('.'):] == ".avi":
                 is_alpha = 1
+
             exo_5 = ".0]\n_name=動画ファイル" \
                     "\n再生位置=" + str(int(objDict["soffs"][index] * file_fps[objDict["fileidx"][index]] + 1)) \
                     + "\n再生速度=" + str(int(objDict["playrate"][index] * 1000) / 10.0) + \
                     "\nループ再生=" + str(objDict["loop"][index]) + "\nアルファチャンネルを読み込む=" + str(is_alpha) + \
-                    "\nfile=" + str(file_path[objDict["fileidx"][index]])
+                    "\nfile=" + file
 
         # メディアオブジェクト  偶数番目（反転○）
         if mydict["OutputType"] != 3 and int(mydict["IsFlipHEvenObj"]) == 1 and (bfidx + item_count) % 2 == 0:
@@ -462,20 +529,20 @@ def make_exo(objDict, file_path):
                 line += t
                 if t == '\n':
                     line = ""
+
+            if layer > 100:
+                end_code = 1  # レイヤー100超
+            else:
+                end_code = 0
     except PermissionError:
         messagebox.showerror("エラー", "EXOファイルへの出力に失敗しました。\n上書き先のEXOファイルが開かれているか、読み取り専用になっています。")
+        end_code = -1
     except UnicodeEncodeError:
         messagebox.showerror("エラー", "EXOファイルへの出力に失敗しました。\nAviUtl で使用できない文字がパス名に含まれています。\n"
                                     "パス名に含まれる該当文字を削除し、再度実行し直してください。\n\n"
                              + line + '  『' + t + '』')
-    else:
-        ret = messagebox.askyesno("正常終了", "正常に生成されました。\n保存先のフォルダを開きますか？")
-        if ret:
-            subprocess.Popen(['explorer', os.path.dirname(mydict["EXOPath"]).replace('/', '\\')], shell=True)
-
-    button6['state'] = 'normal'
-    root['cursor'] = 'arrow'
-    button6["text"] = "実行"
+        end_code = -1
+    return end_code
 
 
 def read_cfg():  # 設定読み込み
@@ -540,7 +607,7 @@ def load_track_name():  # トラック名読み込み
     file8_tree.delete(*file8_tree.get_children())
     filepath = file1_entry.get().replace('"', '')  # パスをコピペした場合のダブルコーテーションを削除
     file8_tree.insert("", "end", text="＊全トラック", iid="all", open=True)
-    file8_tree.change_state("all", 'checked')
+    file8_tree.change_state("all", 'tristate')
     global rpp_ary
     if ".rpp" in filepath.lower():
         track_list = ["全トラック"]
@@ -556,15 +623,16 @@ def make_treedict(index):
     value = {}
     while True:
         index += 1
-        while rpp_ary[index].find("<TRACK") == -1:
+        while rpp_ary[index].split()[0] != "<TRACK":
             index += 1
             if index >= len(rpp_ary):
                 return value, index, 0
 
-        name = rpp_ary[index + 1][9:-1]
+        mute = int(rpp_ary[index + 6][13])
+        name = str(rpp_ary[index + 1][9:-1] + "[M​]" * mute)
         isbus = rpp_ary[index + 9].split()  # [1] > フォルダ始端・終端 [2] > 階層を何個下るか
         while name in value:
-            name += " "
+            name += "​"
         value[name] = {}
 
         if isbus[1] == "1":
@@ -580,12 +648,18 @@ def insert_treedict(tree, prefix, iid):
         iid += 1
         if k == next(reversed(tree.keys()), None):
             file8_tree.insert("all", "end", text=prefix + "└" + k, iid=str(iid))
+            if "[M​]" not in k and "​" not in prefix:
+                file8_tree.change_state(str(iid), 'checked')
             if tree[k] != {}:
-                iid = insert_treedict(tree[k], prefix + "　", iid)
+                iid = insert_treedict(tree[k], prefix + "　", iid) if "[M​]" not in k else \
+                      insert_treedict(tree[k], prefix + "　​", iid)
         else:
             file8_tree.insert("all", "end", text=prefix + "├" + k, iid=str(iid))
+            if "[M​]" not in k and "​" not in prefix:
+                file8_tree.change_state(str(iid), 'checked')
             if tree[k] != {}:
-                iid = insert_treedict(tree[k], prefix + "│", iid)
+                iid = insert_treedict(tree[k], prefix + "│", iid) if "[M​]" not in k else \
+                      insert_treedict(tree[k], prefix + "　​", iid)
     return iid
 
 
@@ -734,7 +808,10 @@ def del_filter_label():  # 効果パラメータ入力画面破棄
 
 def run():
     mydict["RPPPath"] = file1.get().replace('"', '')
-    mydict["EXOPath"] = file2.get().replace('"', '')
+    if file2.get().replace('"', '').lower().endswith(".exo") or file2.get().replace('"', '') == "":
+        mydict["EXOPath"] = file2.get().replace('"', '')
+    else:
+        mydict["EXOPath"] = file2.get().replace('"', '') + ".exo"
     mydict["OutputType"] = trgt_radio.get()
     mydict["SrcPath"] = file3.get().replace('"', '').replace('/', '\\')
     mydict["EffPath"] = file9.get().replace('"', '')
@@ -763,9 +840,19 @@ def run():
 
     mydict["Track"] = file8_tree.get_checked()
 
-    if mydict["RPPPath"] == "" or mydict["EXOPath"] == "" or mydict["fps"] == "":
-        messagebox.showinfo("エラー", "必須項目（RPP/EXO/FPS）が入力されていません。")
+    if mydict["RPPPath"] == "":
+        messagebox.showinfo("エラー", "読み込むRPPを入力してください。")
         return 0
+    elif mydict["EXOPath"] == "":
+        messagebox.showinfo("エラー", "EXOの保存先パスを入力してください。")
+        return 0
+    elif mydict["fps"] == "":
+        messagebox.showinfo("エラー", "FPSの値を入力してください。")
+        return 0
+    elif not mydict["Track"]:
+        messagebox.showinfo("エラー", "出力するトラックを選択してください。")
+        return 0
+
     if (mydict["SceneIdx"] <= 0 or mydict["SceneIdx"] >= 50) and mydict["OutputType"] == 4:
         messagebox.showinfo("エラー", "正しいシーン番号を入力してください。（範囲 : 1 ~ 49）")
         return 0
