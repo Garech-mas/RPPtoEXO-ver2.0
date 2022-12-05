@@ -17,10 +17,12 @@ from tkinter import filedialog
 from tkinter import messagebox
 from tkinter import ttk
 from ttkwidgets import CheckboxTreeview
-import cv2
+
+from rpp2exo import exo, rpp
+from rpp2exo.exo import LoadFilterFileError
+from rpp2exo import dict
 
 # やりたいこと
-# TODO: ソースコードのクラス化・ファイル分割
 # TODO: 素材自動検出のとき、ソースファイル（の再生位置）によって参照すべきソースを変えるGUI・機能の作成
 #          ＞ GUI上で再生位置を決めるとき、動画ファイルのサムネイルを表示してあげる
 # TODO: 空のアイテムの除去 or テキスト化の処理
@@ -28,37 +30,11 @@ import cv2
 # 移動方法やスクリプトなどをAviUtlのフォルダから読み取って設定できるようにする機能
 # Google Colabにそのまま引き継げるような仕組みづくり
 # GUIの表記を英語にも対応し、多言語にも対応しやすいようにしたい
+# ソースコードのクラス化・ファイル分割
 
-EffDict = {
-    #   "効果名"        :       [["設定１","デフォルト設定"],["設定２","デフォルト設定"],["設定３","デフォルト設定"]], 各設定3つ目に-1でチェックボックス
-    "座標": [["X", 0.0], ["Y", 0.0], ["Z", 0.0]],
-    "拡大率": [["拡大率", 100.00], ["X", 100.00], ["Y", 100.00]],
-    "透明度": [["透明度", 0.0]],
-    "回転": [["X", 0.0], ["Y", 0.0], ["Z", 0.0]],
-    "リサイズ": [["拡大率", 100.00], ["X", 100.00], ["Y", 100.00], ["補間なし", 0, -1], ["ドット数でサイズ指定", 0, -1]],
-    "反転": [["上下反転", 0, -1], ["左右反転", 0, -1], ["輝度反転", 0, -1], ["色相反転", 0, -1], ["透明度反転", 0, -1]],
-    # チェックボック項目がある効果設定時に”効果のクリア”をするとバグる。
-    "色調補正": [["明るさ", 100.0], ["ｺﾝﾄﾗｽﾄ", 100.0], ["色相", 0.0], ["輝度", 100.0], ["彩度", 100.0], ["飽和する", 0, -1]],
-    "クリッピング": [["上", 0], ["下", 0], ["左", 0], ["右", 0], ["中心の位置を変更", 0, -1]],
-    "クロマキー": [["色相範囲", 24], ["彩度範囲", 96], ["境界補正", 1], ["色彩補正", 0, -1], ["透過補正", 0, -1], ["color_yc", "cf010008b3fe"],
-              ["status", 1]],
-    # とりあえず青色透過。デフォ設定は0000000000(未設定)とかだったはず。
-    "縁取り": [["サイズ", 3], ["ぼかし", 10], ["color", 000000], ["file", ""]],
-    "マスク": [["X", 0.0], ["Y", 0.0], ["回転", 0.00], ["サイズ", 100], ["縦横比", 0.0], ["ぼかし", 0], ["マスクの反転", 0, -1],
-            ["元のサイズに合わせる", 0, -1], ["type", 2], ["name", ""], ["mode", 0]],
-    "放射ブラー": [["範囲", 20.0], ["X", 0], ["Y", 0], ["サイズ固定", 0, -1]],
-    "方向ブラー": [["範囲", 20], ["角度", 50.0], ["サイズ固定", 0, -1]],
-    "振動": [["X", 10], ["Y", 10], ["Z", 0], ["周期", 1], ["ランダムに強さを変える", 1, -1], ["複雑に振動", 0, -1]],
-    "ミラー": [["透明度", 0.0], ["減衰", 0.0], ["境目調整", 0], ["中心の位置を変更", 1, -1], ["type", 1]],
-    # type ミラー方向 上：0 下:1 左:2 右:3 中心位置変更のデフォは0
-    "ラスター": [["横幅", 100], ["高さ", 100], ["周期", 1.00], ["縦ラスター", 0], ["ランダム振幅", 0]],
-    "波紋": [["中心X", 0], ["中心Y", 0], ["幅", 30.0], ["高さ", 15.0], ["速度", 150], ["num", 0], ["interval", 0], ["add", 0]],
-    "ディスプレイスメントマップ": [["param0", 0.0], ["param1", 0.0], ["X", 0.0], ["Y", 0.0], ["回転", 0.00], ["サイズ", 200],
-                      ["縦横比", 0.0], ["ぼかし", 5], ["元のサイズに合わせる", 0], ["type", 1], ["name", ""], ["mode", 0], ["calc", 0]],
-    "色ずれ": [["ずれ幅", 5], ["角度", 0.0], ["強さ", 100], ["type", 0]],
-    "アニメーション効果": [["track0", 0.00], ["track1", 0.00], ["track1", 0.00], ["track2", 0.00], ["track3", 0.00],
-                  ["check0", 0], ["type", 0], ["filter", 0], ["name", ""], ["param", ""]],
-}
+
+EffDict = dict.EffDict
+XDict = dict.XDict
 
 mydict = {
     # 基本設定
@@ -97,9 +73,12 @@ mydict = {
     "EffCount": 0,  # エフェクト数（GUI用）
     "EffCount2": 0,
     "EffCbNum": 0,  # パラメータ  チェックボックスの数
+    "ScriptText": '',
 
     # 独自設定
     "IsFlipHEvenObj": 0,  # 偶数オブジェクトを左右反転するか
+    "SepLayerEvenObj": 0,  # 偶数オブジェクトを別レイヤ―に配置するか
+    "NoGap": 0,  # オブジェクト間の隙間を埋めるか
     "OutputType": 0,  # 1=動画  2=画像  3=フィルタ  4=シーン  として出力
     "IsExSet": 0,  # 拡張描画を有効にするか
     "AutoSrc": 0,  # 素材自動検出が有効か
@@ -110,439 +89,56 @@ mydict = {
     "SrcLastDir": os.path.abspath(os.path.dirname(__file__)),
 }
 
-XDict = {
-    "移動なし": "",
-    "直線移動": 1,
-    "加減速移動": 103,
-    "曲線移動": 2,
-    "瞬間移動": 3,
-    "中間点無視": 4,
-    "移動量指定": 5,
-    "ランダム": 6,
-    "反復移動": 8,
-    "補完移動": "15@補間移動",
-    "回転": "15@回転,100",
-    "スクリプト(終了値,15@スクリプト名,)": "",
-    "イージング（通常）": "15@イージング（通常）@イージング",
-    "加速@加減速TRA": "15@加速@加減速TRA",
-    "減速@加減速TRA": "15@減速@加減速TRA",
-    # 追加する際は
-    # "GUI上で表示される名前": "15@スクリプト名"
-}
 
-srch_type = {"VIDEO": "VIDEO",  # 動画ファイル
-             "WAVE": "AUDIO",  # WAV ファイル
-             "MP3": "AUDIO",  # MP3 ファイル
-             "VORBIS": "AUDIO",  # OGG ファイル
-             "FLAC": "AUDIO",  # FLAC ファイル
-             "MIDI": "XMIDI",  # MIDI アイテム
-             "LTC": "XLTC",  # タイムコード ジェネレータ
-             "CLICK": "XCLICK"  # メトロノーム ソース
-             }
-
-rpp_ary = []
-
-
-def add_filter_to_exo(mydict, item_count):
-    count = 1
-    exo_effects = ""
-    for eff in mydict["Effect"]:
-        exo_effects += "\n[" + str(item_count) + "." + \
-                       str(count) + "]\n_name=" + str(eff[0])
-        for x in range(1, len(eff)):
-            exo_effects += "\n" + str(eff[x][0]) + "=" + str(eff[x][1])
-        count += 1
-    return exo_effects
-
-
-def load_filter_from_file(item_count):
-    lfff_count = 0
-    returntext = "\n"
-    with open(str(mydict["EffPath"]), mode='r', encoding='UTF-8', errors='replace') as f:
-        for line in f:
-            if lfff_count == 0 and line != "[0.1]\n":
-                print(line)
-                messagebox.showinfo("エラー", "効果を記入したファイルに問題あり。取説参照")
-            if line[0] == "[":
-                line = "[" + str(item_count) + "." + \
-                       str(len(mydict["Effect"]) + 1 + lfff_count) + "]\n"
-                lfff_count += 1
-            returntext += line
-    return returntext, lfff_count
-
-
-def add_script_control(item_count, eff_num):
-    tmp_text = "\n[" + str(item_count) + "." + str(eff_num) + "]\n_name=スクリプト制御\ntext="
-    # スクリプト制御を追加するためのその場しのぎ関数。こんなやり方じゃいつか詰むぞ
-    script_text = file10_text.get('1.0', 'end-1c')
-    script_text = binascii.hexlify(script_text.encode("UTF-16LE"))
-    script_text = str(script_text)[:-1][2:]
-    script_text = script_text + "0" * (4096 - len(str(script_text)))
-    return tmp_text + script_text
+def warn_print(msg):
+    print('\033[32m\033[4m' + msg + '\033[0m')
 
 
 def main():
     button6['state'] = 'disable'
     root['cursor'] = 'watch'
     button6["text"] = "実行中 (1/3)"
-    exist_mode2 = False
-    file_path = []
-    objDict = {
-        "pos": [-1.0],
-        "length": [-1.0],
-        "loop": [-1],
-        "soffs": [-1.0],
-        "playrate": [-1.0],
-        "fileidx": [-1],
-        "filetype": [''],
-    }
-
-    # RPPを読み込み、必要な情報をitemdictに格納していく
-    index = 0
-    track_index = 0
-
-    while index < len(rpp_ary):
-
-        if rpp_ary[index].split()[0] == "<TRACK":  # トラック境目
-            track_index += 1
-            if objDict["pos"][-1] != -1:  # トラックが切り替わる位置に-1を入れる
-                objDict["pos"].append(-1)
-                objDict["length"].append(-1)
-                objDict["loop"].append(-1)
-                objDict["soffs"].append(-1)
-                objDict["playrate"].append(0)
-                objDict["fileidx"].append(-1)
-                objDict["filetype"].append('')
-
-        if str(track_index) in mydict["Track"] and rpp_ary[index].split()[0] == "<ITEM":  # 該当トラックのITEMチャンクに入ったら
-            itemdict = {}
-            tempdict = {}
-            prefix = ""
-            can_assign = True
-            item_lyr = 1
-            index += 1
-
-            while item_lyr > 0:  # <ITEM >を辞書化し、管理しやすくする
-                if rpp_ary[index].split()[0].startswith("<"):  # 深い階層に入る
-                    prefix += rpp_ary[index][rpp_ary[index].find("<") + 1:-1] + "/"
-                    item_lyr += 1
-                elif rpp_ary[index].split()[0] == ">":  # 階層を下る
-                    slash_pos = prefix.find("/")
-                    prefix = prefix[slash_pos + 1:] if slash_pos != len(prefix) - 1 else ""
-                    item_lyr -= 1
-                else:
-                    spl = rpp_ary[index].split()
-                    key = prefix + spl.pop(0)
-                    if can_assign:
-                        itemdict[key] = spl
-                    if key == 'TAKE':
-                        if not spl:  # テイクが選択されていなかったら
-                            can_assign = False
-                        else:
-                            can_assign = True
-                            tempdict["POSITION"] = itemdict["POSITION"]
-                            tempdict["LENGTH"] = itemdict["LENGTH"]
-                            tempdict["LOOP"] = itemdict["LOOP"]
-                            itemdict.clear()
-                            itemdict = tempdict
-
-                index += 1
-
-            index -= 2
-            objDict["pos"].append(float(itemdict["POSITION"][0]))
-            objDict["length"].append(float(itemdict["LENGTH"][0]))
-            if mydict["AutoSrc"]:  # 素材自動検出モードの処理
-                objDict["loop"].append(int(itemdict["LOOP"][0]))
-                objDict["soffs"].append(float(itemdict["SOFFS"][0])) if "SOFFS" in itemdict \
-                    else objDict["soffs"].append(0.0)
-                objDict["playrate"].append(float(itemdict["PLAYRATE"][0])) if "PLAYRATE" in itemdict \
-                    else objDict["playrate"].append(1.0)
-                srchflg = 0
-
-                if "SOURCE SECTION/MODE" in itemdict and int(itemdict["SOURCE SECTION/MODE"][0]) >= 2:  # アイテムが逆再生
-                    objDict["playrate"][-1] *= -1
-
-                for srch in srch_type.keys():  # ここ以下ファイルパス処理
-                    keyy = "SOURCE " + srch + "/FILE"
-                    if "SOURCE SECTION/" + keyy in itemdict:
-                        path = str(' '.join(itemdict["SOURCE SECTION/" + keyy])).replace('"', '')
-                        if path not in file_path:
-                            file_path.append(path)
-                        objDict["fileidx"].append(file_path.index(path))
-                        objDict["filetype"].append(srch_type[srch])
-                        srchflg = 1
-                    elif keyy in itemdict:
-                        path = str(' '.join(itemdict[keyy])).replace('"', '')
-                        if path not in file_path:
-                            file_path.append(path)
-                        objDict["fileidx"].append(file_path.index(path))
-                        objDict["filetype"].append(srch_type[srch])
-                        srchflg = 1
-                if not srchflg:
-                    objDict["fileidx"].append(-1)
-                    objDict["filetype"].append("OTHER")
-            if ("SOURCE SECTION/LENGTH" in itemdict and
-                    ("SOURCE SECTION/MODE" not in itemdict or itemdict["SOURCE SECTION/MODE"][0] != "3")):
-                end_length = objDict["length"][-1]
-                sec_length = float(itemdict["SOURCE SECTION/LENGTH"][0]) / float(itemdict["PLAYRATE"][0])
-                sec_count = 1
-                objDict["soffs"][-1] = float(itemdict["SOURCE SECTION/STARTPOS"][0])
-                if objDict["loop"][-1] == 1:
-                    objDict["loop"][-1] = 0
-                    while sec_length * sec_count < end_length:  # セクションアイテムをUtl上で複数オブジェクトに分割していく
-                        objDict["length"][-1] = sec_length
-                        objDict["pos"].append(objDict["pos"][-1] + sec_length)
-                        objDict["length"].append(-1)
-                        objDict["loop"].append(0)
-                        objDict["soffs"].append(objDict["soffs"][-1])
-                        objDict["playrate"].append(objDict["playrate"][-1])
-                        objDict["fileidx"].append(objDict["fileidx"][-1])
-                        objDict["filetype"].append(objDict["filetype"][-1])
-                        sec_count += 1
-                objDict["length"][-1] = sec_length * (sec_count + 1) - end_length
-                if "SOURCE SECTION/MODE" in itemdict and itemdict["SOURCE SECTION/MODE"][0] == "2":
-                    exist_mode2 = True
-
-        index += 1
-    end_code = make_exo(objDict, file_path)
-    if exist_mode2:
-        messagebox.showwarning("警告", "RPP内にセクション・逆再生付きのアイテムが存在したため、\n"
-                                     "該当アイテムが正常に生成できませんでした。\n")
-        end_code = 2
-    if end_code == 1:
-        messagebox.showwarning("警告", "出力処理時にEXOのレイヤー数が100を超えたため、\n"
-                                     "正常に生成できませんでした。\n")
-    if end_code != 0:
-        ret = messagebox.askyesno("警告", "正常に生成できませんでした。\n保存先のフォルダを開きますか？", icon="warning")
-    else:
-        ret = messagebox.askyesno("正常終了", "正常に生成されました。\n保存先のフォルダを開きますか？")
-
-    if ret:
-        path = os.path.dirname(mydict["EXOPath"]).replace('/', '\\')
-        if path == "":
-            path = os.getcwd()
-        subprocess.Popen(['explorer', path], shell=True)
-
-    button6['state'] = 'normal'
-    root['cursor'] = 'arrow'
-    button6["text"] = "実行"
-
-
-def make_exo(objDict, file_path):
-    button6["text"] = "実行中 (2/3)"
-    exo_result = "[exedit]\nwidth=" + str(1280) + "\nheight=" + str(720) + "\nrate=" + str(
-        60) + "\nscale=1\nlength=99999\naudio_rate=44100\naudio_ch=2"
-    item_count = 0
-    exo_1 = "\n["  # item_count
-    exo_2 = "]\nstart="  # StartFrame
-    exo_3 = "\nend="  # EndFrame
-    exo_4 = "\nlayer="  # layer
-    exo_4_2 = "\ngroup=1\noverlay=1\nclipping=" + str(mydict["clipping"]) + "\ncamera=0\n["  # item_count
-    # #テキストオブジェクトの場合の処理
-    #     exo_5 = ".0]\n_name=テキスト\nサイズ=100\n表示速度=0.0\n文字毎に個別オブジェクト=0\n移動座標上に表示する=0" + \
-    #             "\n自動スクロール=0\nB=0\nI=0\ntype=0\nautoadjust=0\nsoft=1\nmonospace=0\nalign=4" + \
-    #             "\nspacing_x=0\nspacing_y=0\nprecision=1\ncolor=ffffff\ncolor2=000000\nfont=HGS明朝E" + \
-    #             "\ntext=~~~"
-    exo_6 = "\n["  # item_count
-    # exo_7 item_countによる分岐のため後のループ内で記述
-    exo_7 = ""
-
-    exo_eff = ""  # エフェクト設定用、先に宣言だけしておく。item_countを必要とするから後のループ内で処理
-    exo_script = ""  # スクリプト制御用
-    bf = 0.0  # アイテム一つ前の最終フレーム  ==Endframe
-    layer = 1  # オブジェクトのあるレイヤー（RPP上で複数トラックある場合は別トラックに配置する）
-
-    bfidx = 1
-    file_fps = []
-
-    # 各動画ファイルを読み込み、必要な情報を格納する
-    for index in range(len(file_path)):
-        if not mydict["AutoSrc"]:
-            break
-        path = file_path[index]
-        cap = cv2.VideoCapture(path.replace('\\', '/'))
-        fps = float(cap.get(cv2.CAP_PROP_FPS))
-        if fps == 0.0:
-            print("動画として読み込めませんでした。>", end="")
-            fps = 1.0
-        print(path + "; fps: " + str(fps))
-        cap.release()
-        file_fps.append(fps)
-
-    button6["text"] = "実行中 (3/3)"
-    for index in range(1, len(objDict["length"])):
-        lfff_count = 0
-        asc_count = 0
-
-        if layer > 100:
-            break
-
-        # オブジェクト最初のフレームと長さの計算
-        obj_frame_pos = objDict["pos"][index] * float(mydict["fps"]) + 1
-        next_obj_frame_pos = objDict["pos"][index + 1] * float(mydict["fps"]) + 1 \
-            if index != len(objDict["length"]) - 1 else -1
-        obj_frame_length = objDict["length"][index] * float(mydict["fps"])
-        if round(obj_frame_pos) == bf:  # 一つ前のオブジェクトとフレームがかぶらないようにする処理
-            obj_frame_pos += 1
-            obj_frame_length -= 1
-        if round(obj_frame_pos + obj_frame_length) == round(next_obj_frame_pos) - 1:  # 一つ後のオブジェクトとの間に1フレームの空きがある場合の処理
-            obj_frame_length += 1
-        if obj_frame_pos < bf:
-            bf = 0
-            bfidx = index
-            layer += 1 + int(v7.get())
-            if obj_frame_pos < 0:
-                continue
-        bf = obj_frame_pos + obj_frame_length - 1
-        if v9.get() == "1":
-            if obj_frame_pos < round(next_obj_frame_pos) - 1:
-                bf = next_obj_frame_pos - 1
-
-        obj_frame_pos = round(obj_frame_pos)
-        if obj_frame_pos == 0: obj_frame_pos = 1
-        bf = round(bf)
-        exo_eff = ""
-
-        # エフェクトを追加している場合の設定
-        if len(mydict["Effect"]) != 0:
-            exo_eff += add_filter_to_exo(mydict, item_count)
-        # ファイルから効果を読み込む設定
-        if mydict["EffPath"] != "":
-            a, b = load_filter_from_file(item_count)
-            exo_eff += a
-            lfff_count += b
-
-        # 偶数番目オブジェクトをひとつ下のレイヤに配置する
-        if str(v7.get()) == str(1) and (bfidx + item_count) % 2 == 0:
-            exo_4 = "\nlayer=" + str(layer + 1)  # layer
-        else:
-            exo_4 = "\nlayer=" + str(layer)
-
-        # オブジェクトの種類等の設定
-        if not mydict["AutoSrc"]:
-            exo_5 = ".0]\n_name=動画ファイル\n再生位置=" + str(mydict["SrcPosition"]) + "\n再生速度=" + str(mydict["SrcRate"]) + \
-                    "\nループ再生=" + str(mydict["IsLoop"]) + "\nアルファチャンネルを読み込む=" + \
-                    str(mydict["IsAlpha"]) + "\nfile=" + str(mydict["SrcPath"])
-            if mydict["OutputType"] == 2:  # 画像オブジェクトの場合の処理
-                exo_5 = ".0]\n_name=画像ファイル\nfile=" + str(mydict["SrcPath"])
-            if mydict["OutputType"] == 4:  # シーンオブジェクトの場合の処理
-                exo_5 = ".0]\n_name=シーン\n再生位置=" + str(mydict["SrcPosition"]) + "\n再生速度=" + str(mydict["SrcRate"]) + \
-                        "\nループ再生=" + str(mydict["IsLoop"]) + "\nscene=" + str(mydict["SceneIdx"])
-        else:  # 素材自動検出モード時の処理
-
-            if objDict["filetype"][index] == "VIDEO":
-                file = file_path[objDict["fileidx"][index]]
-            else:
-                file = ""
-            is_alpha = 0
-            if file[file.find('.'):] == ".avi":
-                is_alpha = 1
-
-            exo_5 = ".0]\n_name=動画ファイル" \
-                    "\n再生位置=" + str(int(objDict["soffs"][index] * file_fps[objDict["fileidx"][index]] + 1)) \
-                    + "\n再生速度=" + str(int(objDict["playrate"][index] * 1000) / 10.0) + \
-                    "\nループ再生=" + str(objDict["loop"][index]) + "\nアルファチャンネルを読み込む=" + str(is_alpha) + \
-                    "\nfile=" + file
-
-        # メディアオブジェクト  偶数番目（反転○）
-        if mydict["OutputType"] != 3 and int(mydict["IsFlipHEvenObj"]) == 1 and (bfidx + item_count) % 2 == 0:
-            exo_eff += "\n[" + str(item_count) + "." + str(len(mydict["Effect"]) + 1 + lfff_count) + \
-                       "]\n_name=反転\n上下反転=0\n左右反転=1\n輝度反転=0\n色相反転=0\n透明度反転=0"
-
-            if file10_text.get('1.0', 'end-1c') != "":  # スクリプト制御追加する場合
-                exo_script = add_script_control(item_count, len(mydict["Effect"]) + 2 + lfff_count)
-                asc_count = 1
-
-            if mydict["IsExSet"] == "0":
-                exo_7 = "." + str(len(mydict["Effect"]) + 2 + asc_count + lfff_count) + \
-                        "]\n_name=標準描画" + \
-                        "\nX=" + str(mydict["X"]) + "\nY=" + str(mydict["Y"]) + "\nZ=" + str(mydict["Z"]) + \
-                        "\n拡大率=" + str(mydict["Size"]) + "\n透明度=" + str(mydict["Alpha"]) + \
-                        "\n回転=" + str(mydict["Rotation"]) + "\nblend=" + str(mydict["Blend"])
-            else:  # 拡張描画の場合
-                exo_7 = "." + str(len(mydict["Effect"]) + 2 + asc_count + lfff_count) + \
-                        "]\n_name=拡張描画" + \
-                        "\nX=" + str(mydict["X"]) + "\nY=" + str(mydict["Y"]) + "\nZ=" + str(mydict["Z"]) + \
-                        "\n拡大率=" + str(mydict["Size"]) + "\n透明度=" + str(mydict["Alpha"]) + \
-                        "\n縦横比=0.0" + "\nX軸回転=" + str(mydict["XRotation"]) + \
-                        "\nY軸回転=" + str(mydict["YRotation"]) + "\nZ軸回転=" + str(mydict["ZRotation"]) + \
-                        "\n中心X=" + str(mydict["XCenter"]) + "\n中心Y=" + str(mydict["YCenter"]) + \
-                        "\n中心Z=" + str(mydict["ZCenter"]) + \
-                        "\n裏面を表示しない=0" + "\nblend=" + str(mydict["Blend"])
-
-            exo_result = (exo_result + exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) + exo_4 +
-                          exo_4_2 + str(item_count) + exo_5 + exo_eff + exo_script + exo_6 + str(item_count) + exo_7)
-        # メディアオブジェクト  奇数番目（反転×）
-        elif mydict["OutputType"] != 3 and (int(mydict["IsFlipHEvenObj"]) == 0 or (bfidx + item_count) % 2 == 1):
-            if file10_text.get('1.0', 'end-1c') != "":  # スクリプト制御追加する場合
-                exo_script = add_script_control(item_count, len(mydict["Effect"]) + 1 + lfff_count)
-                asc_count = 1
-
-            if mydict["IsExSet"] == "0":
-                exo_7 = "." + str(len(mydict["Effect"]) + asc_count + 1 + lfff_count) + \
-                        "]\n_name=標準描画" + \
-                        "\nX=" + str(mydict["X"]) + "\nY=" + str(mydict["Y"]) + "\nZ=" + str(mydict["Z"]) + \
-                        "\n拡大率=" + str(mydict["Size"]) + "\n透明度=" + str(mydict["Alpha"]) + \
-                        "\n回転=" + str(mydict["Rotation"]) + "\nblend=" + str(mydict["Blend"])
-            else:  # 拡張描画の場合
-                exo_7 = "." + str(len(mydict["Effect"]) + asc_count + 1 + lfff_count) + \
-                        "]\n_name=拡張描画" + \
-                        "\nX=" + str(mydict["X"]) + "\nY=" + str(mydict["Y"]) + "\nZ=" + str(mydict["Z"]) + \
-                        "\n拡大率=" + str(mydict["Size"]) + "\n透明度=" + str(mydict["Alpha"]) + \
-                        "\n縦横比=0.0" + "\nX軸回転=" + str(mydict["XRotation"]) + \
-                        "\nY軸回転=" + str(mydict["YRotation"]) + "\nZ軸回転=" + str(mydict["ZRotation"]) + \
-                        "\n中心X=" + str(mydict["XCenter"]) + "\n中心Y=" + str(mydict["YCenter"]) + \
-                        "\n中心Z=" + str(mydict["ZCenter"]) + \
-                        "\n裏面を表示しない=0" + "\nblend=" + str(mydict["Blend"])
-
-            exo_result = (exo_result + exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) + exo_4 +
-                          exo_4_2 + str(item_count) + exo_5 + exo_eff + exo_script + exo_6 + str(item_count) + exo_7)
-        # フィルタ効果  奇数番目（反転×）
-        elif mydict["OutputType"] == 3 and (int(mydict["IsFlipHEvenObj"]) == 0 or (bfidx + item_count) % 2 == 1):
-            if file10_text.get('1.0', 'end-1c') != "":  # スクリプト制御追加する場合
-                exo_script = add_script_control(item_count, len(mydict["Effect"]) + 1 + lfff_count)
-                asc_count = 1
-            exo_4_2 = "\ngroup=1\noverlay=1"
-            # 何も効果がかかっていないとエラー吐くので（多分）とりあえず座標0,0,0を掛けておく
-            exo_5 = "\n[" + str(item_count) + ".0]\n_name=座標\nX=0.0\nY=0.0\nZ=0.0"
-            exo_result = (exo_result + exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) + exo_4 +
-                          exo_4_2 + exo_5 + exo_eff + exo_script)
-        # フィルタ効果  偶数番目（反転〇）
-        elif mydict["OutputType"] == 3 and int(mydict["IsFlipHEvenObj"]) == 1 and (bfidx + item_count) % 2 == 0:
-            if file10_text.get('1.0', 'end-1c') != "":  # スクリプト制御追加する場合
-                exo_script = add_script_control(item_count, len(mydict["Effect"]) + 2 + lfff_count)
-                asc_count = 1
-            exo_4_2 = "\ngroup=1\noverlay=1"
-            exo_5 = ""
-            exo_eff += "\n[" + str(item_count) + "." + str(len(mydict["Effect"]) + asc_count + lfff_count) + \
-                       "]\n_name=反転\n上下反転=0\n左右反転=1\n輝度反転=0\n色相反転=0\n透明度反転=0"
-            exo_result = (exo_result + exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) + exo_4 +
-                          exo_4_2 + exo_5 + exo_eff + exo_script)
-
-        item_count = item_count + 1
 
     try:
-        with open(mydict["EXOPath"], mode='w', encoding='shift_jis') as f:
-            line = ""
-            for t in exo_result:
-                f.write(t)
-                line += t
-                if t == '\n':
-                    line = ""
+        objdict, file_path, end1 = rpp.main_load(rpp_ary, mydict["AutoSrc"], mydict["Track"])
+        button6["text"] = "実行中 (2/3)"
+        file_fps = exo.fetch_fps(mydict, file_path)
+        button6["text"] = "実行中 (3/3)"
+        end3 = exo.make_exo(objdict, mydict, file_path, file_fps)
+        end = end1 | end3
 
-            if layer > 100:
-                end_code = 1  # レイヤー100超
-            else:
-                end_code = 0
     except PermissionError:
         messagebox.showerror("エラー", "EXOファイルへの出力に失敗しました。\n上書き先のEXOファイルが開かれているか、読み取り専用になっています。")
-        end_code = -1
-    except UnicodeEncodeError:
+    except UnicodeEncodeError as e:
         messagebox.showerror("エラー", "EXOファイルへの出力に失敗しました。\nAviUtl で使用できない文字がパス名に含まれています。\n"
                                     "パス名に含まれる該当文字を削除し、再度実行し直してください。\n\n"
-                             + line + '  『' + t + '』')
-        end_code = -1
-    return end_code
+                                    + e.reason + '  『' + e.object + '』')
+    except LoadFilterFileError:
+        messagebox.showerror("エラー", "EXOファイルへの出力に失敗しました。\n効果ファイルが不正です。詳しくはREADMEを参照してください。")
+    else:
+        if "exist_mode2" in end:
+            warn_print("警告: RPP内にセクション・逆再生付きのアイテムが存在したため、該当アイテムが正常に生成できませんでした。")
+
+        if "exist_stretch_marker" in end:
+            warn_print("警告: RPP内に伸縮マーカーが設定されているアイテムが存在したため、該当アイテムが正常に生成できませんでした。")
+
+        if "layer_over_100" in end:
+            warn_print("警告: 出力処理時にEXOのレイヤー数が100を超えたため、正常に生成できませんでした。")
+
+        if end == {}:
+            ret = messagebox.askyesno("正常終了", "正常に生成されました。\n保存先のフォルダを開きますか？")
+        else:
+            ret = messagebox.askyesno("警告", "正常に生成できませんでした。詳細はコンソールをご覧ください。\n保存先のフォルダを開きますか？", icon="warning")
+
+        if ret:
+            path = os.path.dirname(mydict["EXOPath"]).replace('/', '\\')
+            if path == "":
+                path = os.getcwd()
+            subprocess.Popen(['explorer', path], shell=True)
+    finally:
+        button6['state'] = 'normal'
+        root['cursor'] = 'arrow'
+        button6["text"] = "実行"
 
 
 def read_cfg():  # 設定読み込み
@@ -610,7 +206,6 @@ def load_track_name():  # トラック名読み込み
     file8_tree.change_state("all", 'tristate')
     global rpp_ary
     if ".rpp" in filepath.lower():
-        track_list = ["全トラック"]
         with open(filepath, mode='r', encoding='UTF-8', errors='replace') as f:
             rpp_ary = f.readlines()
         tree = make_treedict(1)[0]
@@ -820,7 +415,10 @@ def run():
     mydict["SrcPosition"] = file6.get()
     mydict["SrcRate"] = file4a.get()
     mydict["fps"] = file5.get()
+    mydict["ScriptText"] = file10_text.get('1.0', 'end-1c')
     mydict["IsFlipHEvenObj"] = v3.get()
+    mydict["SepLayerEvenObj"] = v7.get()
+    mydict["NoGap"] = v9.get()
     mydict["clipping"] = v6.get()
     mydict["IsExSet"] = v8.get()
     mydict["X"] = ParamEntry1.get()
@@ -1071,7 +669,7 @@ if __name__ == '__main__':
         offvalue=0,
         variable=v3)
     cb2.grid(row=0, column=0, sticky=(W))
-    v9 = StringVar()
+    v9 = IntVar()
     v9.set(0)
     cb9 = ttk.Checkbutton(
         frame4a,
@@ -1081,7 +679,7 @@ if __name__ == '__main__':
         offvalue=0,
         variable=v9)
     cb9.grid(row=1, column=0, sticky=(W))
-    v7 = StringVar()
+    v7 = IntVar()
     v7.set(0)
     cb7 = ttk.Checkbutton(
         frame4a,
