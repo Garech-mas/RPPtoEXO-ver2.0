@@ -18,9 +18,8 @@ from tkinter import messagebox
 from tkinter import ttk
 from ttkwidgets import CheckboxTreeview
 
-from rpp2exo import exo, rpp
-from rpp2exo.exo import LoadFilterFileError
-from rpp2exo import dict
+import rpp2exo
+from rpp2exo import LoadFilterFileError, Rpp, exo, dict
 
 # やりたいこと
 # TODO: 素材自動検出のとき、ソースファイル（の再生位置）によって参照すべきソースを変えるGUI・機能の作成
@@ -35,6 +34,7 @@ from rpp2exo import dict
 
 EffDict = dict.EffDict
 XDict = dict.XDict
+rpp_cl = Rpp()
 
 mydict = {
     # 基本設定
@@ -91,7 +91,7 @@ mydict = {
 
 
 def warn_print(msg):
-    print('\033[32m\033[4m' + msg + '\033[0m')
+    print('\033[32m\033[4m' + str(msg) + '\033[0m')
 
 
 def main():
@@ -100,7 +100,7 @@ def main():
     button6["text"] = "実行中 (1/3)"
 
     try:
-        objdict, file_path, end1 = rpp.main_load(rpp_ary, mydict["AutoSrc"], mydict["Track"])
+        objdict, file_path, end1 = rpp_cl.main(mydict["AutoSrc"], mydict["Track"])
         button6["text"] = "実行中 (2/3)"
         file_fps = exo.fetch_fps(mydict, file_path)
         button6["text"] = "実行中 (3/3)"
@@ -118,9 +118,13 @@ def main():
     else:
         if "exist_mode2" in end:
             warn_print("警告: RPP内にセクション・逆再生付きのアイテムが存在したため、該当アイテムが正常に生成できませんでした。")
+            for detail in end["exist_mode2"]:
+                warn_print(detail)
 
         if "exist_stretch_marker" in end:
             warn_print("警告: RPP内に伸縮マーカーが設定されているアイテムが存在したため、該当アイテムが正常に生成できませんでした。")
+            for detail in end["exist_stretch_marker"]:
+                warn_print(detail)
 
         if "layer_over_100" in end:
             warn_print("警告: 出力処理時にEXOのレイヤー数が100を超えたため、正常に生成できませんでした。")
@@ -129,6 +133,7 @@ def main():
             ret = messagebox.askyesno("正常終了", "正常に生成されました。\n保存先のフォルダを開きますか？")
         else:
             ret = messagebox.askyesno("警告", "正常に生成できませんでした。詳細はコンソールをご覧ください。\n保存先のフォルダを開きますか？", icon="warning")
+            print('--------------------------------------------------------------------------')
 
         if ret:
             path = os.path.dirname(mydict["EXOPath"]).replace('/', '\\')
@@ -169,7 +174,7 @@ def slct_rpp():  # 参照ボタン
     if filepath != '':
         file1.set(filepath)
         write_cfg(filepath, "RPPDir")
-        load_track_name()
+        set_tree()
 
 
 def slct_source():  # 素材選択
@@ -199,43 +204,15 @@ def save_exo():  # EXO保存ボタン
         write_cfg(filepath, "EXODir")
 
 
-def load_track_name():  # トラック名読み込み
+def set_tree():
     file8_tree.delete(*file8_tree.get_children())
-    filepath = file1_entry.get().replace('"', '')  # パスをコピペした場合のダブルコーテーションを削除
     file8_tree.insert("", "end", text="＊全トラック", iid="all", open=True)
     file8_tree.change_state("all", 'tristate')
-    global rpp_ary
-    if ".rpp" in filepath.lower():
-        with open(filepath, mode='r', encoding='UTF-8', errors='replace') as f:
-            rpp_ary = f.readlines()
-        tree = make_treedict(1)[0]
-        insert_treedict(tree, "", 0)
-    return True
 
-
-def make_treedict(index):
-    global rpp_ary
-    value = {}
-    while True:
-        index += 1
-        while rpp_ary[index].split()[0] != "<TRACK":
-            index += 1
-            if index >= len(rpp_ary):
-                return value, index, 0
-
-        mute = int(rpp_ary[index + 6][13])
-        name = str(rpp_ary[index + 1][9:-1] + "[M​]" * mute)
-        isbus = rpp_ary[index + 9].split()  # [1] > フォルダ始端・終端 [2] > 階層を何個下るか
-        while name in value:
-            name += "​"
-        value[name] = {}
-
-        if isbus[1] == "1":
-            value[name], index, skip = make_treedict(index)
-            if skip < 0:
-                return value, index, skip + 1
-        elif isbus[1] == "2":
-            return value, index, int(isbus[2]) + 1
+    filepath = file1_entry.get().replace('"', '')  # パスをコピペした場合のダブルコーテーションを削除
+    rpp_cl.load(filepath)
+    tree = rpp_cl.load_track()
+    insert_treedict(tree, "", 0)
 
 
 def insert_treedict(tree, prefix, iid):
@@ -539,8 +516,9 @@ if __name__ == '__main__':
     label1.grid(row=0, column=0)
     file1 = StringVar()
     # file1_entry = ttk.Entry(frame1, textvariable=file1, width=50)
-    val_cmd = root.register(load_track_name)
-    file1_entry = ttk.Entry(frame1, textvariable=file1, width=50, validate='focusout', validatecommand=val_cmd)
+    val_cmd = root.register(set_tree)
+    file1_entry = ttk.Entry(frame1, textvariable=file1, width=50, validate='focusout',
+                            validatecommand=val_cmd)
     file1_entry.grid(row=0, column=1)
     frame1.rowconfigure(0, weight=1)
 
