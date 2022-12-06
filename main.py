@@ -19,7 +19,7 @@ from tkinter import ttk
 from ttkwidgets import CheckboxTreeview
 
 import rpp2exo
-from rpp2exo import LoadFilterFileError, Rpp, exo, dict
+from rpp2exo import Exo, LoadFilterFileError, Rpp, exo, dict
 
 # やりたいこと
 # TODO: 素材自動検出のとき、ソースファイル（の再生位置）によって参照すべきソースを変えるGUI・機能の作成
@@ -34,7 +34,7 @@ from rpp2exo import LoadFilterFileError, Rpp, exo, dict
 
 EffDict = dict.EffDict
 XDict = dict.XDict
-rpp_cl = Rpp()
+rpp_cl = Rpp('')
 
 mydict = {
     # 基本設定
@@ -100,11 +100,12 @@ def main():
     button6["text"] = "実行中 (1/3)"
 
     try:
-        objdict, file_path, end1 = rpp_cl.main(mydict["AutoSrc"], mydict["Track"])
+        exo_cl = Exo(mydict)
+        file_path, end1 = rpp_cl.main(mydict["AutoSrc"], mydict["Track"])
         button6["text"] = "実行中 (2/3)"
-        file_fps = exo.fetch_fps(mydict, file_path)
+        file_fps = exo_cl.fetch_fps(file_path)
         button6["text"] = "実行中 (3/3)"
-        end3 = exo.make_exo(objdict, mydict, file_path, file_fps)
+        end3 = exo_cl.make_exo(rpp_cl.objDict, file_path, file_fps)
         end = end1 | end3
 
     except PermissionError:
@@ -210,9 +211,11 @@ def set_tree():
     file8_tree.change_state("all", 'tristate')
 
     filepath = file1_entry.get().replace('"', '')  # パスをコピペした場合のダブルコーテーションを削除
-    rpp_cl.load(filepath)
-    tree = rpp_cl.load_track()
-    insert_treedict(tree, "", 0)
+    if filepath.lower().endswith(".rpp"):
+        rpp_cl.load(filepath)
+        tree = rpp_cl.load_track()
+        insert_treedict(tree, "", 0)
+    return True
 
 
 def insert_treedict(tree, prefix, iid):
@@ -517,8 +520,7 @@ if __name__ == '__main__':
     file1 = StringVar()
     # file1_entry = ttk.Entry(frame1, textvariable=file1, width=50)
     val_cmd = root.register(set_tree)
-    file1_entry = ttk.Entry(frame1, textvariable=file1, width=50, validate='focusout',
-                            validatecommand=val_cmd)
+    file1_entry = ttk.Entry(frame1, textvariable=file1, width=50, validate='focusout',validatecommand=val_cmd)
     file1_entry.grid(row=0, column=1)
     frame1.rowconfigure(0, weight=1)
 
