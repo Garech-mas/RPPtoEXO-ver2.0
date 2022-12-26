@@ -88,6 +88,32 @@ class Exo:
             file_fps.append(fps)
         return file_fps
 
+    def add_filter_to_exo(self, item_count):
+        count = 1
+        exo_effects = ""
+        for eff in self.mydict["Effect"]:
+            exo_effects += "\n[" + str(item_count) + "." + \
+                           str(count) + "]\n_name=" + str(eff[0])
+            for x in range(1, len(eff)):
+                exo_effects += "\n" + str(eff[x][0]) + "=" + str(eff[x][1])
+            count += 1
+        return exo_effects
+
+    def load_exa(self, item_count):
+        # TODO: load_exaの本格実装。
+        exa_count = 0
+        returntext = "\n"
+        with open(str(self.mydict["EffPath"]), mode='r', encoding='shift_jis', errors='replace') as f:
+            for line in f:
+                if exa_count == 0 and line != "[0.1]\n":
+                    LoadFilterFileError()
+                if line[0] == "[":  
+                    line = "[" + str(item_count) + "." + \
+                           str(len(self.mydict["Effect"]) + 1 + exa_count) + "]\n"
+                    exa_count += 1
+                returntext += line
+        return returntext, exa_count
+
     def make_exo(self, objdict, file_path, file_fps):
         end = {}
         exo_result = "[exedit]\nwidth=" + str(1280) + "\nheight=" + str(720) + "\nrate=" + str(
@@ -114,7 +140,7 @@ class Exo:
         bfidx = 1
 
         for index in range(1, len(objdict["length"])):
-            lfff_count = 0
+            exa_count = 0
             asc_count = 0
 
             if layer > 100:
@@ -149,12 +175,12 @@ class Exo:
 
             # エフェクトを追加している場合の設定
             if len(self.mydict["Effect"]) != 0:
-                exo_eff += add_filter_to_exo(self.mydict, item_count)
+                exo_eff += self.add_filter_to_exo(item_count)
             # ファイルから効果を読み込む設定
             if self.mydict["EffPath"] != "":
-                a, b = load_filter_from_file(self.mydict, item_count)
+                a, b = self.load_exa(item_count)
                 exo_eff += a
-                lfff_count += b
+                exa_count += b
 
             # 偶数番目オブジェクトをひとつ下のレイヤに配置する
             if self.mydict["SepLayerEvenObj"] == 1 and (bfidx + item_count) % 2 == 0:
@@ -190,22 +216,22 @@ class Exo:
 
             # メディアオブジェクト  偶数番目（反転○）
             if self.mydict["OutputType"] != 3 and int(self.mydict["IsFlipHEvenObj"]) == 1 and (bfidx + item_count) % 2 == 0:
-                exo_eff += "\n[" + str(item_count) + "." + str(len(self.mydict["Effect"]) + 1 + lfff_count) + \
+                exo_eff += "\n[" + str(item_count) + "." + str(len(self.mydict["Effect"]) + 1 + exa_count) + \
                            "]\n_name=反転\n上下反転=0\n左右反転=1\n輝度反転=0\n色相反転=0\n透明度反転=0"
 
                 if self.mydict["ScriptText"] != "":  # スクリプト制御追加する場合
-                    exo_script = ("\n[" + str(item_count) + "." + str(len(self.mydict["Effect"]) + 2 + lfff_count) +
+                    exo_script = ("\n[" + str(item_count) + "." + str(len(self.mydict["Effect"]) + 2 + exa_count) +
                                   "]\n_name=スクリプト制御\ntext=" + encode_txt(self.mydict["ScriptText"]))
                     asc_count = 1
 
                 if self.mydict["IsExSet"] == "0":
-                    exo_7 = "." + str(len(self.mydict["Effect"]) + 2 + asc_count + lfff_count) + \
+                    exo_7 = "." + str(len(self.mydict["Effect"]) + 2 + asc_count + exa_count) + \
                             "]\n_name=標準描画" + \
                             "\nX=" + str(self.mydict["X"]) + "\nY=" + str(self.mydict["Y"]) + "\nZ=" + str(self.mydict["Z"]) + \
                             "\n拡大率=" + str(self.mydict["Size"]) + "\n透明度=" + str(self.mydict["Alpha"]) + \
                             "\n回転=" + str(self.mydict["Rotation"]) + "\nblend=" + str(self.mydict["Blend"])
                 else:  # 拡張描画の場合
-                    exo_7 = "." + str(len(self.mydict["Effect"]) + 2 + asc_count + lfff_count) + \
+                    exo_7 = "." + str(len(self.mydict["Effect"]) + 2 + asc_count + exa_count) + \
                             "]\n_name=拡張描画" + \
                             "\nX=" + str(self.mydict["X"]) + "\nY=" + str(self.mydict["Y"]) + "\nZ=" + str(self.mydict["Z"]) + \
                             "\n拡大率=" + str(self.mydict["Size"]) + "\n透明度=" + str(self.mydict["Alpha"]) + \
@@ -222,18 +248,18 @@ class Exo:
             # メディアオブジェクト  奇数番目（反転×）
             elif self.mydict["OutputType"] != 3 and (int(self.mydict["IsFlipHEvenObj"]) == 0 or (bfidx + item_count) % 2 == 1):
                 if self.mydict["ScriptText"] != "":  # スクリプト制御追加する場合
-                    exo_script = ("\n[" + str(item_count) + "." + str(len(self.mydict["Effect"]) + 1 + lfff_count) +
+                    exo_script = ("\n[" + str(item_count) + "." + str(len(self.mydict["Effect"]) + 1 + exa_count) +
                                   "]\n_name=スクリプト制御\ntext=" + encode_txt(self.mydict["ScriptText"]))
                     asc_count = 1
 
                 if self.mydict["IsExSet"] == "0":
-                    exo_7 = "." + str(len(self.mydict["Effect"]) + asc_count + 1 + lfff_count) + \
+                    exo_7 = "." + str(len(self.mydict["Effect"]) + asc_count + 1 + exa_count) + \
                             "]\n_name=標準描画" + \
                             "\nX=" + str(self.mydict["X"]) + "\nY=" + str(self.mydict["Y"]) + "\nZ=" + str(self.mydict["Z"]) + \
                             "\n拡大率=" + str(self.mydict["Size"]) + "\n透明度=" + str(self.mydict["Alpha"]) + \
                             "\n回転=" + str(self.mydict["Rotation"]) + "\nblend=" + str(self.mydict["Blend"])
                 else:  # 拡張描画の場合
-                    exo_7 = "." + str(len(self.mydict["Effect"]) + asc_count + 1 + lfff_count) + \
+                    exo_7 = "." + str(len(self.mydict["Effect"]) + asc_count + 1 + exa_count) + \
                             "]\n_name=拡張描画" + \
                             "\nX=" + str(self.mydict["X"]) + "\nY=" + str(self.mydict["Y"]) + "\nZ=" + str(self.mydict["Z"]) + \
                             "\n拡大率=" + str(self.mydict["Size"]) + "\n透明度=" + str(self.mydict["Alpha"]) + \
@@ -250,7 +276,7 @@ class Exo:
             # フィルタ効果  奇数番目（反転×）
             elif self.mydict["OutputType"] == 3 and (int(self.mydict["IsFlipHEvenObj"]) == 0 or (bfidx + item_count) % 2 == 1):
                 if self.mydict["ScriptText"].get('1.0', 'end-1c') != "":  # スクリプト制御追加する場合
-                    exo_script = ("\n[" + str(item_count) + "." + str(len(self.mydict["Effect"]) + 1 + lfff_count) +
+                    exo_script = ("\n[" + str(item_count) + "." + str(len(self.mydict["Effect"]) + 1 + exa_count) +
                                   "]\n_name=スクリプト制御\ntext=" + encode_txt(self.mydict["ScriptText"]))
                     asc_count = 1
                 exo_4_2 = "\ngroup=1\noverlay=1"
@@ -262,12 +288,12 @@ class Exo:
             # フィルタ効果  偶数番目（反転〇）
             elif self.mydict["OutputType"] == 3 and int(self.mydict["IsFlipHEvenObj"]) == 1 and (bfidx + item_count) % 2 == 0:
                 if self.mydict["ScriptText"].get('1.0', 'end-1c') != "":  # スクリプト制御追加する場合
-                    exo_script = ("\n[" + str(item_count) + "." + str(len(self.mydict["Effect"]) + 2 + lfff_count) +
+                    exo_script = ("\n[" + str(item_count) + "." + str(len(self.mydict["Effect"]) + 2 + exa_count) +
                                   "]\n_name=スクリプト制御\ntext=" + encode_txt(self.mydict["ScriptText"]))
                     asc_count = 1
                 exo_4_2 = "\ngroup=1\noverlay=1"
                 exo_5 = ""
-                exo_eff += "\n[" + str(item_count) + "." + str(len(self.mydict["Effect"]) + asc_count + lfff_count) + \
+                exo_eff += "\n[" + str(item_count) + "." + str(len(self.mydict["Effect"]) + asc_count + exa_count) + \
                            "]\n_name=反転\n上下反転=0\n左右反転=1\n輝度反転=0\n色相反転=0\n透明度反転=0"
                 exo_result = (exo_result + exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(
                     bf) + exo_4 +
@@ -290,33 +316,6 @@ class Exo:
         except UnicodeEncodeError:
             raise UnicodeEncodeError('', t, 0, 0, line)  # objectとreasonにエラーの文字情報を渡して返す (本来の使い方じゃなさそう…)
         return end
-
-
-def add_filter_to_exo(self, item_count):
-    count = 1
-    exo_effects = ""
-    for eff in self.mydict["Effect"]:
-        exo_effects += "\n[" + str(item_count) + "." + \
-                       str(count) + "]\n_name=" + str(eff[0])
-        for x in range(1, len(eff)):
-            exo_effects += "\n" + str(eff[x][0]) + "=" + str(eff[x][1])
-        count += 1
-    return exo_effects
-
-
-def load_filter_from_file(self, item_count):
-    lfff_count = 0
-    returntext = "\n"
-    with open(str(self.mydict["EffPath"]), mode='r', encoding='UTF-8', errors='replace') as f:
-        for line in f:
-            if lfff_count == 0 and line != "[0.1]\n":
-                raise LoadFilterFileError
-            if line[0] == "[":
-                line = "[" + str(item_count) + "." + \
-                       str(len(self.mydict["Effect"]) + 1 + lfff_count) + "]\n"
-                lfff_count += 1
-            returntext += line
-    return returntext, lfff_count
 
 
 def encode_txt(text):

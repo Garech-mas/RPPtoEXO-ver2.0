@@ -1,4 +1,3 @@
-
 srch_type = {"VIDEO": "VIDEO",  # 動画ファイル
              "WAVE": "AUDIO",  # WAV ファイル
              "MP3": "AUDIO",  # MP3 ファイル
@@ -10,8 +9,10 @@ srch_type = {"VIDEO": "VIDEO",  # 動画ファイル
 
 class Rpp:
     def __init__(self, path):  # コンストラクタ 初期化
-        self.rpp_ary = []
         self.rpp_path = path
+        self.start_pos = 0.0
+        self.end_pos = 100000.0
+        self.rpp_ary = []
         self.objDict = {
             "pos": [-1.0],
             "length": [-1.0],
@@ -26,11 +27,31 @@ class Rpp:
         tree = self.make_treedict(1)[0]
         return tree
 
-    def load(self, path):  # RPPファイルをself.rpp_aryに入れる
-        self.__init__(path)
-        if ".rpp" in path.lower():
-            with open(path, mode='r', encoding='UTF-8', errors='replace') as f:
-                self.rpp_ary = f.readlines()
+    def load(self, path):  # RPPファイルをself.rpp_aryに入れる]
+        try:
+            if ".rpp" in path.lower():
+                with open(path, mode='r', encoding='UTF-8', errors='replace') as f:
+                    self.rpp_ary = f.readlines()
+        except FileNotFoundError:
+            print("ファイルを開くことができませんでした。: " + path)
+
+
+    def srch_selection(self):
+        index = 0
+        st = 0.0
+        en = 99999.0
+        while index < len(self.rpp_ary):
+            if self.rpp_ary[index].split()[0] == "SELECTION":
+                st = int(float(self.rpp_ary[index].split()[1]) * 1000) / 1000
+                en = int(float(self.rpp_ary[index].split()[2]) * 1000) / 1000
+                if st > en:
+                    st, en = en, st
+                elif st == en:
+                    en = 99999.0
+            if self.rpp_ary[index].split()[0] == "<TRACK":
+                break
+            index += 1
+        return st, en
 
     def make_treedict(self, index):  # CheckboxTreeviewで使う用の入れ子辞書を生成する
         value = {}
@@ -56,7 +77,17 @@ class Rpp:
                 return value, index, int(isbus[2]) + 1
 
     def main(self, auto_src, sel_track):  # rpp_aryを読み込んだ結果をobjDictに入れていく
-        end = {"exist_mode2": [], "exist_stretch_marker": []}
+        self.load(self.rpp_path)
+        self.objDict = {
+            "pos": [-1.0],
+            "length": [-1.0],
+            "loop": [-1],
+            "soffs": [-1.0],
+            "playrate": [-1.0],
+            "fileidx": [-1],
+            "filetype": ['']
+        }
+        end_code = {"exist_mode2": [], "exist_stretch_marker": []}
         file_path = []
 
         # RPPを読み込み、必要な情報をitemdictに格納していく
@@ -113,7 +144,10 @@ class Rpp:
                     index += 1
 
                 index -= 2
-                self.objDict["pos"].append(float(itemdict["POSITION"][0]))
+                if not (self.start_pos <= float(itemdict["POSITION"][0]) < self.end_pos):
+                    continue
+
+                self.objDict["pos"].append(float(itemdict["POSITION"][0]) - self.start_pos)
                 self.objDict["length"].append(float(itemdict["LENGTH"][0]))
                 if auto_src:  # 素材自動検出モードの処理
                     self.objDict["loop"].append(int(itemdict["LOOP"][0]))
@@ -150,15 +184,15 @@ class Rpp:
                         ("SOURCE SECTION/MODE" not in itemdict or itemdict["SOURCE SECTION/MODE"][0] != "3")):
 
                     if "SOURCE SECTION/MODE" in itemdict and itemdict["SOURCE SECTION/MODE"][0] == "2" \
-                            and not end["exist_mode2"]:  # 逆再生＋セクションのアイテムだったら
-                        end["exist_mode2"].append("トラック: " + track_name +
-                                                  " / 開始位置(秒): " + str(int(self.objDict["pos"][-1]*1000)/1000))
+                            and not end_code["exist_mode2"]:  # 逆再生＋セクションのアイテムだったら
+                        end_code["exist_mode2"].append("トラック: " + track_name +
+                                                       " / 開始位置(秒): " + str(int(self.objDict["pos"][-1] * 1000) / 1000))
 
                     end_length = self.objDict["length"][-1]
                     sec_length = float(itemdict["SOURCE SECTION/LENGTH"][0]) / float(itemdict["PLAYRATE"][0])
                     sec_count = 1
                     self.objDict["soffs"][-1] = float(itemdict["SOURCE SECTION/STARTPOS"][0])
-                    if self.objDict["loop"][-1] == 1:
+                    if int(itemdict["LOOP"][0]) == 1:
                         self.objDict["loop"][-1] = 0
                         while sec_length * sec_count < end_length:  # セクションアイテムをUtl上で複数オブジェクトに分割
                             self.objDict["length"][-1] = sec_length
@@ -172,13 +206,14 @@ class Rpp:
                             sec_count += 1
                     self.objDict["length"][-1] = sec_length * (sec_count + 1) - end_length
 
-                if "SM" in itemdict and not end["exist_stretch_marker"]:  # 伸縮マーカー付きアイテム
-                    end["exist_stretch_marker"].append("トラック: " + track_name +
-                                                       " / 開始位置(秒): " + str(int(self.objDict["pos"][-1]*1000)/1000))
+                if "SM" in itemdict and not end_code["exist_stretch_marker"]:  # 伸縮マーカー付きアイテム
+                    end_code["exist_stretch_marker"].append("トラック: " + track_name +
+                                                            " / 開始位置(秒): " + str(
+                        int(self.objDict["pos"][-1] * 1000) / 1000))
 
             index += 1
 
-        if not end["exist_mode2"]: del end["exist_mode2"]
-        if not end["exist_stretch_marker"]: del end["exist_stretch_marker"]
+        if not end_code["exist_mode2"]: del end_code["exist_mode2"]
+        if not end_code["exist_stretch_marker"]: del end_code["exist_stretch_marker"]
 
-        return file_path, end
+        return file_path, end_code

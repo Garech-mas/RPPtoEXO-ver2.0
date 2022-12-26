@@ -2,7 +2,7 @@
 #               RPP to EXO ver 2.00 b0.2                                            #
 #                                                                       2022/07/11  #
 #       Written by Maimai (@Maimai22015/YTPMV.info)                                 #
-#                                                                                   #
+#       Forked by Garech (@Garec_)                                                  #
 #                                                                                   #
 #       協力：SHI(@sbt54864666), Garech(@Garec_)                                    #
 #####################################################################################
@@ -87,6 +87,7 @@ mydict = {
     "RPPLastDir": os.path.abspath(os.path.dirname(__file__)),
     "EXOLastDir": os.path.abspath(os.path.dirname(__file__)),
     "SrcLastDir": os.path.abspath(os.path.dirname(__file__)),
+
 }
 
 
@@ -101,9 +102,17 @@ def main():
 
     try:
         exo_cl = Exo(mydict)
+        if slct_time.get():
+            rpp_cl.start_pos = float(time1_combo.get())
+            rpp_cl.end_pos = float(time2_combo.get())
+        else:
+            rpp_cl.start_pos = 0.0
+            rpp_cl.end_pos = 99999.0
         file_path, end1 = rpp_cl.main(mydict["AutoSrc"], mydict["Track"])
+
         button6["text"] = "実行中 (2/3)"
         file_fps = exo_cl.fetch_fps(file_path)
+
         button6["text"] = "実行中 (3/3)"
         end3 = exo_cl.make_exo(rpp_cl.objDict, file_path, file_fps)
         end = end1 | end3
@@ -134,7 +143,6 @@ def main():
             ret = messagebox.askyesno("正常終了", "正常に生成されました。\n保存先のフォルダを開きますか？")
         else:
             ret = messagebox.askyesno("警告", "正常に生成できませんでした。詳細はコンソールをご覧ください。\n保存先のフォルダを開きますか？", icon="warning")
-            print('--------------------------------------------------------------------------')
 
         if ret:
             path = os.path.dirname(mydict["EXOPath"]).replace('/', '\\')
@@ -142,6 +150,7 @@ def main():
                 path = os.getcwd()
             subprocess.Popen(['explorer', path], shell=True)
     finally:
+        print('--------------------------------------------------------------------------')
         button6['state'] = 'normal'
         root['cursor'] = 'arrow'
         button6["text"] = "実行"
@@ -206,15 +215,22 @@ def save_exo():  # EXO保存ボタン
 
 
 def set_tree():
+    filepath = file1_entry.get().replace('"', '')  # パスをコピペした場合のダブルコーテーションを削除
+    if filepath == file1_tmp.get():
+        return True
+    file1_tmp.set(filepath)
     file8_tree.delete(*file8_tree.get_children())
     file8_tree.insert("", "end", text="＊全トラック", iid="all", open=True)
     file8_tree.change_state("all", 'tristate')
+    file8_tree.yview(0)
 
-    filepath = file1_entry.get().replace('"', '')  # パスをコピペした場合のダブルコーテーションを削除
     if filepath.lower().endswith(".rpp"):
         rpp_cl.load(filepath)
         tree = rpp_cl.load_track()
         insert_treedict(tree, "", 0)
+    st, en = rpp_cl.srch_selection()
+    time1.set(str(st))
+    time2.set(str(en))
     return True
 
 
@@ -518,9 +534,9 @@ if __name__ == '__main__':
     label1 = ttk.Label(frame1, textvariable=s1)
     label1.grid(row=0, column=0)
     file1 = StringVar()
-    # file1_entry = ttk.Entry(frame1, textvariable=file1, width=50)
+    file1_tmp = StringVar()
     val_cmd = root.register(set_tree)
-    file1_entry = ttk.Entry(frame1, textvariable=file1, width=50, validate='focusout',validatecommand=val_cmd)
+    file1_entry = ttk.Entry(frame1, textvariable=file1, width=50, validate='focusout', validatecommand=val_cmd)
     file1_entry.grid(row=0, column=1)
     frame1.rowconfigure(0, weight=1)
 
@@ -639,6 +655,17 @@ if __name__ == '__main__':
     frame4a = ttk.Frame(LFrame, padding=10)
     frame4a.grid(row=4, column=0)
 
+    # v1 = IntVar()
+    # v1.set(1)
+    # cb1 = ttk.Checkbutton(
+    #     frame4a,
+    #     padding=5,
+    #     text='トラック毎に\n設定を調整する',
+    #     onvalue=1,
+    #     offvalue=0,
+    #     variable=v1
+    # )
+    # cb1.grid(row=0, column=0, sticky=W)
     v3 = StringVar()
     v3.set(0)
     cb2 = ttk.Checkbutton(
@@ -648,7 +675,7 @@ if __name__ == '__main__':
         onvalue=1,
         offvalue=0,
         variable=v3)
-    cb2.grid(row=0, column=0, sticky=(W))
+    cb2.grid(row=1, column=0, sticky=(W))
     v9 = IntVar()
     v9.set(0)
     cb9 = ttk.Checkbutton(
@@ -658,7 +685,7 @@ if __name__ == '__main__':
         onvalue=1,
         offvalue=0,
         variable=v9)
-    cb9.grid(row=1, column=0, sticky=(W))
+    cb9.grid(row=2, column=0, sticky=(W))
     v7 = IntVar()
     v7.set(0)
     cb7 = ttk.Checkbutton(
@@ -668,11 +695,24 @@ if __name__ == '__main__':
         onvalue=1,
         offvalue=0,
         variable=v7)
-    cb7.grid(row=2, column=0, sticky=(W))
+    cb7.grid(row=3, column=0, sticky=(W))
+
+    slct_time = IntVar()
+    slct_time.set(0)
+    time_cb = ttk.Checkbutton(frame4a, padding=5, text='時間選択 (秒)', onvalue=1, offvalue=0, variable=slct_time)
+    time_cb.grid(row=4, column=0, sticky=W)
+    time1 = StringVar()
+    time1.set('0.0')
+    time1_combo = ttk.Combobox(frame4a, textvariable=time1, width=10)
+    time1_combo.grid(row=5, column=0, padx=5, pady=3, sticky=W+E)
+    time2 = StringVar()
+    time2.set('99999.0')
+    time2_combo = ttk.Combobox(frame4a, textvariable=time2, width=10)
+    time2_combo.grid(row=6, column=0, padx=5, pady=3, sticky=W+E)
 
     file8disp = StringVar()
     file8_tree = CheckboxTreeview(frame4a, show='tree', height=5)
-    file8_tree.grid(row=0, column=1, rowspan=3, sticky=N+S+E+W)
+    file8_tree.grid(row=0, column=1, rowspan=7, sticky=N+S+E+W)
     file8_tree.column("#0", width=300)
     ttk.Style().configure('Checkbox.Treeview', rowheight=15, borderwidth=1, relief='sunken', indent=0)
 
