@@ -1,3 +1,5 @@
+import re
+
 srch_type = {"VIDEO": "VIDEO",  # 動画ファイル
              "WAVE": "AUDIO",  # WAV ファイル
              "MP3": "AUDIO",  # MP3 ファイル
@@ -126,7 +128,7 @@ class Rpp:
                         prefix = prefix[slash_pos + 1:] if slash_pos != len(prefix) - 1 else ""
                         item_lyr -= 1
                     else:
-                        spl = self.rpp_ary[index].split()
+                        spl = re.split(' +|\r\n|\n|\r', self.rpp_ary[index])[1:-1]
                         key = prefix + spl.pop(0)
                         if can_assign:
                             itemdict[key] = spl
