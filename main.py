@@ -25,6 +25,7 @@ from rpp2exo import Exo, LoadFilterFileError, Rpp, exo, dict
 # TODO: 素材自動検出のとき、ソースファイル（の再生位置）によって参照すべきソースを変えるGUI・機能の作成
 #          ＞ GUI上で再生位置を決めるとき、動画ファイルのサムネイルを表示してあげる
 # TODO: 空のアイテムの除去 or テキスト化の処理
+# 「トラックバーの値が-1超0未満」のとき、正しく適用されない（patch.aul推奨の文言を提示する）
 # エフェクト効果の表記をAviUtlのUI寄りにし、更に親しみやすい操作にできるようにしたい
 # 移動方法やスクリプトなどをAviUtlのフォルダから読み取って設定できるようにする機能
 # Google Colabにそのまま引き継げるような仕組みづくり
@@ -104,7 +105,14 @@ def main():
         exo_cl = Exo(mydict)
         if slct_time.get():
             rpp_cl.start_pos = float(time1_combo.get())
-            rpp_cl.end_pos = float(time2_combo.get())
+            rpp_cl.end_pos = float(time2_combo.get()) if time2_combo.get() != '' else 99999.0
+            if rpp_cl.start_pos < rpp_cl.end_pos:
+                pass
+            elif rpp_cl.start_pos > rpp_cl.end_pos:
+                rpp_cl.start_pos, rpp_cl.end_pos = rpp_cl.end_pos, rpp_cl.start_pos
+            else:
+                rpp_cl.start_pos = 0.0
+                rpp_cl.end_pos = 99999.0
         else:
             rpp_cl.start_pos = 0.0
             rpp_cl.end_pos = 99999.0
@@ -184,7 +192,7 @@ def slct_rpp():  # 参照ボタン
     if filepath != '':
         file1.set(filepath)
         write_cfg(filepath, "RPPDir")
-        set_tree()
+        set_rppinfo()
 
 
 def slct_source():  # 素材選択
@@ -214,7 +222,7 @@ def save_exo():  # EXO保存ボタン
         write_cfg(filepath, "EXODir")
 
 
-def set_tree():
+def set_rppinfo():
     filepath = file1_entry.get().replace('"', '')  # パスをコピペした場合のダブルコーテーションを削除
     if filepath == file1_tmp.get():
         return True
@@ -223,14 +231,12 @@ def set_tree():
     file8_tree.insert("", "end", text="＊全トラック", iid="all", open=True)
     file8_tree.change_state("all", 'tristate')
     file8_tree.yview(0)
-
+    rpp_cl.load(filepath)
     if filepath.lower().endswith(".rpp"):
-        rpp_cl.load(filepath)
         tree = rpp_cl.load_track()
         insert_treedict(tree, "", 0)
-    st, en = rpp_cl.srch_selection()
-    time1.set(str(st))
-    time2.set(str(en))
+    if slct_time.get():
+        change_time_cb()
     return True
 
 
@@ -478,7 +484,7 @@ def run():
                     if XDict[hEntryX[runcount].get()] != "":
                         eff[1] += str(hEntryConf[runcount].get())
                         messagebox.showinfo(
-                            "注意", "AviUtlのバグの影響により、移動の設定の値は反映されません。\nインポート後、個別に設定してください。"
+                            "注意", "AviUtlのバグの影響により、移動の設定の値が反映されないことがあります。\nインポート後、個別に設定してください。"
                                   "\n拡張編集0.93rc か patch.aul導入済 の環境の方は無視できます。")
                     if XDict[hEntryX[runcount].get()] != "" and hEntryConf[runcount].get() != "":
                         eff = [EffDict[mydict["Effect"][i][0]][x][0],
@@ -509,6 +515,47 @@ def trgt_command():
         scene_entry['state'] = 'disable'
 
 
+def change_time_cb():
+    if slct_time.get():
+        time_ps_combo['state'] = 'readonly'
+        time1_combo['state'] = 'enable'
+        time2_combo['state'] = 'enable'
+        time_ps_list, marker_list = rpp_cl.load_marker_list()
+
+        if len(time_ps_list) >= 2 and time_ps_list[1].startswith('選択時間'):
+            time_ps.set(time_ps_list[1])
+        else:
+            time_ps.set('-')
+        time_ps_combo['values'] = time_ps_list
+        time1_combo['values'] = marker_list
+        time2_combo['values'] = marker_list
+        set_time(None)
+    else:
+        time_ps_combo['state'] = 'disable'
+        time1_combo['state'] = 'disable'
+        time2_combo['state'] = 'disable'
+
+
+def set_time(a):
+    if time_ps.get() == '-':
+        time1_combo.set('0.0')
+        time2_combo.set('99999.0')
+    else:
+        slct = time_ps.get()
+        time1_combo.set(slct[slct.rfind('(') + 1:slct.rfind('~')])
+        time2_combo.set(slct[slct.rfind('~') + 1:])
+
+
+def set_time1(a):
+    x = time1.get()
+    time1_combo.set(x[x.rfind(':') + 2:])
+
+
+def set_time2(a):
+    x = time2.get()
+    time2_combo.set(x[x.rfind(':') + 2:])
+
+
 if __name__ == '__main__':
     read_cfg()
     # root
@@ -535,7 +582,7 @@ if __name__ == '__main__':
     label1.grid(row=0, column=0)
     file1 = StringVar()
     file1_tmp = StringVar()
-    val_cmd = root.register(set_tree)
+    val_cmd = root.register(set_rppinfo)
     file1_entry = ttk.Entry(frame1, textvariable=file1, width=50, validate='focusout', validatecommand=val_cmd)
     file1_entry.grid(row=0, column=1)
     frame1.rowconfigure(0, weight=1)
@@ -699,20 +746,30 @@ if __name__ == '__main__':
 
     slct_time = IntVar()
     slct_time.set(0)
-    time_cb = ttk.Checkbutton(frame4a, padding=5, text='時間選択 (秒)', onvalue=1, offvalue=0, variable=slct_time)
+    time_cb = ttk.Checkbutton(frame4a, padding=5, text='時間選択 (秒)',
+                              onvalue=1, offvalue=0, variable=slct_time, command=change_time_cb)
     time_cb.grid(row=4, column=0, sticky=W)
+
+    time_ps = StringVar()
+    time_ps.set('')
+    time_ps_combo = ttk.Combobox(frame4a, textvariable=time_ps, width=10, state='disable')
+    time_ps_combo.bind('<<ComboboxSelected>>', set_time)
+    time_ps_combo.grid(row=5, column=0, padx=5, pady=3, sticky=W+E)
+
     time1 = StringVar()
-    time1.set('0.0')
-    time1_combo = ttk.Combobox(frame4a, textvariable=time1, width=10)
-    time1_combo.grid(row=5, column=0, padx=5, pady=3, sticky=W+E)
+    time1.set('')
+    time1_combo = ttk.Combobox(frame4a, textvariable=time1, width=10, state='disable')
+    time1_combo.bind('<<ComboboxSelected>>', set_time1)
+    time1_combo.grid(row=6, column=0, padx=5, pady=3, sticky=W+E)
     time2 = StringVar()
-    time2.set('99999.0')
-    time2_combo = ttk.Combobox(frame4a, textvariable=time2, width=10)
-    time2_combo.grid(row=6, column=0, padx=5, pady=3, sticky=W+E)
+    time2.set('')
+    time2_combo = ttk.Combobox(frame4a, textvariable=time2, width=10, state='disable')
+    time2_combo.bind('<<ComboboxSelected>>', set_time2)
+    time2_combo.grid(row=7, column=0, padx=5, pady=3, sticky=W+E)
 
     file8disp = StringVar()
     file8_tree = CheckboxTreeview(frame4a, show='tree', height=5)
-    file8_tree.grid(row=0, column=1, rowspan=7, sticky=N+S+E+W)
+    file8_tree.grid(row=0, column=1, rowspan=8, sticky=N+S+E+W)
     file8_tree.column("#0", width=300)
     ttk.Style().configure('Checkbox.Treeview', rowheight=15, borderwidth=1, relief='sunken', indent=0)
 
@@ -893,7 +950,7 @@ if __name__ == '__main__':
     file5 = StringVar()
     file5_entry = ttk.Entry(frame7, textvariable=file5, width=10)
     file5_entry.grid(row=0, column=1, sticky=(W + E), padx=10)
-    file5_entry.insert(END, "60")
+    file5_entry.insert(END, "")
     button6 = ttk.Button(frame7, text='実行', command=run)
     button6.grid(row=0, column=2)
 

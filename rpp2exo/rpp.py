@@ -29,7 +29,7 @@ class Rpp:
         tree = self.make_treedict(1)[0]
         return tree
 
-    def load(self, path):  # RPPファイルをself.rpp_aryに入れる]
+    def load(self, path):  # RPPファイルをself.rpp_aryに入れる
         try:
             if ".rpp" in path.lower():
                 with open(path, mode='r', encoding='UTF-8', errors='replace') as f:
@@ -37,23 +37,43 @@ class Rpp:
         except FileNotFoundError:
             print("ファイルを開くことができませんでした。: " + path)
 
-
-    def srch_selection(self):
+    def load_marker_list(self):  # RPPからマーカー・リージョンを取得し、リスト化して返す
         index = 0
-        st = 0.0
-        en = 99999.0
+        time_ps_list = ['-']
+        marker_list = ['-']
+        in_region = False
+        st = 0
+        en = 0
         while index < len(self.rpp_ary):
             if self.rpp_ary[index].split()[0] == "SELECTION":
-                st = int(float(self.rpp_ary[index].split()[1]) * 1000) / 1000
-                en = int(float(self.rpp_ary[index].split()[2]) * 1000) / 1000
+                st = str(int(float(self.rpp_ary[index].split()[1]) * 1000) / 1000)
+                en = str(int(float(self.rpp_ary[index].split()[2]) * 1000) / 1000)
                 if st > en:
                     st, en = en, st
-                elif st == en:
-                    en = 99999.0
+                if not(st == en == 0):
+                    time_ps_list.append('選択時間 (' + st + '~' + en)
+
+            if self.rpp_ary[index].split()[0] == "MARKER":
+                marker = self.rpp_ary[index].split()
+                if marker[-1] != 'R':
+                    del marker[-1]
+                if int(marker[-4]) % 2 == 0:  # マーカー
+                    marker_name = ' ' + ' '.join(marker[3:-4]).replace('"', '')
+                    pos = str(int(float(marker[2]) * 1000) / 1000)
+                    marker_list.append("M" + marker[1] + marker_name + ": " + pos)
+                else:  # リージョン
+                    in_region = not in_region
+                    if in_region:  # リージョン始点の処理
+                        marker_name = ' ' + ' '.join(marker[3:-4]).replace('"', '')
+                        st = str(int(float(marker[2]) * 1000) / 1000)
+                    else:  # リージョン終点の処理
+                        en = str(int(float(marker[2]) * 1000) / 1000)
+                        time_ps_list.append('R' + marker[1] + marker_name + ' (' + st + '~' + en)
+
             if self.rpp_ary[index].split()[0] == "<TRACK":
                 break
             index += 1
-        return st, en
+        return time_ps_list, marker_list
 
     def make_treedict(self, index):  # CheckboxTreeviewで使う用の入れ子辞書を生成する
         value = {}
