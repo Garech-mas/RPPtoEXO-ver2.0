@@ -1,6 +1,7 @@
 import binascii
 
 import cv2
+from decimal import Decimal, ROUND_HALF_UP
 
 
 class LoadFilterFileError(Exception):
@@ -151,10 +152,10 @@ class Exo:
             next_obj_frame_pos = objdict["pos"][index + 1] * float(self.mydict["fps"]) + 1 \
                 if index != len(objdict["length"]) - 1 else -1
             obj_frame_length = objdict["length"][index] * float(self.mydict["fps"])
-            if round(obj_frame_pos) == bf:  # 一つ前のオブジェクトとフレームがかぶらないようにする処理
+            if sur_round(obj_frame_pos) == bf:  # 一つ前のオブジェクトとフレームがかぶらないようにする処理
                 obj_frame_pos += 1
                 obj_frame_length -= 1
-            if round(obj_frame_pos + obj_frame_length) == round(
+            if sur_round(obj_frame_pos + obj_frame_length) == sur_round(
                     next_obj_frame_pos) - 1:  # 一つ後のオブジェクトとの間に1フレームの空きがある場合の処理
                 obj_frame_length += 1
             if obj_frame_pos < bf:
@@ -165,12 +166,12 @@ class Exo:
                     continue
             bf = obj_frame_pos + obj_frame_length - 1
             if self.mydict["NoGap"] == 1:
-                if obj_frame_pos < round(next_obj_frame_pos) - 1:
+                if obj_frame_pos < sur_round(next_obj_frame_pos) - 1:
                     bf = next_obj_frame_pos - 1
 
-            obj_frame_pos = round(obj_frame_pos)
+            obj_frame_pos = sur_round(obj_frame_pos)
             if obj_frame_pos == 0: obj_frame_pos = 1
-            bf = round(bf)
+            bf = sur_round(bf)
             exo_eff = ""
 
             # エフェクトを追加している場合の設定
@@ -323,3 +324,8 @@ def encode_txt(text):
     text = str(text)[:-1][2:]
     text = text + "0" * (4096 - len(str(text)))
     return text
+
+
+def sur_round(i):
+    result = Decimal(str(i)).quantize(Decimal('0'), rounding=ROUND_HALF_UP)
+    return float(result)
