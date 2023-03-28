@@ -30,12 +30,14 @@ class Rpp:
         return tree
 
     def load(self, path):  # RPPファイルをself.rpp_aryに入れる
+        self.rpp_path = path
         try:
             if ".rpp" in path.lower():
                 with open(path, mode='r', encoding='UTF-8', errors='replace') as f:
                     self.rpp_ary = f.readlines()
-        except FileNotFoundError:
+        except FileNotFoundError as e:
             print("ファイルを開くことができませんでした。: " + path)
+            raise e
 
     def load_marker_list(self):  # RPPからマーカー・リージョンを取得し、リスト化して返す
         index = 0
@@ -50,8 +52,8 @@ class Rpp:
                 en = str(int(float(self.rpp_ary[index].split()[2]) * 1000) / 1000)
                 if st > en:
                     st, en = en, st
-                if not(st == en == 0):
-                    time_ps_list.append('選択時間 (' + st + '~' + en)
+                if not(st == en == '0.0'):
+                    time_ps_list.append('選択時間 (' + st + '~' + en + ')')
 
             if self.rpp_ary[index].split()[0] == "MARKER":
                 marker = self.rpp_ary[index].split()
@@ -68,7 +70,7 @@ class Rpp:
                         st = str(int(float(marker[2]) * 1000) / 1000)
                     else:  # リージョン終点の処理
                         en = str(int(float(marker[2]) * 1000) / 1000)
-                        time_ps_list.append('R' + marker[1] + marker_name + ' (' + st + '~' + en)
+                        time_ps_list.append('R' + marker[1] + marker_name + ' (' + st + '~' + en + ')')
 
             if self.rpp_ary[index].split()[0] == "<TRACK":
                 break
@@ -99,7 +101,9 @@ class Rpp:
                 return value, index, int(isbus[2]) + 1
 
     def main(self, auto_src, sel_track):  # rpp_aryを読み込んだ結果をobjDictに入れていく
-        self.load(self.rpp_path)
+        failed = self.load(self.rpp_path)
+        if failed:
+            raise PermissionError(filename='')
         self.objDict = {
             "pos": [-1.0],
             "length": [-1.0],
@@ -204,9 +208,8 @@ class Rpp:
 
                 if ("SOURCE SECTION/LENGTH" in itemdict and  # セクションアイテムだったら
                         ("SOURCE SECTION/MODE" not in itemdict or itemdict["SOURCE SECTION/MODE"][0] != "3")):
-
-                    if "SOURCE SECTION/MODE" in itemdict and itemdict["SOURCE SECTION/MODE"][0] == "2" \
-                            and not end_code["exist_mode2"]:  # 逆再生＋セクションのアイテムだったら
+                    # 逆再生＋セクションのアイテムだったら
+                    if "SOURCE SECTION/MODE" in itemdict and itemdict["SOURCE SECTION/MODE"][0] == "2":
                         end_code["exist_mode2"].append("トラック: " + track_name +
                                                        " / 開始位置(秒): " + str(int(self.objDict["pos"][-1] * 1000) / 1000))
 
@@ -228,7 +231,7 @@ class Rpp:
                             sec_count += 1
                     self.objDict["length"][-1] = sec_length * (sec_count + 1) - end_length
 
-                if "SM" in itemdict and not end_code["exist_stretch_marker"]:  # 伸縮マーカー付きアイテム
+                if "SM" in itemdict:  # 伸縮マーカー付きアイテム
                     end_code["exist_stretch_marker"].append("トラック: " + track_name +
                                                             " / 開始位置(秒): " + str(
                         int(self.objDict["pos"][-1] * 1000) / 1000))
