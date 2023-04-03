@@ -1,6 +1,5 @@
 import binascii
 
-import cv as cv
 import cv2
 from decimal import Decimal, ROUND_HALF_UP
 
@@ -9,61 +8,6 @@ class LoadFilterFileError(Exception):
     pass
 
 
-# class ExoObject:
-#     output_type = 0  # 1=動画  2=画像  3=フィルタ  4=シーン  として出力
-#     auto_src = False  # 素材自動検出が有効か
-#
-#     x = 0.0
-#     y = 0.0
-#     z = 0.0
-#     size = 100.0  # 拡大率
-#     rotation = 0.0  # 回転
-#     alpha = 0.0  # 透明度
-#     blend = 0  # 合成モード
-#
-#     adv_draw = False  # 拡張描画か
-#     spin_x = 0.0  # X軸回転
-#     spin_y = 0.0
-#     spin_z = 0.0
-#     center_x = 0.0  # 中心X
-#     center_y = 0.0
-#     center_z = 0.0
-#
-#     effect = []  # ["EffName",["ConfName1","Conf"],["ConfName2","Conf"]],
-#     script_text = ''
-#
-#     horizon_flip_even = 0  # 偶数オブジェクトを左右反転するか
-#     sep_layer_even = 0  # a              別レイヤ―配置するか
-#     no_gap = 0  # オブジェクト間の隙間を埋めるか
-#
-#     def __init__(self):
-#         self.output_type = 0    # 1=動画  2=画像  3=フィルタ  4=シーン  として出力
-#         self.auto_src = False   # 素材自動検出が有効か
-#
-#         self.x = 0.0
-#         self.y = 0.0
-#         self.z = 0.0
-#         self.size = 100.0       # 拡大率
-#         self.rotation = 0.0     # 回転
-#         self.alpha = 0.0        # 透明度
-#         self.blend = 0          # 合成モード
-#
-#         self.adv_draw = False       # 拡張描画か
-#         self.spin_x = 0.0       # X軸回転
-#         self.spin_y = 0.0
-#         self.spin_z = 0.0
-#         self.center_x = 0.0     # 中心X
-#         self.center_y = 0.0
-#         self.center_z = 0.0
-#
-#         self.effect = []        # ["EffName",["ConfName1","Conf"],["ConfName2","Conf"]],
-#         self.script_text = ''
-#
-#         self.horizon_flip_even = 0  # 偶数オブジェクトを左右反転するか
-#         self.sep_layer_even = 0     # a              別レイヤ―配置するか
-#         self.no_gap = 0             # オブジェクト間の隙間を埋めるか
-#
-#
 class Exo:
     def __init__(self, mydict):
         self.fps = 60.0
@@ -72,8 +16,6 @@ class Exo:
         self.mydict = mydict
 
     def fetch_fps(self, file_path):
-        if self.mydict["NoGap"]:
-            a = 1
         file_fps = []
         # 各動画ファイルを読み込み、必要な情報を格納する
         for index in range(len(file_path)):
@@ -83,11 +25,10 @@ class Exo:
             cap = cv2.VideoCapture(path.replace('\\', '/'))
             fps = float(cap.get(cv2.CAP_PROP_FPS))
             if fps == 0.0:
-                print("動画として読み込めませんでした。>", end="")
-                fps = 1.0
-            print(path + "; fps: " + str(fps))
+                print("動画として読み込めませんでした。動画ファイルの場合、再生位置が正常に反映されません。\n対象ファイル: " + path)
             cap.release()
             file_fps.append(fps)
+        file_fps.append(0.0)
         return file_fps
 
     def make_exo(self, objdict, file_path, file_fps):
@@ -100,6 +41,7 @@ class Exo:
         exo_3 = "\nend="  # EndFrame
         exo_4 = "\nlayer="  # layer
         exo_4_2 = "\ngroup=1\noverlay=1\nclipping=" + str(self.mydict["clipping"]) + "\ncamera=0\n["  # item_count
+        exo_5 = ""
         exo_6 = "\n["  # item_count
         # exo_7 item_countによる分岐のため後のループ内で記述
         exo_7 = ""
@@ -124,11 +66,12 @@ class Exo:
             next_obj_frame_pos = objdict["pos"][index + 1] * float(self.mydict["fps"]) + 1 \
                 if index != len(objdict["length"]) - 1 else -1
             obj_frame_length = objdict["length"][index] * float(self.mydict["fps"])
-            if sur_round(obj_frame_pos) == bf:  # 一つ前のオブジェクトとフレームがかぶらないようにする処理
+            # 一つ前のオブジェクトとフレームがかぶらないようにする処理
+            if sur_round(obj_frame_pos) == bf:
                 obj_frame_pos += 1
                 obj_frame_length -= 1
-            if sur_round(obj_frame_pos + obj_frame_length) == sur_round(
-                    next_obj_frame_pos) - 1:  # 一つ後のオブジェクトとの間に1フレームの空きがある場合の処理
+            # 一つ後のオブジェクトとの間に1フレームの空きがある場合の処理
+            if sur_round(obj_frame_pos + obj_frame_length) == sur_round(next_obj_frame_pos) - 1:
                 obj_frame_length += 1
             if obj_frame_pos < bf:
                 bf = 0
@@ -240,17 +183,18 @@ class Exo:
                 exo_5 = ".0]\n_name=シーン\n再生位置=" + str(self.mydict["SrcPosition"]) + "\n再生速度=" + str(self.mydict["SrcRate"]) + \
                         "\nループ再生=" + str(self.mydict["IsLoop"]) + "\nscene=" + str(self.mydict["SceneIdx"])
 
+            # オブジェクトの反転・スクリプト制御の有無の設定
+            if int(self.mydict["IsFlipHEvenObj"]) == 1 and (bfidx + item_count) % 2 == 0:  # 反転
+                exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + \
+                           "]\n_name=反転\n上下反転=0\n左右反転=1\n輝度反転=0\n色相反転=0\n透明度反転=0"
+                has_flip = True
+            if self.mydict["ScriptText"] != "":  # スクリプト制御追加する場合
+                exo_script = ("\n[" + str(item_count) + "." + str(has_flip + 1 + filter_count) +
+                              "]\n_name=スクリプト制御\ntext=" + encode_txt(self.mydict["ScriptText"]))
+                has_script_ctrl = 1
+
             # メディアオブジェクト
             if self.mydict["OutputType"] != 3:
-                if int(self.mydict["IsFlipHEvenObj"]) == 1 and (bfidx + item_count) % 2 == 0:  # 反転
-                    exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + \
-                               "]\n_name=反転\n上下反転=0\n左右反転=1\n輝度反転=0\n色相反転=0\n透明度反転=0"
-                    has_flip = True
-                if self.mydict["ScriptText"] != "":  # スクリプト制御追加する場合
-                    exo_script = ("\n[" + str(item_count) + "." + str(has_flip + 1 + filter_count) +
-                                  "]\n_name=スクリプト制御\ntext=" + encode_txt(self.mydict["ScriptText"]))
-                    has_script_ctrl = 1
-
                 if self.mydict["IsExSet"] == "0":  # 標準描画
                     exo_7 = "." + str(has_script_ctrl + has_flip + 1 + filter_count) + \
                             "]\n_name=標準描画" + \
@@ -273,13 +217,6 @@ class Exo:
                               str(item_count) + exo_7)
             # フィルタ効果
             elif self.mydict["OutputType"] == 3:
-                if int(self.mydict["IsFlipHEvenObj"]) == 1 and (bfidx + item_count) % 2 == 0:  # 反転
-                    exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + \
-                               "]\n_name=反転\n上下反転=0\n左右反転=1\n輝度反転=0\n色相反転=0\n透明度反転=0"
-                    has_flip = True
-                if self.mydict["ScriptText"] != "":  # スクリプト制御追加する場合
-                    exo_script = ("\n[" + str(item_count) + "." + str(has_flip + 1 + filter_count) +
-                                  "]\n_name=スクリプト制御\ntext=" + encode_txt(self.mydict["ScriptText"]))
                 exo_4_2 = "\ngroup=1\noverlay=1"
                 # 何も効果がかかっていないとエラー吐くので（多分）とりあえず座標0,0,0を掛けておく
                 exo_5 = "\n[" + str(item_count) + ".0]\n_name=座標\nX=0.0\nY=0.0\nZ=0.0"
@@ -306,13 +243,13 @@ class Exo:
         return end
 
 
-def encode_txt(text):
+def encode_txt(text):  # textを拡張編集のテキストエンコード形式に直す
     text = binascii.hexlify(text.encode("UTF-16LE"))
     text = str(text)[:-1][2:]
     text = text + "0" * (4096 - len(str(text)))
     return text
 
 
-def sur_round(i):
+def sur_round(i):  # iを正確に四捨五入する
     result = Decimal(str(i)).quantize(Decimal('0'), rounding=ROUND_HALF_UP)
     return float(result)

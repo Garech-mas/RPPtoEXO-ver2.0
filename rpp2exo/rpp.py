@@ -1,3 +1,4 @@
+import os
 import re
 
 srch_type = {"VIDEO": "VIDEO",  # 動画ファイル
@@ -36,7 +37,7 @@ class Rpp:
                 with open(path, mode='r', encoding='UTF-8', errors='replace') as f:
                     self.rpp_ary = f.readlines()
         except FileNotFoundError as e:
-            print("ファイルを開くことができませんでした。: " + path)
+            print("★ファイルを開くことができませんでした。: " + path)
             raise e
 
     def load_marker_list(self):  # RPPからマーカー・リージョンを取得し、リスト化して返す
@@ -52,7 +53,7 @@ class Rpp:
                 en = str(int(float(self.rpp_ary[index].split()[2]) * 1000) / 1000)
                 if st > en:
                     st, en = en, st
-                if not(st == en == '0.0'):
+                if not (st == en == '0.0'):
                     time_ps_list.append('選択時間 (' + st + '~' + en + ')')
 
             if self.rpp_ary[index].split()[0] == "MARKER":
@@ -103,7 +104,7 @@ class Rpp:
     def main(self, auto_src, sel_track):  # rpp_aryを読み込んだ結果をobjDictに入れていく
         failed = self.load(self.rpp_path)
         if failed:
-            raise PermissionError(filename='')
+            raise PermissionError()
         self.objDict = {
             "pos": [-1.0],
             "length": [-1.0],
@@ -113,7 +114,7 @@ class Rpp:
             "fileidx": [-1],
             "filetype": ['']
         }
-        end_code = {"exist_mode2": [], "exist_stretch_marker": []}
+        end = {"exist_mode2": [], "exist_stretch_marker": []}
         file_path = []
 
         # RPPを読み込み、必要な情報をitemdictに格納していく
@@ -154,13 +155,20 @@ class Rpp:
                     else:
                         spl = re.split(' +|\r\n|\n|\r', self.rpp_ary[index])[1:-1]
                         key = prefix + spl.pop(0)
-                        if can_assign:
+                        # splitで連続空白が削除されてしまいパスが変わってしまう為、個別にDictを設定
+                        if key.endswith('FILE'):
+                            spl = [self.rpp_ary[index][self.rpp_ary[index].find('FILE') + 5:-1].replace('"', '')]
+                            # MP3ファイルの場合、FILE行末尾に謎の' 1'が付いてしまうので除去
+                            if spl[0][-2:] == ' 1':
+                                spl[0] = spl[0][:-2]
+                        if can_assign:  # アイテム情報の上書きが可能なら
                             itemdict[key] = spl
                         if key == 'TAKE':
-                            if not spl:  # テイクが選択されていなかったら
+                            if not spl:  # テイクが選択されていなかったら上書き不可にする
                                 can_assign = False
                             else:
-                                can_assign = True  # 次の選択テイクの情報が来るまで辞書上書きを止める
+                                can_assign = True
+                                # itemdictの中身を全て消し、テイクによって不変な設定項目を戻す
                                 tempdict["POSITION"] = itemdict["POSITION"]
                                 tempdict["LENGTH"] = itemdict["LENGTH"]
                                 tempdict["LOOP"] = itemdict["LOOP"]
@@ -189,14 +197,18 @@ class Rpp:
                     for srch in srch_type.keys():  # ファイルパス処理
                         keyy = "SOURCE " + srch + "/FILE"
                         if "SOURCE SECTION/" + keyy in itemdict:
-                            path = str(' '.join(itemdict["SOURCE SECTION/" + keyy])).replace('"', '')
+                            path = itemdict["SOURCE SECTION/" + keyy][-1]
+                            if is_audio(path):
+                                continue
                             if path not in file_path:
                                 file_path.append(path)
                             self.objDict["fileidx"].append(file_path.index(path))
                             self.objDict["filetype"].append(srch_type[srch])
                             srchflg = 1
                         elif keyy in itemdict:
-                            path = str(' '.join(itemdict[keyy])).replace('"', '')
+                            path = itemdict[keyy][-1]
+                            if is_audio(path):
+                                continue
                             if path not in file_path:
                                 file_path.append(path)
                             self.objDict["fileidx"].append(file_path.index(path))
@@ -210,8 +222,8 @@ class Rpp:
                         ("SOURCE SECTION/MODE" not in itemdict or itemdict["SOURCE SECTION/MODE"][0] != "3")):
                     # 逆再生＋セクションのアイテムだったら
                     if "SOURCE SECTION/MODE" in itemdict and itemdict["SOURCE SECTION/MODE"][0] == "2":
-                        end_code["exist_mode2"].append("トラック: " + track_name +
-                                                       " / 開始位置(秒): " + str(int(self.objDict["pos"][-1] * 1000) / 1000))
+                        end["exist_mode2"].append("トラック: " + track_name +
+                                                  " / 開始位置(秒): " + str(int(self.objDict["pos"][-1] * 1000) / 1000))
 
                     end_length = self.objDict["length"][-1]
                     sec_length = float(itemdict["SOURCE SECTION/LENGTH"][0]) / float(itemdict["PLAYRATE"][0])
@@ -232,13 +244,18 @@ class Rpp:
                     self.objDict["length"][-1] = sec_length * (sec_count + 1) - end_length
 
                 if "SM" in itemdict:  # 伸縮マーカー付きアイテム
-                    end_code["exist_stretch_marker"].append("トラック: " + track_name +
-                                                            " / 開始位置(秒): " + str(
-                        int(self.objDict["pos"][-1] * 1000) / 1000))
+                    end["exist_stretch_marker"].append("トラック: " + track_name +
+                                                       " / 開始位置(秒): " + str(int(self.objDict["pos"][-1] * 1000) / 1000))
 
             index += 1
 
-        if not end_code["exist_mode2"]: del end_code["exist_mode2"]
-        if not end_code["exist_stretch_marker"]: del end_code["exist_stretch_marker"]
+        if not end["exist_mode2"]: del end["exist_mode2"]
+        if not end["exist_stretch_marker"]: del end["exist_stretch_marker"]
 
-        return file_path, end_code
+        return file_path, end
+
+
+def is_audio(path):
+    audio_extensions = ['.mp3', '.wav', '.flac', '.m4a', '.aac', '.wma', '.ogg']
+    extension = os.path.splitext(path)[1]
+    return extension.lower() in audio_extensions

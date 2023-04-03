@@ -1,7 +1,8 @@
+import os
 
 EffDict = {
-    #   "効果名"        :       [["設定１","デフォルト設定"],["設定２","デフォルト設定"],["設定３","デフォルト設定"]]
-    #   各設定3つ目に-1でチェックボックス, -2で単一Entry
+    #   "効果名"        :       [["設定１", デフォルト設定, タイプ], ["設定２", デフォルト設定. タイプ], ...]
+    #   タイプ: 0でトラックバー、 -1でチェックボックス、 -2でテキスト系
     "座標": [["X", 0.0], ["Y", 0.0], ["Z", 0.0]],
     "拡大率": [["拡大率", 100.00], ["X", 100.00], ["Y", 100.00]],
     "透明度": [["透明度", 0.0]],
@@ -66,4 +67,59 @@ BlendDict = {
     "陰影": 10,
     "明暗": 11,
     "差分": 12,
+}
+
+mydict = {
+    # 基本設定
+    "fps": 60,
+    "RPPPath": "test.rpp",
+    "EXOPath": "test.exo",
+    "SrcPath": "C:\\Users\\USER\\Documents\\ytpmv_script\\movie.mp4",  # ファイルパス。絶対パスが必要。
+    "SrcPosition": 1,  # 再生位置
+    "SrcRate": 100.0,  # 再生速度
+    "IsAlpha": 0,  # アルファチャンネルを読み込む
+    "IsLoop": 0,  # ループ再生
+    "X": 0.0,  # x座標
+    "Y": 0.0,  # y座標
+    "Z": 0.0,  # z座標
+    "Size": 100.0,  # 拡大率
+    "Rotation": 0.0,  # 回転
+    "Alpha": 0.0,
+    "Blend": 0,  # 合成モード
+
+    "clipping": 0,
+    "SceneIdx": 0,
+
+    # 拡張描画
+    "XRotation": 0.00,
+    "YRotation": 0.00,
+    "ZRotation": 0.00,
+    "XCenter": 0.0,
+    "YCenter": 0.0,
+    "ZCenter": 0.0,
+
+    # エフェクト設定 SettingEffで追加する。
+    "Effect": [
+        #   ["EffName",["ConfName1","Conf"],["ConfName2","Conf"]],
+    ],
+    "EffNum": 0,  # 現時点で追加されているパラメータ数（GUI用）
+    "EffCount": 0,  # エフェクト数（GUI用）
+    "EffCount2": 0,
+    "EffCbNum": 0,  # パラメータ  チェックボックスの数
+    "ScriptText": '',
+
+    # 独自設定
+    "IsFlipHEvenObj": 0,  # 偶数オブジェクトを左右反転するか
+    "SepLayerEvenObj": 0,  # 偶数オブジェクトを別レイヤ―に配置するか
+    "NoGap": 0,  # オブジェクト間の隙間を埋めるか
+    "OutputType": 0,  # 1=動画  2=画像  3=フィルタ  4=シーン  として出力
+    "IsExSet": 0,  # 拡張描画を有効にするか
+
+    # 設定 (config.iniから適用する)
+    "RPPLastDir": os.path.abspath(os.path.dirname(__file__)),  # 最後にRPPを保存したフォルダパス
+    "EXOLastDir": os.path.abspath(os.path.dirname(__file__)),  # EXO
+    "SrcLastDir": os.path.abspath(os.path.dirname(__file__)),  # 素材
+    "AlsLastDir": os.path.abspath(os.path.dirname(__file__)),  # エイリアス
+    "PatchExists": 0  # patch.aulが導入済みか
+
 }
