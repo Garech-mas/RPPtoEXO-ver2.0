@@ -91,7 +91,7 @@ class Rpp:
             name = str(self.rpp_ary[index + 1][9:-1]) + "[M​]" * mute
             isbus = self.rpp_ary[index + 9].split()  # [1] > フォルダ始端・終端 [2] > 階層を何個下るか
             while name in value:
-                name += "​"
+                name += " "  # トラック名が被っていた場合、末尾に半角スペースを被った数分付加して後から区別できるように
             value[name] = {}
 
             if isbus[1] == "1":

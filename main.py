@@ -215,7 +215,7 @@ def insert_treedict(tree, prefix, iid):  # ツリー表示でトラック１行�
         if k == list(tree.keys())[-1]:  # 最下層のフォルダ内トラックの場合 視覚上の縦繋がりを消す
             f11_ct1.insert("all", "end", text=prefix + "└" + k, iid=str(iid))
 
-            # 該当トラック（親トラック）がミュート状態の場合、ゼロ幅スペース(​)を挿入し後から区別できるようにしている
+            # 親トラックがミュート状態の場合、こっそりゼロ幅スペース(​)を挿入して子トラックが後から区別できるように
             if "​" not in k and "​" not in prefix:
                 f11_ct1.change_state(str(iid), 'checked')
             if tree[k]:
