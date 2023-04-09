@@ -218,8 +218,9 @@ class Rpp:
                         self.objDict["fileidx"].append(-1)
                         self.objDict["filetype"].append("OTHER")
 
-                if ("SOURCE SECTION/LENGTH" in itemdict and  # セクションアイテムだったら
-                        ("SOURCE SECTION/MODE" not in itemdict or itemdict["SOURCE SECTION/MODE"][0] != "3")):
+                # ループ＋セクションアイテムだったら
+                if itemdict["LOOP"][0] == '1' and ("SOURCE SECTION/LENGTH" in itemdict and
+                   ("SOURCE SECTION/MODE" not in itemdict or itemdict["SOURCE SECTION/MODE"][0] != "3")):
                     # 逆再生＋セクションのアイテムだったら
                     if "SOURCE SECTION/MODE" in itemdict and itemdict["SOURCE SECTION/MODE"][0] == "2":
                         end["exist_mode2"].append("トラック: " + track_name +
@@ -229,18 +230,17 @@ class Rpp:
                     sec_length = float(itemdict["SOURCE SECTION/LENGTH"][0]) / float(itemdict["PLAYRATE"][0])
                     sec_count = 1
                     self.objDict["soffs"][-1] = float(itemdict["SOURCE SECTION/STARTPOS"][0])
-                    if int(itemdict["LOOP"][0]) == 1:
-                        self.objDict["loop"][-1] = 0
-                        while sec_length * sec_count < end_length:  # セクションアイテムをUtl上で複数オブジェクトに分割
-                            self.objDict["length"][-1] = sec_length
-                            self.objDict["pos"].append(self.objDict["pos"][-1] + sec_length)
-                            self.objDict["length"].append(-1)
-                            self.objDict["loop"].append(0)
-                            self.objDict["soffs"].append(self.objDict["soffs"][-1])
-                            self.objDict["playrate"].append(self.objDict["playrate"][-1])
-                            self.objDict["fileidx"].append(self.objDict["fileidx"][-1])
-                            self.objDict["filetype"].append(self.objDict["filetype"][-1])
-                            sec_count += 1
+                    self.objDict["loop"][-1] = 0
+                    while sec_length * sec_count < end_length:  # セクションアイテムをUtl上で複数オブジェクトに分割
+                        self.objDict["length"][-1] = sec_length
+                        self.objDict["pos"].append(self.objDict["pos"][-1] + sec_length)
+                        self.objDict["length"].append(-1)
+                        self.objDict["loop"].append(0)
+                        self.objDict["soffs"].append(self.objDict["soffs"][-1])
+                        self.objDict["playrate"].append(self.objDict["playrate"][-1])
+                        self.objDict["fileidx"].append(self.objDict["fileidx"][-1])
+                        self.objDict["filetype"].append(self.objDict["filetype"][-1])
+                        sec_count += 1
                     self.objDict["length"][-1] = sec_length * (sec_count + 1) - end_length
 
                 if "SM" in itemdict:  # 伸縮マーカー付きアイテム
