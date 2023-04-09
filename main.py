@@ -1,6 +1,6 @@
 #####################################################################################
-#               RPP to EXO ver 2.00 b0.2                                            #
-#                                                                       2022/07/11  #
+#               RPP to EXO ver 2.0                                                  #
+#                                                                       2023/04/10  #
 #       Written by Maimai (@Maimai22015/YTPMV.info)                                 #
 #       Forked by Garech (@Garec_)                                                  #
 #                                                                                   #
@@ -74,7 +74,7 @@ def main():
         else:
             messagebox.showerror("エラー", "下記ファイルの読込み権限がありません。\n" + e.filename)
     except FileNotFoundError as e:
-        messagebox.showerror("エラー", "下記パスのファイルは見つかりませんでした。\n" + e.filename)
+        messagebox.showerror("エラー", "下記パス内のファイル/フォルダは存在しませんでした。\n" + e.filename)
     except UnicodeEncodeError as e:
         # reasonに該当行の文字列、objectに該当文字を格納
         messagebox.showerror("エラー", "AviUtl上で使用できない文字がパス名に含まれています。\n"
