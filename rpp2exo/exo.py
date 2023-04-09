@@ -25,7 +25,7 @@ class Exo:
             cap = cv2.VideoCapture(path.replace('\\', '/'))
             fps = float(cap.get(cv2.CAP_PROP_FPS))
             if fps == 0.0:
-                print("動画として読み込めませんでした。動画ファイルの場合、再生位置が正常に反映されません。\n対象ファイル: " + path)
+                print("★警告: 動画として読み込めませんでした。動画ファイルの場合、再生位置が正常に反映されません。\n対象ファイル: " + path)
             cap.release()
             file_fps.append(fps)
         file_fps.append(0.0)
@@ -55,8 +55,6 @@ class Exo:
         for index in range(1, len(objdict["length"])):
             exo_eff = ""
             filter_count = 0
-            has_script_ctrl = False  # スクリプト制御がある場合
-            has_flip = False  # 左右反転をする場合
 
             if layer > 100:
                 break
@@ -145,13 +143,13 @@ class Exo:
                     if int(self.mydict["IsFlipHEvenObj"]) == 1 and (bfidx + item_count) % 2 == 0:
                         exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + \
                                    "]\n_name=反転\n上下反転=0\n左右反転=1\n輝度反転=0\n色相反転=0\n透明度反転=0"
-                        has_flip = True
+                        filter_count += 1
                     if self.mydict["ScriptText"] != "":  # スクリプト制御追加する場合
-                        exo_script = ("\n[" + str(item_count) + "." + str(2 + filter_count) +
+                        exo_script = ("\n[" + str(item_count) + "." + str(1 + filter_count) +
                                       "]\n_name=スクリプト制御\ntext=" + encode_txt(self.mydict["ScriptText"]))
-                        has_script_ctrl = True
+                        filter_count += 1
 
-                    exo_7 = "." + str(1 + has_script_ctrl + has_flip + filter_count) + exo_7_
+                    exo_7 = "." + str(1 + filter_count) + exo_7_
                     exo_result = (exo_result + exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) +
                                   exo_4 + exo_4_2 + str(item_count) + exo_5 + exo_eff + exo_script + exo_6 +
                                   str(item_count) + exo_7)
@@ -187,22 +185,22 @@ class Exo:
             if int(self.mydict["IsFlipHEvenObj"]) == 1 and (bfidx + item_count) % 2 == 0:  # 反転
                 exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + \
                            "]\n_name=反転\n上下反転=0\n左右反転=1\n輝度反転=0\n色相反転=0\n透明度反転=0"
-                has_flip = True
+                filter_count += 1
             if self.mydict["ScriptText"] != "":  # スクリプト制御追加する場合
-                exo_script = ("\n[" + str(item_count) + "." + str(has_flip + 1 + filter_count) +
+                exo_script = ("\n[" + str(item_count) + "." + str(1 + filter_count) +
                               "]\n_name=スクリプト制御\ntext=" + encode_txt(self.mydict["ScriptText"]))
-                has_script_ctrl = 1
+                filter_count += 1
 
             # メディアオブジェクト
             if self.mydict["OutputType"] != 3:
                 if self.mydict["IsExSet"] == "0":  # 標準描画
-                    exo_7 = "." + str(has_script_ctrl + has_flip + 1 + filter_count) + \
+                    exo_7 = "." + str(1 + filter_count) + \
                             "]\n_name=標準描画" + \
                             "\nX=" + str(self.mydict["X"]) + "\nY=" + str(self.mydict["Y"]) + "\nZ=" + str(self.mydict["Z"]) + \
                             "\n拡大率=" + str(self.mydict["Size"]) + "\n透明度=" + str(self.mydict["Alpha"]) + \
                             "\n回転=" + str(self.mydict["Rotation"]) + "\nblend=" + str(self.mydict["Blend"])
                 else:  # 拡張描画
-                    exo_7 = "." + str(has_script_ctrl + has_flip + 1 + filter_count) + \
+                    exo_7 = "." + str(1 + filter_count) + \
                             "]\n_name=拡張描画" + \
                             "\nX=" + str(self.mydict["X"]) + "\nY=" + str(self.mydict["Y"]) + "\nZ=" + str(self.mydict["Z"]) + \
                             "\n拡大率=" + str(self.mydict["Size"]) + "\n透明度=" + str(self.mydict["Alpha"]) + \
