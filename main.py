@@ -551,7 +551,7 @@ def mode_command():  # 「追加対象」変更時の状態切り替え
 
 
 def advdraw_command():  # 「拡張描画」変更時の状態切り替え
-    if f4_iv4.get() == '0':
+    if f4_iv4.get() == 0:
         ParamEntryE6['state'] = 'disable'
         ParamEntryE8['state'] = 'disable'
         ParamEntryE9['state'] = 'disable'
@@ -927,7 +927,7 @@ if __name__ == '__main__':
     ParamEntryE10.insert(END, "0.00")
 
     Param11 = StringVar()
-    Param11.set('X中心 : ')
+    Param11.set('中心X : ')
     ParamLabel11 = ttk.Label(frame8, textvariable=Param11)
     ParamLabel11.grid(row=11, column=0, sticky=W + E)
     ParamEntry11 = StringVar()
@@ -936,7 +936,7 @@ if __name__ == '__main__':
     ParamEntryE11.insert(END, "0.0")
 
     Param12 = StringVar()
-    Param12.set('Y中心 : ')
+    Param12.set('中心Y : ')
     ParamLabel12 = ttk.Label(frame8, textvariable=Param12)
     ParamLabel12.grid(row=12, column=0, sticky=W + E)
     ParamEntry12 = StringVar()
@@ -945,7 +945,7 @@ if __name__ == '__main__':
     ParamEntryE12.insert(END, "0.0")
 
     Param13 = StringVar()
-    Param13.set('Z中心 : ')
+    Param13.set('中心Z : ')
     ParamLabel13 = ttk.Label(frame8, textvariable=Param13)
     ParamLabel13.grid(row=13, column=0, sticky=W + E)
     ParamEntry13 = StringVar()

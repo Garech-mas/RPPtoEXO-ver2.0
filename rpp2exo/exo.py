@@ -40,7 +40,8 @@ class Exo:
         exo_2 = "]\nstart="  # StartFrame
         exo_3 = "\nend="  # EndFrame
         exo_4 = "\nlayer="  # layer
-        exo_4_2 = "\ngroup=1\noverlay=1\nclipping=" + str(self.mydict["clipping"]) + "\ncamera=0\n["  # item_count
+        exo_4_2 = "\ngroup=1\noverlay=1\nclipping=" + str(self.mydict["clipping"]) + \
+                  "\ncamera=" + str(self.mydict["IsExSet"]) + "\n["  # item_count
         exo_5 = ""
         exo_6 = "\n["  # item_count
         # exo_7 item_countによる分岐のため後のループ内で記述
@@ -193,13 +194,7 @@ class Exo:
 
             # メディアオブジェクト
             if self.mydict["OutputType"] != 3:
-                if self.mydict["IsExSet"] == "0":  # 標準描画
-                    exo_7 = "." + str(1 + filter_count) + \
-                            "]\n_name=標準描画" + \
-                            "\nX=" + str(self.mydict["X"]) + "\nY=" + str(self.mydict["Y"]) + "\nZ=" + str(self.mydict["Z"]) + \
-                            "\n拡大率=" + str(self.mydict["Size"]) + "\n透明度=" + str(self.mydict["Alpha"]) + \
-                            "\n回転=" + str(self.mydict["Rotation"]) + "\nblend=" + str(self.mydict["Blend"])
-                else:  # 拡張描画
+                if self.mydict["IsExSet"]:  # 拡張描画
                     exo_7 = "." + str(1 + filter_count) + \
                             "]\n_name=拡張描画" + \
                             "\nX=" + str(self.mydict["X"]) + "\nY=" + str(self.mydict["Y"]) + "\nZ=" + str(self.mydict["Z"]) + \
@@ -209,6 +204,12 @@ class Exo:
                             "\n中心X=" + str(self.mydict["XCenter"]) + "\n中心Y=" + str(self.mydict["YCenter"]) + \
                             "\n中心Z=" + str(self.mydict["ZCenter"]) + \
                             "\n裏面を表示しない=0" + "\nblend=" + str(self.mydict["Blend"])
+                else:  # 標準描画
+                    exo_7 = "." + str(1 + filter_count) + \
+                            "]\n_name=標準描画" + \
+                            "\nX=" + str(self.mydict["X"]) + "\nY=" + str(self.mydict["Y"]) + "\nZ=" + str(self.mydict["Z"]) + \
+                            "\n拡大率=" + str(self.mydict["Size"]) + "\n透明度=" + str(self.mydict["Alpha"]) + \
+                            "\n回転=" + str(self.mydict["Rotation"]) + "\nblend=" + str(self.mydict["Blend"])
 
                 exo_result = (exo_result + exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) +
                               exo_4 + exo_4_2 + str(item_count) + exo_5 + exo_eff + exo_script + exo_6 +
