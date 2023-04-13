@@ -4,3 +4,6 @@ REAPERのプロジェクトファイルから自動で映像を作成するス�
 > 
 * 詳細な使い方、説明はScrapboxから >
 https://scrapbox.io/Garech/RPPtoEXO_v2.0
+
+Original made by maimai22015
+https://ytpmv.info/RPPtoEXO/
