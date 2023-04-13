@@ -1,7 +1,7 @@
 #####################################################################################
 #               RPP to EXO ver 2.0                                                  #
-#                                                                       2023/04/10  #
-#       Written by Maimai (@Maimai22015/YTPMV.info)                                 #
+#                                                                       2023/04/13  #
+#       Original Written by Maimai (@Maimai22015/YTPMV.info)                        #
 #       Forked by Garech (@Garec_)                                                  #
 #                                                                                   #
 #       協力：SHI(@sbt54864666)                                                      #
@@ -18,7 +18,7 @@ from tkinter import ttk
 from ttkwidgets import CheckboxTreeview
 
 import rpp2exo
-from rpp2exo import Rpp, Exo, LoadFilterFileError
+from rpp2exo import Rpp, Exo
 from rpp2exo.dict import EffDict, XDict, BlendDict
 
 rpp_cl = Rpp('')
@@ -80,8 +80,11 @@ def main():
         messagebox.showerror("エラー", "AviUtl上で使用できない文字がパス名に含まれています。\n"
                                     "パス名に含まれる該当文字を削除し、再度実行し直してください。\n\n"
                              + e.reason + '    "' + e.object + '"')
-    except LoadFilterFileError:
+    except rpp2exo.exo.LoadFilterFileError:
         messagebox.showerror("エラー", "エイリアス / 効果ファイルが不正です。詳しくはREADMEを参照してください。")
+    except rpp2exo.exo.ItemNotFoundError:
+        messagebox.showerror("エラー", "出力範囲内に変換対象のアイテムが見つかりませんでした。\n"
+                                    "出力対象トラック、時間選択の設定を見直してください。")
     except Exception as e:
         messagebox.showerror("エラー", "予期せぬエラーが発生しました。不正なRPPファイルの可能性があります。\n"
                                     "最新バージョンのREAPERをインストールし、RPPファイルを再保存して再試行してください。\n"
@@ -614,7 +617,7 @@ if __name__ == '__main__':
     read_cfg()
     # root
     root = Tk()
-    root.title('RPPtoEXO v2.0g')
+    root.title('RPPtoEXO v2.0')
     root.columnconfigure(1, weight=1)
 
     LFrame = ttk.Frame(root)

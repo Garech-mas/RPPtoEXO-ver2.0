@@ -4,7 +4,10 @@ import cv2
 from decimal import Decimal, ROUND_HALF_UP
 
 
-class LoadFilterFileError(Exception):
+class LoadFilterFileError(Exception):  # EXA読み込みエラー
+    pass
+
+class ItemNotFoundError(Exception):  # 出力対象アイテム数0エラー
     pass
 
 
@@ -87,6 +90,12 @@ class Exo:
             if obj_frame_pos == 0: obj_frame_pos = 1
             bf = sur_round(bf)
 
+            # 偶数番目オブジェクトをひとつ下のレイヤに配置する
+            if self.mydict["SepLayerEvenObj"] == 1 and (bfidx + item_count) % 2 == 0:
+                exo_4 = "\nlayer=" + str(layer + 1)  # layer
+            else:
+                exo_4 = "\nlayer=" + str(layer)
+
             # エフェクトを追加している場合の設定
             if len(self.mydict["Effect"]) != 0:
                 for eff in self.mydict["Effect"]:
@@ -95,12 +104,6 @@ class Exo:
                                    str(filter_count) + "]\n_name=" + str(eff[0])
                     for x in range(1, len(eff)):
                         exo_eff += "\n" + str(eff[x][0]) + "=" + str(eff[x][1])
-
-            # 偶数番目オブジェクトをひとつ下のレイヤに配置する
-            if self.mydict["SepLayerEvenObj"] == 1 and (bfidx + item_count) % 2 == 0:
-                exo_4 = "\nlayer=" + str(layer + 1)  # layer
-            else:
-                exo_4 = "\nlayer=" + str(layer)
 
             # EXA読み込み
             if self.mydict["EffPath"] != "":
@@ -223,6 +226,9 @@ class Exo:
                               exo_4 + exo_4_2 + exo_5 + exo_eff + exo_script)
 
             item_count = item_count + 1
+
+        if item_count == 0:
+            raise ItemNotFoundError
 
         try:
             with open(self.mydict["EXOPath"], mode='w', encoding='shift_jis') as f:
