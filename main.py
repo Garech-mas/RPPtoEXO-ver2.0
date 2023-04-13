@@ -179,6 +179,7 @@ def slct_filter_cfg_file():  # 効果設定ファイル読み込み
         filetypes=filetype, initialdir=mydict["AlsLastDir"], title="参照するエイリアス/効果ファイルの選択")
     if filepath != '':
         f9_sv2.set(filepath)
+        write_cfg(filepath, "AlsDir", "Directory")
 
 
 def save_exo():  # EXO保存ボタン
