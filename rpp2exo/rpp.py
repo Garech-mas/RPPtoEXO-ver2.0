@@ -249,8 +249,8 @@ class Rpp:
 
             index += 1
 
-        if not end["exist_mode2"]: del end["exist_mode2"]
-        if not end["exist_stretch_marker"]: del end["exist_stretch_marker"]
+        if not auto_src or not end["exist_mode2"]: del end["exist_mode2"]
+        if not auto_src or not end["exist_stretch_marker"]: del end["exist_stretch_marker"]
 
         return file_path, end
 

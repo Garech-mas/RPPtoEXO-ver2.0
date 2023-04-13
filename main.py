@@ -24,6 +24,8 @@ from rpp2exo.dict import EffDict, XDict, BlendDict
 rpp_cl = Rpp('')
 mydict = rpp2exo.dict.mydict
 
+print('★RPPtoEXO実行中はこのコンソール画面を閉じないでください。')
+
 
 def patched_error(msg):
     if mydict['PatchExists']:
