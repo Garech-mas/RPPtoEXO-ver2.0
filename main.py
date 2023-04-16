@@ -619,7 +619,7 @@ def set_time2(self):  # 下側のタイム選択ComboBox適用
 
 
 def drop_file(target, event):
-    target.set(event.data[1:event.data.find('}')])
+    target.set(event.data)
 
 
 if __name__ == '__main__':
