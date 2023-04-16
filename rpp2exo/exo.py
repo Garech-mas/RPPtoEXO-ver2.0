@@ -7,6 +7,7 @@ from decimal import Decimal, ROUND_HALF_UP
 class LoadFilterFileError(Exception):  # EXA読み込みエラー
     pass
 
+
 class ItemNotFoundError(Exception):  # 出力対象アイテム数0エラー
     pass
 
@@ -113,7 +114,7 @@ class Exo:
                 exo_7_ = ''
                 with open(str(self.mydict["EffPath"]), mode='r', encoding='shift_jis', errors='replace') as f:
                     exa = f.readlines()
-                    if exa[0][0] != '[' or exa[0][-2] != ']' or '.' not in exa[0]:
+                    if exa[0][0] != '[' or exa[0][-2] != ']' or exa[0] == '[exedit]\n':
                         raise LoadFilterFileError
 
                     for idx in range(len(exa)):
@@ -122,6 +123,11 @@ class Exo:
                             exo_5 = '.0]\n'
                             continue
                         elif exa[idx][0] == '[' and exa[idx][-2] == ']':  # 切り替え部
+                            if exa[idx] == '[vo]\n':
+                                if condition == '':
+                                    continue
+                                else:
+                                    break
                             if exa[idx + 1][6:] == '標準描画\n' or exa[idx + 1][6:] == '拡張描画\n':
                                 condition = 'exo_7_'
                                 exo_7_ = ']\n'
