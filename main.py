@@ -1,5 +1,5 @@
 #####################################################################################
-#               RPP to EXO ver 2.0                                                  #
+#               RPP to EXO ver 2.01                                                 #
 #                                                                       2023/04/13  #
 #       Original Written by Maimai (@Maimai22015/YTPMV.info)                        #
 #       Forked by Garech (@Garec_)                                                  #
@@ -11,11 +11,13 @@ import configparser
 import os
 import subprocess
 import threading
+from functools import partial
 from tkinter import *
 from tkinter import filedialog
 from tkinter import messagebox
 from tkinter import ttk
 from ttkwidgets import CheckboxTreeview
+from tkinterdnd2 import *
 
 import rpp2exo
 from rpp2exo import Rpp, Exo
@@ -616,10 +618,14 @@ def set_time2(self):  # 下側のタイム選択ComboBox適用
     f11_c3.set(x[x.rfind(':') + 2:])
 
 
+def drop_file(target, event):
+    target.set(event.data[1:event.data.find('}')])
+
+
 if __name__ == '__main__':
     read_cfg()
     # root
-    root = Tk()
+    root = TkinterDnD.Tk()
     root.title('RPPtoEXO v2.0')
     root.columnconfigure(1, weight=1)
 
@@ -649,6 +655,8 @@ if __name__ == '__main__':
     f1_vc1 = root.register(set_rppinfo)
     f1_e1 = ttk.Entry(frame1, textvariable=f1_sv1, width=46, validate='focusout', validatecommand=f1_vc1)
     f1_e1.grid(row=0, column=1)
+    f1_e1.drop_target_register(DND_FILES)
+    f1_e1.dnd_bind("<<Drop>>", partial(drop_file, f1_sv1))
     f1_b2 = ttk.Button(frame1, text='↻', command=lambda: set_rppinfo(1), width=2)
     f1_b2.grid(row=0, column=2)
 
@@ -664,6 +672,8 @@ if __name__ == '__main__':
     f2_sv2 = StringVar()
     f2_e1 = ttk.Entry(frame2, textvariable=f2_sv2, width=50)
     f2_e1.grid(row=1, column=1)
+    f2_e1.drop_target_register(DND_FILES)
+    f2_e1.dnd_bind("<<Drop>>", partial(drop_file, f2_sv2))
 
     # frame3 追加対象オブジェクト・素材指定
     frame3 = ttk.Frame(LFrame, padding=5)
@@ -696,6 +706,8 @@ if __name__ == '__main__':
     f3_sv4 = StringVar()
     f3_e2 = ttk.Entry(frame3, textvariable=f3_sv4, width=46)
     f3_e2.grid(row=1, column=1, columnspan=5, sticky=W)
+    f3_e2.drop_target_register(DND_FILES)
+    f3_e2.dnd_bind("<<Drop>>", partial(drop_file, f3_sv4))
     f3_b1 = ttk.Button(frame3, text='参照…', command=slct_source)
     f3_b1.grid(row=1, column=5, columnspan=2, sticky=E)
 
@@ -816,6 +828,8 @@ if __name__ == '__main__':
     f9_sv2 = StringVar()
     f9_e1 = ttk.Entry(frame9, textvariable=f9_sv2, width=40)
     f9_e1.grid(row=0, column=1)
+    f9_e1.drop_target_register(DND_FILES)
+    f9_e1.dnd_bind("<<Drop>>", partial(drop_file, f9_sv2))
 
     # Frame10 スクリプト制御
     frame10 = ttk.Frame(LFrame, padding=10)
