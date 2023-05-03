@@ -164,13 +164,15 @@ class Exo:
                 if (bfidx + item_count) % 4 == 1:
                     exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + \
                                "]\n_name=反転\n上下反転=0\n左右反転=1\n輝度反転=0\n色相反転=0\n透明度反転=0"
+                    filter_count += 1
                 elif (bfidx + item_count) % 4 == 2:
                     exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + \
                                "]\n_name=反転\n上下反転=1\n左右反転=1\n輝度反転=0\n色相反転=0\n透明度反転=0"
+                    filter_count += 1
                 elif (bfidx + item_count) % 4 == 3:
                     exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + \
                                "]\n_name=反転\n上下反転=1\n左右反転=0\n輝度反転=0\n色相反転=0\n透明度反転=0"
-                filter_count += 1
+                    filter_count += 1
 
             if self.mydict["ScriptText"] != "":  # スクリプト制御追加する場合
                 exo_script = ("\n[" + str(item_count) + "." + str(1 + filter_count) +
