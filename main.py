@@ -1,6 +1,6 @@
 #####################################################################################
-#               RPP to EXO ver 2.10                                                 #
-#                                                                       2023/04/16  #
+#               RPP to EXO ver 2.02                                                 #
+#                                                                       2023/05/03  #
 #       Original Written by Maimai (@Maimai22015/YTPMV.info)                        #
 #       Forked by Garech (@Garec_)                                                  #
 #                                                                                   #
@@ -626,7 +626,7 @@ if __name__ == '__main__':
     read_cfg()
     # root
     root = TkinterDnD.Tk()
-    root.title('RPPtoEXO v2.10')
+    root.title('RPPtoEXO v2.02')
     root.columnconfigure(1, weight=1)
 
     LFrame = ttk.Frame(root)
