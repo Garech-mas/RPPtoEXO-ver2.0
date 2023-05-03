@@ -109,7 +109,7 @@ mydict = {
     "ScriptText": '',
 
     # 独自設定
-    "IsFlipHEvenObj": 0,  # 偶数オブジェクトを左右反転するか
+    "ObjFlipType": 0,  # 0=反転なし  1=左右反転  2=上下反転  3=時計回り反転
     "SepLayerEvenObj": 0,  # 偶数オブジェクトを別レイヤ―に配置するか
     "NoGap": 0,  # オブジェクト間の隙間を埋めるか
     "OutputType": 0,  # 1=動画  2=画像  3=フィルタ  4=シーン  として出力

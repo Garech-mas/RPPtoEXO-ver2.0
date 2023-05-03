@@ -1,5 +1,5 @@
 #####################################################################################
-#               RPP to EXO ver 2.01                                                 #
+#               RPP to EXO ver 2.10                                                 #
 #                                                                       2023/04/16  #
 #       Original Written by Maimai (@Maimai22015/YTPMV.info)                        #
 #       Forked by Garech (@Garec_)                                                  #
@@ -427,7 +427,7 @@ def run():
     mydict["SrcRate"] = f4_sv2.get()
     mydict["fps"] = f7_sv1.get()
     mydict["ScriptText"] = f10_tx1.get('1.0', 'end-1c')
-    mydict["IsFlipHEvenObj"] = f11_iv1.get()
+    mydict["ObjFlipType"] = f11_iv1.get() + f11_iv4.get()
     mydict["SepLayerEvenObj"] = f11_iv3.get()
     mydict["NoGap"] = f11_iv2.get()
     mydict["clipping"] = f4_iv3.get()
@@ -626,7 +626,7 @@ if __name__ == '__main__':
     read_cfg()
     # root
     root = TkinterDnD.Tk()
-    root.title('RPPtoEXO v2.01')
+    root.title('RPPtoEXO v2.10')
     root.columnconfigure(1, weight=1)
 
     LFrame = ttk.Frame(root)
@@ -763,44 +763,47 @@ if __name__ == '__main__':
     f11_iv1.set(0)
     f11_cb1 = ttk.Checkbutton(frame11, padding=5, text='左右反転', onvalue=1, offvalue=0, variable=f11_iv1)
     f11_cb1.grid(row=1, column=0, sticky=W)
+    f11_iv4 = IntVar()
+    f11_cb6 = ttk.Checkbutton(frame11, padding=5, text='上下反転', onvalue=2, offvalue=0, variable=f11_iv4)
+    f11_cb6.grid(row=2, column=0, sticky=W)
     f11_iv2 = IntVar()
     f11_iv2.set(0)
     f11_cb2 = ttk.Checkbutton(frame11, padding=5, text='隙間なく配置', onvalue=1, offvalue=0, variable=f11_iv2)
-    f11_cb2.grid(row=2, column=0, sticky=W)
+    f11_cb2.grid(row=3, column=0, sticky=W)
     f11_iv3 = IntVar()
     f11_iv3.set(0)
     f11_cb3 = ttk.Checkbutton(frame11, padding=5, text='偶数番目Objを\n別レイヤ配置', onvalue=1, offvalue=0, variable=f11_iv3)
-    f11_cb3.grid(row=3, column=0, sticky=W)
+    f11_cb3.grid(row=4, column=0, sticky=W)
 
     f11_cb4 = IntVar()
     f11_cb4.set(0)
     f11_cb5 = ttk.Checkbutton(frame11, padding=5, text='時間選択 (秒)', onvalue=1, offvalue=0, variable=f11_cb4,
                               command=change_time_cb)
-    f11_cb5.grid(row=4, column=0, sticky=W)
+    f11_cb5.grid(row=5, column=0, sticky=W)
     f11_sv1 = StringVar()
     f11_sv1.set('')
     f11_c1 = ttk.Combobox(frame11, textvariable=f11_sv1, width=10, state='disable')
     f11_c1.bind('<<ComboboxSelected>>', set_time)
-    f11_c1.grid(row=5, column=0, padx=5, pady=3, sticky=W + E)
+    f11_c1.grid(row=6, column=0, padx=5, pady=3, sticky=W + E)
 
     f11_sv2 = StringVar()
     f11_sv2.set('')
     f11_c2 = ttk.Combobox(frame11, textvariable=f11_sv2, width=10, state='disable')
     f11_c2.bind('<<ComboboxSelected>>', set_time1)
-    f11_c2.grid(row=6, column=0, padx=5, pady=3, sticky=W + E)
+    f11_c2.grid(row=7, column=0, padx=5, pady=3, sticky=W + E)
     f11_sv3 = StringVar()
     f11_sv3.set('')
     f11_c3 = ttk.Combobox(frame11, textvariable=f11_sv3, width=10, state='disable')
     f11_c3.bind('<<ComboboxSelected>>', set_time2)
-    f11_c3.grid(row=7, column=0, padx=5, pady=3, sticky=W + E)
+    f11_c3.grid(row=8, column=0, padx=5, pady=3, sticky=W + E)
 
     f11_ct1 = CheckboxTreeview(frame11, show='tree', height=5)
-    f11_ct1.grid(row=0, column=1, rowspan=8, sticky=N + S + E + W)
+    f11_ct1.grid(row=0, column=1, rowspan=9, sticky=N + S + E + W)
     f11_ct1.column("#0", width=300)
     ttk.Style().configure('Checkbox.Treeview', rowheight=15, borderwidth=1, relief='sunken', indent=0)
 
     f11_sb1 = Scrollbar(frame11, orient=VERTICAL, command=f11_ct1.yview)
-    f11_sb1.grid(row=0, column=2, rowspan=8, sticky=N + S)
+    f11_sb1.grid(row=0, column=2, rowspan=9, sticky=N + S)
     f11_ct1['yscrollcommand'] = f11_sb1.set
 
     # Frame5 エフェクト追加/削除
