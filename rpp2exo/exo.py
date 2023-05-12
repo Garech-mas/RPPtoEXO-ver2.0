@@ -14,7 +14,7 @@ class ItemNotFoundError(Exception):  # 出力対象アイテム数0エラー
 
 class Exo:
     def __init__(self, mydict):
-        self.fps = 60.0
+        self.fps = mydict["fps"]
         self.res_x = 1920       # 解像度X
         self.res_y = 1080
         self.mydict = mydict
@@ -38,7 +38,7 @@ class Exo:
     def make_exo(self, objdict, file_path, file_fps):
         end = {}
         exo_result = "[exedit]\nwidth=" + str(1280) + "\nheight=" + str(720) + "\nrate=" + str(
-            60) + "\nscale=1\nlength=99999\naudio_rate=44100\naudio_ch=2"
+            self.mydict["fps"]) + "\nscale=1\nlength=99999\naudio_rate=44100\naudio_ch=2"
         item_count = 0
         exo_1 = "\n["  # item_count
         exo_2 = "]\nstart="  # StartFrame
@@ -67,10 +67,10 @@ class Exo:
                 break
 
             # オブジェクト最初のフレームと長さの計算
-            obj_frame_pos = objdict["pos"][index] * float(self.mydict["fps"]) + 1
-            next_obj_frame_pos = objdict["pos"][index + 1] * float(self.mydict["fps"]) + 1 \
+            obj_frame_pos = objdict["pos"][index] * self.mydict["fps"] + 1
+            next_obj_frame_pos = objdict["pos"][index + 1] * self.mydict["fps"] + 1 \
                 if index != len(objdict["length"]) - 1 else -1
-            obj_frame_length = objdict["length"][index] * float(self.mydict["fps"])
+            obj_frame_length = objdict["length"][index] * self.mydict["fps"]
             # 一つ前のオブジェクトとフレームがかぶらないようにする処理
             if sur_round(obj_frame_pos) == bf:
                 obj_frame_pos += 1
@@ -198,9 +198,23 @@ class Exo:
                 if file[file.find('.'):] == ".avi":  # AVIファイルの場合だけ、透過AVIの可能性があるためアルファチャンネル有
                     is_alpha = 1
 
+                # TODO:逆再生オブジェクトへの対応（めんどくさい……）
+
+                # オブジェクトのFPSと再生速度からプロジェクトのフレーム数に直すための重みを計算
+                rate_weight = file_fps[objdict["fileidx"][index]] / self.mydict["fps"] * objdict["playrate"][index]
+                play_pos = int(objdict["soffs"][index] * file_fps[objdict["fileidx"][index]] + 1)
+                play_rate = int(objdict["playrate"][index] * 1000) / 10.0
+                playstop_pos = int(play_pos + abs(rate_weight * (obj_frame_length - 1)))
+                # for playbreak_pos in self.mydict["BreakFrames"]:
+                #     # 強制停止フレームがオブジェクトの中にあったら
+                #     if play_pos < playbreak_pos < playstop_pos:
+                #         # TODO playbreak_posを一個目のendの値に合わせます
+                #         bf = int()
+                #         pass
+
                 exo_5 = ".0]\n_name=動画ファイル" \
-                        "\n再生位置=" + str(int(objdict["soffs"][index] * file_fps[objdict["fileidx"][index]] + 1)) \
-                        + "\n再生速度=" + str(int(objdict["playrate"][index] * 1000) / 10.0) + \
+                        "\n再生位置=" + str(play_pos) \
+                        + "\n再生速度=" + str(play_rate) + \
                         "\nループ再生=" + str(objdict["loop"][index]) + "\nアルファチャンネルを読み込む=" + str(is_alpha) + \
                         "\nfile=" + file
             elif self.mydict["OutputType"] == 1:  # 動画オブジェクト
@@ -245,7 +259,7 @@ class Exo:
                 exo_result = (exo_result + exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) +
                               exo_4 + exo_4_2 + exo_5 + exo_eff + exo_script)
 
-            item_count = item_count + 1
+            item_count += 1
 
         if item_count == 0:
             raise ItemNotFoundError
