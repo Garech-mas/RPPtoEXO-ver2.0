@@ -12,6 +12,7 @@ import os
 import subprocess
 import sys
 import threading
+import webbrowser
 from functools import partial
 from tkinter import *
 from tkinter import filedialog
@@ -182,7 +183,7 @@ def read_cfg():
             mydict["ExEditLang"] = config_ini.get("Language", "exedit")
 
     except Exception as e:
-        messagebox.showerror('RPPtoEXO ' + R2E_VERSION, 'config.iniの読み込みに失敗しました。全設定がリセットされます。')
+        messagebox.showerror('RPPtoEXO v' + R2E_VERSION, '壊れたconfig.iniを修復するため、全設定がリセットされます。')
         os.remove('config.ini')
         subprocess.call([sys.executable] + sys.argv)
         sys.exit()
@@ -708,6 +709,16 @@ def confirm_restart():
         subprocess.call([sys.executable] + sys.argv)
 
 
+def open_website(site):
+    webbrowser.open(site)
+
+
+def about_rpp2exo():
+    messagebox.showinfo('RPPtoEXO v' + R2E_VERSION, 'RPPtoEXO ver' + R2E_VERSION +
+                        '\nOriginal (~v1.08) made by maimai22015\n   Twitter: @Maimai22016'
+                        '\nLatest Version (v2.0~) made by Garech\n   Twitter: @Garec_')
+
+
 if __name__ == '__main__':
     read_cfg()
 
@@ -719,7 +730,7 @@ if __name__ == '__main__':
 
     # root
     root = TkinterDnD.Tk()
-    root.title('RPPtoEXO ' + R2E_VERSION)
+    root.title('RPPtoEXO v' + R2E_VERSION)
     root.columnconfigure(1, weight=1)
 
     # メニューバー作成
@@ -757,6 +768,18 @@ if __name__ == '__main__':
     svr_lang_aul.set(mydict['ExEditLang'])
     menu_lang_aul.add_radiobutton(label='日本語', value='ja', variable=svr_lang_aul, command=change_lang_aul)
     menu_lang_aul.add_radiobutton(label='English', value='en', variable=svr_lang_aul, command=change_lang_aul)
+
+    # ヘルプメニュー
+    menu_help = Menu(mbar, tearoff=0)
+    mbar.add_cascade(label='ヘルプ', menu=menu_help)
+
+    menu_help.add_command(label='使い方(Scrapbox)',
+                          command=lambda: open_website('https://scrapbox.io/Garech/RPPtoEXO%E3%81%AE%E7%94%BB%E9%9D%A2%E3%81%AE%E8%AA%AC%E6%98%8E'))
+    menu_help.add_command(label='最新バージョンを確認(GitHub)',
+                          command=lambda: open_website('https://github.com/Garech-mas/RPPtoEXO-ver2.0/releases/latest'))
+    menu_help.add_command(label='制作者の連絡先(Twitter)',
+                          command=lambda: open_website('https://twitter.com/Garec_'))
+    menu_help.add_command(label='このソフトについて', command=about_rpp2exo)
 
     frame_left = ttk.Frame(root)
     frame_left.grid(row=0, column=0)
