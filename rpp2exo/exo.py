@@ -2,6 +2,7 @@ import binascii
 
 import cv2
 from decimal import Decimal, ROUND_HALF_UP
+from rpp2exo.dict import ExDict
 
 
 class LoadFilterFileError(Exception):  # EXA読み込みエラー
@@ -15,9 +16,10 @@ class ItemNotFoundError(Exception):  # 出力対象アイテム数0エラー
 class Exo:
     def __init__(self, mydict):
         self.fps = mydict["fps"]
-        self.res_x = 1920       # 解像度X
+        self.res_x = 1920  # 解像度X
         self.res_y = 1080
         self.mydict = mydict
+        self.exedit_lang = mydict['ExEditLang']
 
     def fetch_fps(self, file_path):
         file_fps = []
@@ -104,7 +106,7 @@ class Exo:
                 for eff in self.mydict["Effect"]:
                     filter_count += 1
                     exo_eff += "\n[" + str(item_count) + "." + \
-                                   str(filter_count) + "]\n_name=" + str(eff[0])
+                               str(filter_count) + "]\n_name=" + str(eff[0])
                     for x in range(1, len(eff)):
                         exo_eff += "\n" + str(eff[x][0]) + "=" + str(eff[x][1])
 
@@ -129,7 +131,8 @@ class Exo:
                                     continue
                                 else:
                                     break
-                            if exa[idx + 1][6:] == '標準描画\n' or exa[idx + 1][6:] == '拡張描画\n':
+                            if (exa[idx + 1][6:] == self.t('標準描画') + '\n' or
+                                    exa[idx + 1][6:] == self.t('拡張描画') + '\n'):
                                 condition = 'exo_7_'
                                 exo_7_ = ']\n'
                             else:
@@ -153,30 +156,25 @@ class Exo:
             if self.mydict["ObjFlipType"] == 0:  # 反転なし
                 pass
             elif self.mydict["ObjFlipType"] == 1 and (bfidx + item_count) % 2 == 1:  # 左右反転
-                exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + \
-                           "]\n_name=反転\n上下反転=0\n左右反転=1\n輝度反転=0\n色相反転=0\n透明度反転=0"
+                exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + self.add_reversal(lr=1)
                 filter_count += 1
             elif self.mydict["ObjFlipType"] == 2 and (bfidx + item_count) % 2 == 1:  # 上下反転
-                exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + \
-                           "]\n_name=反転\n上下反転=1\n左右反転=0\n輝度反転=0\n色相反転=0\n透明度反転=0"
+                exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + self.add_reversal(ud=1)
                 filter_count += 1
             elif self.mydict["ObjFlipType"] == 3:  # 時計回り反転
                 if (bfidx + item_count) % 4 == 1:
-                    exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + \
-                               "]\n_name=反転\n上下反転=0\n左右反転=1\n輝度反転=0\n色相反転=0\n透明度反転=0"
+                    exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + self.add_reversal(lr=1)
                     filter_count += 1
                 elif (bfidx + item_count) % 4 == 2:
-                    exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + \
-                               "]\n_name=反転\n上下反転=1\n左右反転=1\n輝度反転=0\n色相反転=0\n透明度反転=0"
+                    exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + self.add_reversal(ud=1, lr=1)
                     filter_count += 1
                 elif (bfidx + item_count) % 4 == 3:
-                    exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + \
-                               "]\n_name=反転\n上下反転=1\n左右反転=0\n輝度反転=0\n色相反転=0\n透明度反転=0"
+                    exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + self.add_reversal(ud=1)
                     filter_count += 1
 
             if self.mydict["ScriptText"] != "":  # スクリプト制御追加する場合
                 exo_script = ("\n[" + str(item_count) + "." + str(1 + filter_count) +
-                              "]\n_name=スクリプト制御\ntext=" + encode_txt(self.mydict["ScriptText"]))
+                              "]\n_name=" + self.t("スクリプト制御") + "\ntext=" + encode_txt(self.mydict["ScriptText"]))
                 filter_count += 1
 
             # EXA読み込み部でexo_5部分が読み込まれていた場合、EXAファイルの中身のオブジェクトをそのまま反映する (この先の処理は無視)
@@ -212,41 +210,55 @@ class Exo:
                 #         bf = int()
                 #         pass
 
-                exo_5 = ".0]\n_name=動画ファイル" \
-                        "\n再生位置=" + str(play_pos) \
-                        + "\n再生速度=" + str(play_rate) + \
-                        "\nループ再生=" + str(objdict["loop"][index]) + "\nアルファチャンネルを読み込む=" + str(is_alpha) + \
+                exo_5 = ".0]\n_name=" + self.t("動画ファイル") + \
+                        "\n" + self.t("再生位置") + "=" + str(play_pos) + \
+                        "\n" + self.t("再生速度") + "=" + str(play_rate) + \
+                        "\n" + self.t("ループ再生") + "=" + str(objdict["loop"][index]) + \
+                        "\n" + self.t("アルファチャンネルを読み込む") + "=" + str(is_alpha) + \
                         "\nfile=" + file
             elif self.mydict["OutputType"] == 1:  # 動画オブジェクト
-                exo_5 = ".0]\n_name=動画ファイル\n再生位置=" + str(self.mydict["SrcPosition"]) + "\n再生速度=" + str(
-                    self.mydict["SrcRate"]) + \
-                        "\nループ再生=" + str(self.mydict["IsLoop"]) + "\nアルファチャンネルを読み込む=" + \
-                        str(self.mydict["IsAlpha"]) + "\nfile=" + str(self.mydict["SrcPath"])
+                exo_5 = ".0]\n_name=" + self.t("動画ファイル") + \
+                        "\n" + self.t("再生位置") + "=" + str(self.mydict["SrcPosition"]) + \
+                        "\n" + self.t("再生速度") + "=" + str(self.mydict["SrcRate"]) + \
+                        "\n" + self.t("ループ再生") + "=" + str(self.mydict["IsLoop"]) + \
+                        "\n" + self.t("アルファチャンネルを読み込む") + "=" + str(self.mydict["IsAlpha"]) + \
+                        "\nfile=" + str(self.mydict["SrcPath"])
             elif self.mydict["OutputType"] == 2:  # 画像オブジェクト
-                exo_5 = ".0]\n_name=画像ファイル\nfile=" + str(self.mydict["SrcPath"])
+                exo_5 = ".0]\n_name=" + self.t("画像ファイル") + \
+                        "\nfile=" + str(self.mydict["SrcPath"])
             elif self.mydict["OutputType"] == 4:  # シーンオブジェクト
-                exo_5 = ".0]\n_name=シーン\n再生位置=" + str(self.mydict["SrcPosition"]) + "\n再生速度=" + str(
-                    self.mydict["SrcRate"]) + \
-                        "\nループ再生=" + str(self.mydict["IsLoop"]) + "\nscene=" + str(self.mydict["SceneIdx"])
+                exo_5 = ".0]\n_name=" + self.t("シーン") + \
+                        "\n" + self.t("再生位置") + "=" + str(self.mydict["SrcPosition"]) + \
+                        "\n" + self.t("再生速度") + "=" + str(self.mydict["SrcRate"]) + \
+                        "\n" + self.t("ループ再生") + "=" + str(self.mydict["IsLoop"]) + \
+                        "\nscene=" + str(self.mydict["SceneIdx"])
 
             # メディアオブジェクト
             if self.mydict["OutputType"] != 3:
                 if self.mydict["IsExSet"]:  # 拡張描画
                     exo_7 = "." + str(1 + filter_count) + \
-                            "]\n_name=拡張描画" + \
-                            "\nX=" + str(self.mydict["X"]) + "\nY=" + str(self.mydict["Y"]) + "\nZ=" + str(self.mydict["Z"]) + \
-                            "\n拡大率=" + str(self.mydict["Size"]) + "\n透明度=" + str(self.mydict["Alpha"]) + \
-                            "\n縦横比=" + str(self.mydict["Ratio"]) + "\nX軸回転=" + str(self.mydict["XRotation"]) + \
-                            "\nY軸回転=" + str(self.mydict["YRotation"]) + "\nZ軸回転=" + str(self.mydict["ZRotation"]) + \
-                            "\n中心X=" + str(self.mydict["XCenter"]) + "\n中心Y=" + str(self.mydict["YCenter"]) + \
-                            "\n中心Z=" + str(self.mydict["ZCenter"]) + \
-                            "\n裏面を表示しない=0" + "\nblend=" + str(self.mydict["Blend"])
+                            "]\n_name=" + self.t("拡張描画") + \
+                            "\nX=" + str(self.mydict["X"]) + "\nY=" + str(self.mydict["Y"]) + \
+                            "\nZ=" + str(self.mydict["Z"]) + \
+                            "\n" + self.t("拡大率") + "=" + str(self.mydict["Size"]) + \
+                            "\n" + self.t("透明度") + "=" + str(self.mydict["Alpha"]) + \
+                            "\n" + self.t("縦横比") + "=" + str(self.mydict["Ratio"]) + \
+                            "\n" + self.t("X軸回転") + "=" + str(self.mydict["XRotation"]) + \
+                            "\n" + self.t("Y軸回転") + "=" + str(self.mydict["YRotation"]) + \
+                            "\n" + self.t("Z軸回転") + "=" + str(self.mydict["ZRotation"]) + \
+                            "\n" + self.t("中心X") + "=" + str(self.mydict["XCenter"]) + \
+                            "\n" + self.t("中心Y") + "=" + str(self.mydict["YCenter"]) + \
+                            "\n" + self.t("中心Z") + "=" + str(self.mydict["ZCenter"]) + \
+                            "\n" + self.t("裏面を表示しない") + "=0" + "\nblend=" + str(self.mydict["Blend"])
                 else:  # 標準描画
                     exo_7 = "." + str(1 + filter_count) + \
                             "]\n_name=標準描画" + \
-                            "\nX=" + str(self.mydict["X"]) + "\nY=" + str(self.mydict["Y"]) + "\nZ=" + str(self.mydict["Z"]) + \
-                            "\n拡大率=" + str(self.mydict["Size"]) + "\n透明度=" + str(self.mydict["Alpha"]) + \
-                            "\n回転=" + str(self.mydict["Rotation"]) + "\nblend=" + str(self.mydict["Blend"])
+                            "\nX=" + str(self.mydict["X"]) + "\nY=" + str(self.mydict["Y"]) + \
+                            "\nZ=" + str(self.mydict["Z"]) + \
+                            "\n" + self.t("拡大率") + "=" + str(self.mydict["Size"]) + \
+                            "\n" + self.t("透明度") + "=" + str(self.mydict["Alpha"]) + \
+                            "\n" + self.t("回転") + "=" + str(self.mydict["Rotation"]) + \
+                            "\nblend=" + str(self.mydict["Blend"])
 
                 exo_result = (exo_result + exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) +
                               exo_4 + exo_4_2 + str(item_count) + exo_5 + exo_eff + exo_script + exo_6 +
@@ -255,7 +267,7 @@ class Exo:
             elif self.mydict["OutputType"] == 3:
                 exo_4_2 = "\ngroup=1\noverlay=1"
                 # 何も効果がかかっていないとエラー吐くので（多分）とりあえず座標0,0,0を掛けておく
-                exo_5 = "\n[" + str(item_count) + ".0]\n_name=座標\nX=0.0\nY=0.0\nZ=0.0"
+                exo_5 = "\n[" + str(item_count) + ".0]\n_name=" + self.t("座標") + "\nX=0.0\nY=0.0\nZ=0.0"
                 exo_result = (exo_result + exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) +
                               exo_4 + exo_4_2 + exo_5 + exo_eff + exo_script)
 
@@ -280,6 +292,27 @@ class Exo:
         except UnicodeEncodeError:
             raise UnicodeEncodeError('', t, 0, 0, line)  # objectとreasonにエラーの文字情報を渡して返す (本来の使い方じゃなさそう…)
         return end
+
+    def add_reversal(self, ud=0, lr=0):  # 反転エフェクト追加用
+        # 反転_ITEMのデータを持ってくる(なければオリジナルのものを使う)
+        t_result = self.t("反転_ITEM")
+        item = t_result if t_result != "反転_ITEM" else ['上下反転', '左右反転', '輝度反転', '色相反転', '透明度反転']
+
+        result = ("]\n_name=" + self.t("反転") + "\n"
+                  + item[0] + "=" + str(ud) + "\n"
+                  + item[1] + "=" + str(lr) + "\n"
+                  + item[2] + "=0\n"
+                  + item[3] + "=0\n"
+                  + item[4] + "=0"
+                  )
+        return result
+
+    # 海外版拡張編集を使用する際にDictから翻訳するための関数
+    def t(self, txt):
+        if self.exedit_lang != 'ja':
+            return ExDict[self.exedit_lang][txt]
+        else:
+            return txt
 
 
 def encode_txt(text):  # textを拡張編集のテキストエンコード形式に直す

@@ -22,7 +22,7 @@ from tkinterdnd2 import *
 
 import rpp2exo
 from rpp2exo import Rpp, Exo
-from rpp2exo.dict import EffDict, XDict, BlendDict
+from rpp2exo.dict import EffDict, XDict, BlendDict, ExDict
 
 R2E_VERSION = '2.02'
 
@@ -34,7 +34,7 @@ print('★RPPtoEXO実行中はこのコンソール画面を閉じないでく�
 
 def patched_error(msg):
     mydict['HasPatchError'] = 1
-    if mydict['AdvEditLang'] == 'ja':
+    if mydict['ExEditLang'] == 'ja':
         if mydict['PatchExists']:
             print('(patch.aul未導入 かつ 拡張編集 Ver0.92以下 の環境では、' + msg + ')')
             return
@@ -160,7 +160,7 @@ def read_cfg():
             ('', 'AlsDir', 'Directory'),  # エイリアスの保存ディレクトリ
             ('0', 'patch_exists', 'Param'),  # patch.aulが存在するか 0/1
             ('ja', 'display', 'Language'),  # 表示言語
-            ('ja', 'adv_edit', 'Language'),  # 拡張編集の言語
+            ('ja', 'exedit', 'Language'),  # 拡張編集の言語
         ]:
 
             if not config_ini.has_section(section):
@@ -179,7 +179,7 @@ def read_cfg():
             mydict["AlsLastDir"] = config_ini.get("Directory", "AlsDir")
             mydict["PatchExists"] = int(config_ini.get("Param", "patch_exists"))
             mydict["DisplayLang"] = config_ini.get("Language", "display")
-            mydict["AdvEditLang"] = config_ini.get("Language", "adv_edit")
+            mydict["ExEditLang"] = config_ini.get("Language", "exedit")
 
     except Exception as e:
         messagebox.showerror('RPPtoEXO ' + R2E_VERSION, 'config.iniの読み込みに失敗しました。全設定がリセットされます。')
@@ -355,7 +355,7 @@ def add_filter_label():
                 offvalue=0,
                 variable=hCheckBox[mydict["EffCbNum"]]))
             hCheckBoxCb[mydict["EffCbNum"]].grid(
-                row=mydict["EffNum"] + mydict["EffCount"] + mydict["EffCbNum"], column=1, sticky=W)
+                row=mydict["EffNum"] + mydict["EffCount"] + mydict["EffCbNum"], columnspan=4, column=1, sticky=W)
             mydict["EffCbNum"] += 1
         elif EffDict[svr_add_eff.get()][n][-1] == -2:  # Entryだけの項目(めっちゃ強引な実装だから全体的に書き直したい…)
             hLabel.append(StringVar())
@@ -376,7 +376,7 @@ def add_filter_label():
             hEntryXCb.append(ttk.Combobox(
                 frame_effprm, textvariable=hEntryX[mydict["EffNum"]]))
             hEntryXCb[mydict["EffNum"]]['values'] = list(XDict.keys())
-            hEntryXCb[mydict["EffNum"]].set("移動なし")
+            hEntryXCb[mydict["EffNum"]].set(list(XDict.keys())[0])
 
             hEntryE.append(StringVar())
             hEntryEE.append(ttk.Entry(
@@ -406,7 +406,7 @@ def add_filter_label():
             hEntryXCb.append(ttk.Combobox(
                 frame_effprm, textvariable=hEntryX[mydict["EffNum"]]))
             hEntryXCb[mydict["EffNum"]]['values'] = list(XDict.keys())
-            hEntryXCb[mydict["EffNum"]].set("移動なし")
+            hEntryXCb[mydict["EffNum"]].set(list(XDict.keys())[0])
             hEntryXCb[mydict["EffNum"]].grid(
                 row=mydict["EffNum"] + mydict["EffCount"] + mydict["EffCbNum"], column=2, padx=5)
 
@@ -497,7 +497,7 @@ def run():
         mydict["Blend"] = BlendDict[ParamCombo15.get()]
         mydict["Track"] = tvw_slct_track.get_checked()
         mydict["DisplayLang"] = svr_lang_r2e.get()
-        mydict["AdvEditLang"] = svr_lang_aul.get()
+        mydict["ExEditLang"] = svr_lang_aul.get()
     except ValueError:
         messagebox.showinfo("エラー", "半角の数値を入力すべき箇所へ不正な文字列が入力されています。")
         return 0
@@ -543,7 +543,7 @@ def run():
         del mydict["Effect"][i][1:]
         for x in range(len(EffDict[mydict["Effect"][i][0]])):
             if EffDict[mydict["Effect"][i][0]][x][-1] != -1:  # チェックボックスでない場合
-                if hEntryX[runcount].get() == "移動なし":  # 移動なしの場合
+                if hEntryX[runcount].get() == list(XDict.keys())[0]:  # 移動なしの場合
                     if not trackbar_error and EffDict[mydict["Effect"][i][0]][x][-1] != -2 and \
                             -1 < float(hEntryS[runcount].get()) < 0:
                         patched_error('AviUtl本体のバグの影響により、トラックバーの-1越0未満 ( -0.* ) の値は反映されません。')
@@ -687,19 +687,36 @@ def change_lang_r2e():
     if mydict['DisplayLang'] == svr_lang_r2e.get():
         return
     write_cfg(svr_lang_r2e.get(), 'display', 'Language')
-    messagebox.showinfo('注意', '設定を反映するにはソフトを再起動する必要があります。')
+    confirm_restart()
 
 
 # 拡張編集言語切り替え
 def change_lang_aul():
-    if mydict['AdvEditLang'] == svr_lang_aul.get():
+    if mydict['ExEditLang'] == svr_lang_aul.get():
         return
-    write_cfg(svr_lang_aul.get(), 'adv_edit', 'Language')
-    messagebox.showinfo('注意', '設定を反映するにはソフトを再起動する必要があります。')
+    write_cfg(svr_lang_aul.get(), 'exedit', 'Language')
+    confirm_restart()
+
+
+# 再起動通知
+def confirm_restart():
+    ret = messagebox.askyesno("注意", "設定を反映するにはソフトを再起動する必要があります。再起動しますか？",
+                              detail="現在設定中の項目は失われます。", icon="info")
+    if ret:
+        root.quit()
+        root.destroy()
+        subprocess.call([sys.executable] + sys.argv)
 
 
 if __name__ == '__main__':
     read_cfg()
+
+    # 拡張編集の言語ごとに使用辞書を切り替える
+    EffDict = EffDict[mydict['ExEditLang']]
+    XDict = XDict[mydict['ExEditLang']]
+    BlendDict = BlendDict[mydict['ExEditLang']]
+    ExDict = ExDict[mydict['ExEditLang']]
+
     # root
     root = TkinterDnD.Tk()
     root.title('RPPtoEXO ' + R2E_VERSION)
@@ -737,9 +754,9 @@ if __name__ == '__main__':
     menu_lang_aul = Menu(menu_lang, tearoff=0)
     menu_lang.add_cascade(label='拡張編集の言語', menu=menu_lang_aul)
     svr_lang_aul = StringVar()
-    svr_lang_aul.set(mydict['AdvEditLang'])
+    svr_lang_aul.set(mydict['ExEditLang'])
     menu_lang_aul.add_radiobutton(label='日本語', value='ja', variable=svr_lang_aul, command=change_lang_aul)
-    menu_lang_aul.add_radiobutton(label='English', value='em', variable=svr_lang_aul, command=change_lang_aul)
+    menu_lang_aul.add_radiobutton(label='English', value='en', variable=svr_lang_aul, command=change_lang_aul)
 
     frame_left = ttk.Frame(root)
     frame_left.grid(row=0, column=0)
@@ -907,7 +924,7 @@ if __name__ == '__main__':
     svr_add_eff = StringVar()
     cmb_add_eff = ttk.Combobox(frame_eff, textvariable=svr_add_eff, state='readonly')
     cmb_add_eff['values'] = list(EffDict.keys())
-    cmb_add_eff.set("座標")
+    cmb_add_eff.set(list(EffDict.keys())[0])
     cmb_add_eff.grid(row=0, column=0)
     btn_add_eff = ttk.Button(frame_eff, text='+', command=add_filter_label)
     btn_add_eff.grid(row=0, column=1)
@@ -972,7 +989,7 @@ if __name__ == '__main__':
     ParamEntryE3.insert(END, "0.0")
 
     Param4 = StringVar()
-    Param4.set('拡大率 : ')
+    Param4.set(ExDict['拡大率'] + ' : ')
     ParamLabel4 = ttk.Label(frame_baseprm, textvariable=Param4)
     ParamLabel4.grid(row=3, column=0, sticky=W + E)
     ParamEntry4 = StringVar()
@@ -981,7 +998,7 @@ if __name__ == '__main__':
     ParamEntryE4.insert(END, "100.0")
 
     Param5 = StringVar()
-    Param5.set('透明度 : ')
+    Param5.set(ExDict['透明度'] + ' : ')
     ParamLabel5 = ttk.Label(frame_baseprm, textvariable=Param5)
     ParamLabel5.grid(row=4, column=0, sticky=W + E)
     ParamEntry5 = StringVar()
@@ -990,7 +1007,7 @@ if __name__ == '__main__':
     ParamEntryE5.insert(END, "0.0")
 
     Param7 = StringVar()
-    Param7.set('回転 : ')
+    Param7.set(ExDict['回転'] + ' : ')
     ParamLabel7 = ttk.Label(frame_baseprm, textvariable=Param7)
     ParamLabel7.grid(row=5, column=0, sticky=W + E)
     ParamEntry7 = StringVar()
@@ -1001,11 +1018,11 @@ if __name__ == '__main__':
     Param15 = StringVar()
     ParamCombo15 = ttk.Combobox(frame_baseprm, textvariable=Param15, state='readonly')
     ParamCombo15['values'] = list(BlendDict.keys())
-    ParamCombo15.set("通常")
+    ParamCombo15.set(list(BlendDict.keys())[0])
     ParamCombo15.grid(row=6, column=0, pady=(0, 10), columnspan=2, sticky=W + E)
 
     Param6 = StringVar()
-    Param6.set('縦横比 : ')
+    Param6.set(ExDict['縦横比'] + ' : ')
     ParamLabel6 = ttk.Label(frame_baseprm, textvariable=Param6)
     ParamLabel6.grid(row=7, column=0, sticky=W + E)
     ParamEntry6 = StringVar()
@@ -1014,7 +1031,7 @@ if __name__ == '__main__':
     ParamEntryE6.insert(END, "0.0")
 
     Param8 = StringVar()
-    Param8.set('X軸回転 : ')
+    Param8.set(ExDict['X軸回転'] + ' : ')
     ParamLabel8 = ttk.Label(frame_baseprm, textvariable=Param8)
     ParamLabel8.grid(row=8, column=0, sticky=W + E)
     ParamEntry8 = StringVar()
@@ -1023,7 +1040,7 @@ if __name__ == '__main__':
     ParamEntryE8.insert(END, "0.00")
 
     Param9 = StringVar()
-    Param9.set('Y軸回転 : ')
+    Param9.set(ExDict['Y軸回転'] + ' : ')
     ParamLabel9 = ttk.Label(frame_baseprm, textvariable=Param9)
     ParamLabel9.grid(row=9, column=0, sticky=W + E)
     ParamEntry9 = StringVar()
@@ -1032,7 +1049,7 @@ if __name__ == '__main__':
     ParamEntryE9.insert(END, "0.00")
 
     Param10 = StringVar()
-    Param10.set('Z軸回転 : ')
+    Param10.set(ExDict['Z軸回転'] + ' : ')
     ParamLabel10 = ttk.Label(frame_baseprm, textvariable=Param10)
     ParamLabel10.grid(row=10, column=0, sticky=W + E)
     ParamEntry10 = StringVar()
@@ -1041,7 +1058,7 @@ if __name__ == '__main__':
     ParamEntryE10.insert(END, "0.00")
 
     Param11 = StringVar()
-    Param11.set('中心X : ')
+    Param11.set(ExDict['中心X'] + ' : ')
     ParamLabel11 = ttk.Label(frame_baseprm, textvariable=Param11)
     ParamLabel11.grid(row=11, column=0, sticky=W + E)
     ParamEntry11 = StringVar()
@@ -1050,7 +1067,7 @@ if __name__ == '__main__':
     ParamEntryE11.insert(END, "0.0")
 
     Param12 = StringVar()
-    Param12.set('中心Y : ')
+    Param12.set(ExDict['中心Y'] + ' : ')
     ParamLabel12 = ttk.Label(frame_baseprm, textvariable=Param12)
     ParamLabel12.grid(row=12, column=0, sticky=W + E)
     ParamEntry12 = StringVar()
@@ -1059,7 +1076,7 @@ if __name__ == '__main__':
     ParamEntryE12.insert(END, "0.0")
 
     Param13 = StringVar()
-    Param13.set('中心Z : ')
+    Param13.set(ExDict['中心Z'] + ' : ')
     ParamLabel13 = ttk.Label(frame_baseprm, textvariable=Param13)
     ParamLabel13.grid(row=13, column=0, sticky=W + E)
     ParamEntry13 = StringVar()
