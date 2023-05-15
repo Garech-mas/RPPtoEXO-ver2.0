@@ -15,7 +15,7 @@ from functools import partial
 from tkinter import *
 from tkinter import filedialog
 from tkinter import messagebox
-from tkinter import ttk
+from tkinter import ttk, Menu
 from ttkwidgets import CheckboxTreeview
 from tkinterdnd2 import *
 
@@ -30,17 +30,24 @@ print('★RPPtoEXO実行中はこのコンソール画面を閉じないでく�
 
 
 def patched_error(msg):
-    if mydict['PatchExists']:
-        print('(patch.aul未導入 かつ 拡張編集 Ver0.92以下 の環境では、' + msg + ')')
-        return
-    rsp = messagebox.showwarning(
-        "警告", msg + '\nEXOのインポート後、個別に設定してください。',
-        detail='patch.aul導入済 / 拡張編集 Ver0.93rc1 の環境の方はこのエラーを修正しているため、"キャンセル"をクリックしてください。',
-        type='okcancel')
-    if rsp == 'cancel':
-        print('★キャンセルがクリックされました。今後拡張編集のバグによるEXO生成エラーはコンソール上に通知されます。')
-        mydict['PatchExists'] = 1
-        write_cfg("1", "patch_exists", "Param")
+    mydict['HasPatchError'] = 1
+    if mydict['AdvEditLang'] == 'ja':
+        if mydict['PatchExists']:
+            print('(patch.aul未導入 かつ 拡張編集 Ver0.92以下 の環境では、' + msg + ')')
+            return
+        rsp = messagebox.showwarning(
+            "警告", msg + '\nEXOのインポート後、個別に設定してください。',
+            detail='patch.aul導入済 / 拡張編集 Ver0.93rc1 の環境の方はこれらのエラーを修復しています。\nこれらの環境に当てはまっていますか？',
+            type='yesno', default='no')
+        if rsp == 'yes':
+            print('★選択を記録しました。今後拡張編集のバグによるEXO生成エラーはコンソール上に通知されます。')
+            mydict['PatchExists'] = 1
+            write_cfg("1", "patch_exists", "Param")
+    else:
+        mydict["PatchExists"] = 0
+        messagebox.showwarning(
+            "警告", msg + '\nEXOのインポート後、個別に設定してください。',
+            detail='Tips: オリジナルの日本版拡張編集 v0.92を使い、patch.aul プラグインを導入することでこのエラーを回避できます。')
 
 
 def main():
@@ -114,6 +121,10 @@ def main():
         if "layer_over_100" in end:
             print("★警告: 出力処理時にEXOのレイヤー数が100を超えたため、正常に生成できませんでした。")
 
+        if not mydict['PatchExists'] and mydict['HasPatchError']:
+            print("★警告: AviUtl 拡張編集のバグにより、オブジェクトの設定は正常に反映されません。")
+            end = end | {1: 1}
+
         if end == {}:
             ret = messagebox.askyesno("正常終了", "正常に生成されました。\n保存先のフォルダを開きますか？")
         else:
@@ -131,16 +142,42 @@ def main():
         btn_exec["text"] = "実行"
 
 
-def read_cfg():  # 設定読み込み
+def read_cfg():
     config_ini_path = "config.ini"
-    if os.path.exists(config_ini_path):
-        config_ini = configparser.ConfigParser()
-        config_ini.read(config_ini_path, encoding='utf-8')
-        mydict["RPPLastDir"] = config_ini.get("Directory", "RPPDir")
-        mydict["EXOLastDir"] = config_ini.get("Directory", "EXODir")
-        mydict["SrcLastDir"] = config_ini.get("Directory", "SrcDir")
-        mydict["AlsLastDir"] = config_ini.get("Directory", "AlsDir")
-        mydict['PatchExists'] = int(config_ini.get("Param", "patch_exists"))
+
+    # 設定ファイルの読み込み
+    config_ini = configparser.ConfigParser()
+    config_ini.read(config_ini_path, encoding='utf-8')
+
+    # 欠損値を補完
+    for default, option, section in [
+        ('', 'RPPDir', 'Directory'),  # RPPの保存ディレクトリ
+        ('', 'EXODir', 'Directory'),  # EXOの保存ディレクトリ
+        ('', 'SrcDir', 'Directory'),  # 素材の保存ディレクトリ
+        ('', 'AlsDir', 'Directory'),  # エイリアスの保存ディレクトリ
+        ('0', 'patch_exists', 'Param'),  # patch.aulが存在するか 0/1
+        ('ja', 'display', 'Language'),  # 表示言語
+        ('ja', 'adv_edit', 'Language'),  # 拡張編集の言語
+    ]:
+
+        if not config_ini.has_section(section):
+            config_ini[section] = {}
+        if not config_ini.has_option(section, option):
+            config_ini[section][option] = default
+
+    # Configファイルの書き込み
+    with open(config_ini_path, 'w', encoding='utf-8') as file:
+        config_ini.write(file)
+
+    # パラメータの読み込み
+    mydict["RPPLastDir"] = config_ini.get("Directory", "RPPDir")
+    mydict["EXOLastDir"] = config_ini.get("Directory", "EXODir")
+    mydict["SrcLastDir"] = config_ini.get("Directory", "SrcDir")
+    mydict["AlsLastDir"] = config_ini.get("Directory", "AlsDir")
+    mydict["PatchExists"] = int(config_ini.get("Param", "patch_exists"))
+    mydict["DisplayLang"] = config_ini.get("Language", "display")
+    mydict["AdvEditLang"] = config_ini.get("Language", "adv_edit")
+
     return 0
 
 
@@ -151,7 +188,7 @@ def write_cfg(value, setting_type, section):  # 設定保存
         config_ini.read(config_ini_path, encoding='utf-8')
         if section == "Directory":
             value = os.path.dirname(value)
-        config_ini.set(section, setting_type, value)
+        config_ini.set(section, setting_type, str(value))
         with open('config.ini', 'w', encoding='utf-8') as file:
             config_ini.write(file)
 
@@ -413,42 +450,48 @@ def del_filter_label():  # 効果パラメータ入力画面破棄
 
 
 def run():
-    mydict["RPPPath"] = svr_rpp_input.get().replace('"', '')
-    if svr_exo_input.get().replace('"', '').lower().endswith(".exo") or svr_exo_input.get().replace('"', '') == "":
-        mydict["EXOPath"] = svr_exo_input.get().replace('"', '')
-    else:
-        mydict["EXOPath"] = svr_exo_input.get().replace('"', '') + ".exo"
-    mydict["OutputType"] = ivr_trgt_mode.get()
-    mydict["SrcPath"] = svr_src_input.get().replace('"', '').replace('/', '\\')
-    mydict["EffPath"] = svr_alias_input.get().replace('"', '')
-    mydict["IsAlpha"] = ivr_import_alpha.get()
-    mydict["IsLoop"] = ivr_loop.get()
-    mydict["SrcPosition"] = svr_obj_playpos.get()
-    mydict["SrcRate"] = svr_obj_playrate.get()
-    # mydict["BreakFrames"] = list(map(int, svr_stop_frame.get().split(','))) if svr_stop_frame.get() else []
-    mydict["fps"] = float(svr_fps_input.get())
-    mydict["ScriptText"] = txt_script.get('1.0', 'end-1c')
-    mydict["ObjFlipType"] = ivr_v_flip.get() + ivr_h_flip.get()
-    mydict["SepLayerEvenObj"] = ivr_sep_even.get()
-    mydict["NoGap"] = ivr_no_gap.get()
-    mydict["clipping"] = ivr_clipping.get()
-    mydict["IsExSet"] = ivr_adv_draw.get()
-    mydict["X"] = ParamEntry1.get()
-    mydict["Y"] = ParamEntry2.get()
-    mydict["Z"] = ParamEntry3.get()
-    mydict["Size"] = ParamEntry4.get()
-    mydict["Alpha"] = ParamEntry5.get()
-    mydict["Ratio"] = ParamEntry6.get()
-    mydict["Rotation"] = ParamEntry7.get()
-    mydict["XRotation"] = ParamEntry8.get()
-    mydict["YRotation"] = ParamEntry9.get()
-    mydict["ZRotation"] = ParamEntry10.get()
-    mydict["XCenter"] = ParamEntry11.get()
-    mydict["YCenter"] = ParamEntry12.get()
-    mydict["ZCenter"] = ParamEntry13.get()
-    mydict["SceneIdx"] = int(svr_scene_idx.get() or 0)
-    mydict["Blend"] = BlendDict[ParamCombo15.get()]
-    mydict["Track"] = tvw_slct_track.get_checked()
+    try:
+        mydict["RPPPath"] = svr_rpp_input.get().replace('"', '')
+        if svr_exo_input.get().replace('"', '').lower().endswith(".exo") or svr_exo_input.get().replace('"', '') == "":
+            mydict["EXOPath"] = svr_exo_input.get().replace('"', '')
+        else:
+            mydict["EXOPath"] = svr_exo_input.get().replace('"', '') + ".exo"
+        mydict["OutputType"] = ivr_trgt_mode.get()
+        mydict["SrcPath"] = svr_src_input.get().replace('"', '').replace('/', '\\')
+        mydict["EffPath"] = svr_alias_input.get().replace('"', '')
+        mydict["IsAlpha"] = ivr_import_alpha.get()
+        mydict["IsLoop"] = ivr_loop.get()
+        mydict["SrcPosition"] = svr_obj_playpos.get()
+        mydict["SrcRate"] = svr_obj_playrate.get()
+        # mydict["BreakFrames"] = list(map(int, svr_stop_frame.get().split(','))) if svr_stop_frame.get() else []
+        mydict["fps"] = float(svr_fps_input.get())
+        mydict["ScriptText"] = txt_script.get('1.0', 'end-1c')
+        mydict["ObjFlipType"] = ivr_v_flip.get() + ivr_h_flip.get()
+        mydict["SepLayerEvenObj"] = ivr_sep_even.get()
+        mydict["NoGap"] = ivr_no_gap.get()
+        mydict["clipping"] = ivr_clipping.get()
+        mydict["IsExSet"] = ivr_adv_draw.get()
+        mydict["X"] = ParamEntry1.get()
+        mydict["Y"] = ParamEntry2.get()
+        mydict["Z"] = ParamEntry3.get()
+        mydict["Size"] = ParamEntry4.get()
+        mydict["Alpha"] = ParamEntry5.get()
+        mydict["Ratio"] = ParamEntry6.get()
+        mydict["Rotation"] = ParamEntry7.get()
+        mydict["XRotation"] = ParamEntry8.get()
+        mydict["YRotation"] = ParamEntry9.get()
+        mydict["ZRotation"] = ParamEntry10.get()
+        mydict["XCenter"] = ParamEntry11.get()
+        mydict["YCenter"] = ParamEntry12.get()
+        mydict["ZCenter"] = ParamEntry13.get()
+        mydict["SceneIdx"] = int(svr_scene_idx.get() or 0)
+        mydict["Blend"] = BlendDict[ParamCombo15.get()]
+        mydict["Track"] = tvw_slct_track.get_checked()
+        mydict["DisplayLang"] = svr_lang_r2e.get()
+        mydict["AdvEditLang"] = svr_lang_aul.get()
+    except ValueError:
+        messagebox.showinfo("エラー", "半角の数値を入力すべき箇所へ不正な文字列が入力されています。")
+        return 0
 
     trackbar_error = False
 
@@ -530,6 +573,7 @@ def run():
     thread.start()
 
 
+# GUI変更時に値の状態を変更する関数
 def mode_command():  # 「追加対象」変更時の状態切り替え
     if ivr_trgt_mode.get() == 1 or ivr_trgt_mode.get() == 2:  # 「素材」テキストボックス・参照ボタン
         btn_src_browse['state'] = 'enable'
@@ -619,8 +663,30 @@ def set_time2(self):  # 下側のタイム選択ComboBox適用
     cmb_time2.set(x[x.rfind(':') + 2:])
 
 
+# ファイルD&D時に使う関数
 def drop_file(target, event):
     target.set(event.data)
+
+
+# メニューバー用
+def close_r2e():
+    exit()
+
+
+# 表示言語切り替え
+def change_lang_r2e():
+    if mydict['DisplayLang'] == svr_lang_r2e.get():
+        return
+    write_cfg(svr_lang_r2e.get(), 'display', 'Language')
+    messagebox.showinfo('注意', '設定を反映するにはソフトを再起動する必要があります。')
+
+
+# 拡張編集言語切り替え
+def change_lang_aul():
+    if mydict['AdvEditLang'] == svr_lang_aul.get():
+        return
+    write_cfg(svr_lang_aul.get(), 'adv_edit', 'Language')
+    messagebox.showinfo('注意', '設定を反映するにはソフトを再起動する必要があります。')
 
 
 if __name__ == '__main__':
@@ -629,6 +695,42 @@ if __name__ == '__main__':
     root = TkinterDnD.Tk()
     root.title('RPPtoEXO v2.02')
     root.columnconfigure(1, weight=1)
+
+    # メニューバー作成
+    mbar = Menu(root, tearoff=0)
+    root.config(menu=mbar)
+
+    # ファイルメニュー
+    menu_file = Menu(mbar, tearoff=0)
+    mbar.add_cascade(label='ファイル', menu=menu_file)
+    menu_file.add_command(label='RPPを開く...', command=slct_rpp)
+    menu_file.add_command(label='終了', command=close_r2e)
+
+    # 生成設定メニュー
+    menu_setting = Menu(mbar, tearoff=0)
+    mbar.add_cascade(label='生成設定', menu=menu_setting)
+    ivr_patch_exists = IntVar()
+    ivr_patch_exists.set(mydict['PatchExists'])
+    menu_setting.add_checkbutton(label='拡張編集v0.92由来のエラーを無視', variable=ivr_patch_exists,
+                                 command=lambda: write_cfg(int(ivr_patch_exists.get()), "patch_exists", "Param"))
+
+    # 言語設定メニュー
+    menu_lang = Menu(mbar, tearoff=0)
+    mbar.add_cascade(label='Language', menu=menu_lang)
+
+    menu_lang_r2e = Menu(menu_lang, tearoff=0)
+    menu_lang.add_cascade(label='表示言語', menu=menu_lang_r2e)
+    svr_lang_r2e = StringVar()
+    svr_lang_r2e.set(mydict['DisplayLang'])
+    menu_lang_r2e.add_radiobutton(label='日本語', value='ja', variable=svr_lang_r2e, command=change_lang_r2e)
+    menu_lang_r2e.add_radiobutton(label='English', value='en', variable=svr_lang_r2e, command=change_lang_r2e)
+
+    menu_lang_aul = Menu(menu_lang, tearoff=0)
+    menu_lang.add_cascade(label='拡張編集の言語', menu=menu_lang_aul)
+    svr_lang_aul = StringVar()
+    svr_lang_aul.set(mydict['AdvEditLang'])
+    menu_lang_aul.add_radiobutton(label='日本語', value='ja', variable=svr_lang_aul, command=change_lang_aul)
+    menu_lang_aul.add_radiobutton(label='English', value='em', variable=svr_lang_aul, command=change_lang_aul)
 
     frame_left = ttk.Frame(root)
     frame_left.grid(row=0, column=0)
