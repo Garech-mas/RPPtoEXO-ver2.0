@@ -10,6 +10,7 @@
 import configparser
 import os
 import subprocess
+import sys
 import threading
 from functools import partial
 from tkinter import *
@@ -22,6 +23,8 @@ from tkinterdnd2 import *
 import rpp2exo
 from rpp2exo import Rpp, Exo
 from rpp2exo.dict import EffDict, XDict, BlendDict
+
+R2E_VERSION = '2.02'
 
 rpp_cl = Rpp('')
 mydict = rpp2exo.dict.mydict
@@ -144,39 +147,45 @@ def main():
 
 def read_cfg():
     config_ini_path = "config.ini"
+    try:
+        # 設定ファイルの読み込み
+        config_ini = configparser.ConfigParser()
+        config_ini.read(config_ini_path, encoding='utf-8')
 
-    # 設定ファイルの読み込み
-    config_ini = configparser.ConfigParser()
-    config_ini.read(config_ini_path, encoding='utf-8')
+        # 欠損値を補完
+        for default, option, section in [
+            ('', 'RPPDir', 'Directory'),  # RPPの保存ディレクトリ
+            ('', 'EXODir', 'Directory'),  # EXOの保存ディレクトリ
+            ('', 'SrcDir', 'Directory'),  # 素材の保存ディレクトリ
+            ('', 'AlsDir', 'Directory'),  # エイリアスの保存ディレクトリ
+            ('0', 'patch_exists', 'Param'),  # patch.aulが存在するか 0/1
+            ('ja', 'display', 'Language'),  # 表示言語
+            ('ja', 'adv_edit', 'Language'),  # 拡張編集の言語
+        ]:
 
-    # 欠損値を補完
-    for default, option, section in [
-        ('', 'RPPDir', 'Directory'),  # RPPの保存ディレクトリ
-        ('', 'EXODir', 'Directory'),  # EXOの保存ディレクトリ
-        ('', 'SrcDir', 'Directory'),  # 素材の保存ディレクトリ
-        ('', 'AlsDir', 'Directory'),  # エイリアスの保存ディレクトリ
-        ('0', 'patch_exists', 'Param'),  # patch.aulが存在するか 0/1
-        ('ja', 'display', 'Language'),  # 表示言語
-        ('ja', 'adv_edit', 'Language'),  # 拡張編集の言語
-    ]:
+            if not config_ini.has_section(section):
+                config_ini[section] = {}
+            if not config_ini.has_option(section, option):
+                config_ini[section][option] = default
 
-        if not config_ini.has_section(section):
-            config_ini[section] = {}
-        if not config_ini.has_option(section, option):
-            config_ini[section][option] = default
+        # Configファイルの書き込み
+        with open(config_ini_path, 'w', encoding='utf-8') as file:
+            config_ini.write(file)
 
-    # Configファイルの書き込み
-    with open(config_ini_path, 'w', encoding='utf-8') as file:
-        config_ini.write(file)
+            # パラメータの読み込み
+            mydict["RPPLastDir"] = config_ini.get("Directory", "RPPDir")
+            mydict["EXOLastDir"] = config_ini.get("Directory", "EXODir")
+            mydict["SrcLastDir"] = config_ini.get("Directory", "SrcDir")
+            mydict["AlsLastDir"] = config_ini.get("Directory", "AlsDir")
+            mydict["PatchExists"] = int(config_ini.get("Param", "patch_exists"))
+            mydict["DisplayLang"] = config_ini.get("Language", "display")
+            mydict["AdvEditLang"] = config_ini.get("Language", "adv_edit")
 
-    # パラメータの読み込み
-    mydict["RPPLastDir"] = config_ini.get("Directory", "RPPDir")
-    mydict["EXOLastDir"] = config_ini.get("Directory", "EXODir")
-    mydict["SrcLastDir"] = config_ini.get("Directory", "SrcDir")
-    mydict["AlsLastDir"] = config_ini.get("Directory", "AlsDir")
-    mydict["PatchExists"] = int(config_ini.get("Param", "patch_exists"))
-    mydict["DisplayLang"] = config_ini.get("Language", "display")
-    mydict["AdvEditLang"] = config_ini.get("Language", "adv_edit")
+    except Exception as e:
+        messagebox.showerror('RPPtoEXO ' + R2E_VERSION, 'config.iniの読み込みに失敗しました。全設定がリセットされます。')
+        os.remove('config.ini')
+        subprocess.call([sys.executable] + sys.argv)
+        sys.exit()
 
     return 0
 
@@ -693,7 +702,7 @@ if __name__ == '__main__':
     read_cfg()
     # root
     root = TkinterDnD.Tk()
-    root.title('RPPtoEXO v2.02')
+    root.title('RPPtoEXO ' + R2E_VERSION)
     root.columnconfigure(1, weight=1)
 
     # メニューバー作成
