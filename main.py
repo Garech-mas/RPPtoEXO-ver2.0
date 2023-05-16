@@ -898,14 +898,14 @@ if __name__ == '__main__':
     chk_loop.grid(row=1, column=1, sticky=W)
 
     lbl_obj_playrate = ttk.Label(frame_obj, text=_('再生速度 : '))
-    lbl_obj_playrate.grid(row=0, column=3, sticky=E, padx=(36, 0))
+    lbl_obj_playrate.grid(row=0, column=3, sticky=E, padx=(8, 0))
     svr_obj_playrate = StringVar()
     ent_obj_playrate = ttk.Entry(frame_obj, textvariable=svr_obj_playrate, width=10)
     ent_obj_playrate.grid(row=0, column=4, sticky=W + E)
     ent_obj_playrate.insert(END, "100.0")
 
     lbl_obj_playpos = ttk.Label(frame_obj, text=_('再生位置 : '))
-    lbl_obj_playpos.grid(row=1, column=3, sticky=E, padx=(36, 0))
+    lbl_obj_playpos.grid(row=1, column=3, sticky=E, padx=(8, 0))
     svr_obj_playpos = StringVar()
     ent_obj_playpos = ttk.Entry(frame_obj, textvariable=svr_obj_playpos, width=10)
     ent_obj_playpos.grid(row=1, column=4, sticky=W + E)
