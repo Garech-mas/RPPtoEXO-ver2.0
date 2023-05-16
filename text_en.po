@@ -1,0 +1,413 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2023-05-16 01:10+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=cp932\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+
+
+#: main.py:57
+msgid "★RPPtoEXO実行中はこのコンソール画面を閉じないでください。"
+msgstr "*Do not close this console screen while RPPtoEXO is running."
+
+#: main.py:64
+msgid "(patch.aul未導入 かつ 拡張編集 Ver0.92以下 の環境では、%s)"
+msgstr "(In environments where patch.aul has not been installed and the extended editing is Ver. 0.92 or earlier, %s)"
+
+#: main.py:67 main.py:77
+msgid ""
+"%s\n"
+"EXOのインポート後、個別に設定してください。"
+msgstr "%s\nAfter importing the EXO file, set up individually."
+
+#: main.py:67 main.py:77 main.py:159
+msgid "警告"
+msgstr "Warning"
+
+#: main.py:68
+msgid ""
+"patch.aul導入済 / 拡張編集 Ver0.93rc1 の環境の方はこれらのエラーを修復しています。\n"
+"これらの環境に当てはまっていますか？"
+msgstr "If you have installed patch.aul / Adv.Edit Ver 0.93rc1 environment has repaired these errors. \nIs it in one of these environments?"
+
+#: main.py:71
+msgid "★選択を記録しました。今後拡張編集のバグによるEXO生成エラーはコンソール上に通知されます。"
+msgstr "*Your selection has been recorded. Any future EXO file generation errors due to bugs in extended editing will be notified on the console."
+
+#: main.py:78
+msgid "Tips: オリジナルの日本版拡張編集 v0.92を使い、patch.aul プラグインを導入することでこのエラーを回避できます。"
+msgstr "Note: You can avoid this error by using the original Japanese Adv.Edit ver 0.92 and installing the patch.aul plugin."
+
+#: main.py:84 main.py:103 main.py:106
+msgid "実行中"
+msgstr "Running..."
+
+#: main.py:112
+msgid "上書き先のEXOファイルが開かれているか、読み取り専用になっています。"
+msgstr "The EXO file to be overwritten is open or read-only."
+
+#: main.py:112 main.py:114 main.py:116 main.py:119 main.py:123 main.py:125
+#: main.py:128 main.py:528 main.py:534 main.py:537 main.py:540 main.py:543
+#: main.py:547 main.py:582
+msgid "エラー"
+msgstr "Error"
+
+#: main.py:114
+msgid ""
+"下記ファイルの読込み権限がありません。\n"
+msgstr "You don't have permission to read the following file. \n"
+
+#: main.py:116
+msgid ""
+"下記パス内のファイル/フォルダは存在しませんでした。\n"
+msgstr "The file/folder in the path below did not exist. \n"
+
+#: main.py:119
+msgid ""
+"AviUtl上で使用できない文字がパス名に含まれています。\n"
+"パス名に含まれる該当文字を削除し、再度実行し直してください。\n"
+"\n"
+msgstr "The pathname contains characters that cannot be used on AviUtl. \Delete the corresponding characters in the pathname and re-run the command again. \n"
+
+#: main.py:123
+msgid "エイリアス / 効果ファイルが不正です。詳しくはREADMEを参照してください。"
+msgstr "The alias / object file is invalid. See README for details."
+
+#: main.py:125
+msgid ""
+"出力範囲内に変換対象のアイテムが見つかりませんでした。\n"
+"出力対象トラック、時間選択の設定を見直してください。"
+msgstr "No items to convert were found in the output range. \nReview the settings for the track and time selection for the output target."
+
+#: main.py:128
+msgid ""
+"予期せぬエラーが発生しました。不正なRPPファイルの可能性があります。\n"
+"最新バージョンのREAPERをインストールし、RPPファイルを再保存して再試行してください。\n"
+"それでも症状が改善しない場合、コンソールのエラー内容を制作者まで報告ください。"
+msgstr "An unexpected error has occurred. Possible invalid RPP file. \nInstall the latest version of REAPER, re-save the RPP file and try again. \nIf the symptoms still persist, report the error in the console to the developer."
+
+#: main.py:134
+msgid "★警告: RPP内にセクション・逆再生付きのアイテムが存在したため、該当アイテムが正常に生成できませんでした。"
+msgstr "*Warning: The item in question could not be successfully generated due to the presence of an item with section and reverse playback in the RPP file."
+
+#: main.py:138 main.py:146
+msgid "その他 %s個"
+msgstr "and %s item(s)"
+
+#: main.py:142
+msgid "★警告: RPP内に伸縮マーカーが設定されているアイテムが存在したため、該当アイテムが正常に生成できませんでした。"
+msgstr "*Warning: The item could not be successfully generated due to the presence of an item with a stretch marker set in the RPP file."
+
+#: main.py:150
+msgid "★警告: 出力処理時にEXOのレイヤー数が100を超えたため、正常に生成できませんでした。"
+msgstr "*Warning: The number of layers in EXO exceeded 100 during the output process and could not be generated successfully."
+
+#: main.py:153
+msgid "★警告: AviUtl 拡張編集のバグにより、オブジェクトの設定は正常に反映されません。"
+msgstr "*Warning: Due to a bug in the AviUtl Advanced Editing, object settings are not reflected correctly."
+
+#: main.py:157
+msgid ""
+"正常に生成されました。\n"
+"保存先のフォルダを開きますか？"
+msgstr "Successfully generated. \nDo you want to open the destination folder?"
+
+#: main.py:157
+msgid "正常終了"
+msgstr "Completed successfully"
+
+#: main.py:160
+msgid ""
+"一部アイテムが正常に生成できませんでした。詳細はコンソールをご覧ください。\n"
+"保存先のフォルダを開きますか？"
+msgstr "Some items could not be generated properly. Please see console for details. \nDo you want to open the destination folder?"
+
+#: main.py:171 main.py:1157
+msgid "実行"
+msgstr "Run"
+
+#: main.py:211
+msgid "壊れたconfig.iniを修復するため、全設定がリセットされます。"
+msgstr "All settings will be reset to repair the broken config.ini."
+
+#: main.py:232
+msgid "REAPERプロジェクトファイル"
+msgstr "REAPER Project File"
+
+#: main.py:234
+msgid "RPPファイルを選択"
+msgstr "Select the RPP Project File"
+
+#: main.py:242
+msgid "動画ファイル"
+msgstr "Video File"
+
+#: main.py:242
+msgid "画像ファイル"
+msgstr "Image file"
+
+#: main.py:244
+msgid "参照する素材ファイルの選択"
+msgstr "Select the referenced material file"
+
+#: main.py:251
+msgid "AviUtl エイリアス/効果ファイル"
+msgstr "AviUtl Alias / Object File"
+
+#: main.py:251
+msgid "すべてのファイル"
+msgstr "All files"
+
+#: main.py:253
+msgid "参照するエイリアス/効果ファイルの選択"
+msgstr "Select the AviUtl Alias / Object file"
+
+#: main.py:260
+msgid "AviUtlオブジェクトファイル"
+msgstr "AviUtl Object File"
+
+#: main.py:262
+msgid "EXOファイル保存場所の選択"
+msgstr "Select EXO file save location"
+
+#: main.py:276
+msgid "＊全トラック"
+msgstr "* ALL TRACKS"
+
+#: main.py:344
+msgid "始点"
+msgstr "Start"
+
+#: main.py:352
+msgid "終点"
+msgstr "End"
+
+#: main.py:360
+msgid "設定"
+msgstr "Setting"
+
+#: main.py:528
+msgid "半角の数値を入力すべき箇所へ不正な文字列が入力されています。"
+msgstr "An invalid character string has been entered where a one-byte numeric value should have been entered."
+
+#: main.py:534
+msgid "読み込むRPPを入力してください。"
+msgstr "Input the RPP file to be loaded."
+
+#: main.py:537
+msgid "EXOの保存先パスを入力してください。"
+msgstr "Select EXO file save location"
+
+#: main.py:540
+msgid "正しいFPSの値を入力してください。"
+msgstr "Enter a correct value for FPS."
+
+#: main.py:543
+msgid "出力するトラックを選択してください。"
+msgstr "Select the track you wish to output."
+
+#: main.py:547
+msgid "正しいシーン番号を入力してください。（範囲 : 1 ~ 49）"
+msgstr "Enter the correct scene number. (Range: 1 ~ 49)"
+
+#: main.py:550
+msgid "AviUtl本体のバグの影響により、シーン番号は反映されません。"
+msgstr "Due to a bug in AviUtl, scene selection is not reflected."
+
+#: main.py:560 main.py:575 main.py:586
+msgid "AviUtl本体のバグの影響により、トラックバーの-1越0未満 ( -0.* ) の値は反映されません。"
+msgstr "Due to a bug in AviUtl, the trackbar values below -1 or above 0 ( -0.* ) are not reflected."
+
+#: main.py:582
+msgid "追加フィルタ効果の終点が入力されていません。"
+msgstr "The end point of the additional filter effect has not been input."
+
+#: main.py:594
+msgid "AviUtl本体のバグの影響により、移動の設定の値は反映されません。"
+msgstr "Due to a bug in AviUtl, the values of the movement settings are not reflected."
+
+#: main.py:729
+msgid "注意"
+msgstr "Attention"
+
+#: main.py:729
+msgid "設定を反映するにはソフトを再起動する必要があります。再起動しますか？"
+msgstr "The software needs to be restarted for the changes to take effect. Do you want to restart?"
+
+#: main.py:730
+msgid "現在設定中の項目は失われます。"
+msgstr "The currently set options will be lost."
+
+#: main.py:767
+msgid "ファイル"
+msgstr "File"
+
+#: main.py:768
+msgid "RPPを開く..."
+msgstr "Open RPP files"
+
+#: main.py:769
+msgid "終了"
+msgstr "Exit"
+
+#: main.py:773
+msgid "生成設定"
+msgstr "Settings"
+
+#: main.py:776
+msgid "拡張編集v0.92由来のエラーを無視"
+msgstr "Ignore errors derived from Adv.Edit v0.92"
+
+#: main.py:784
+msgid "表示言語"
+msgstr "Display language"
+
+#: main.py:791
+msgid "拡張編集の言語"
+msgstr "Adv.Edit language"
+
+#: main.py:799
+msgid "ヘルプ"
+msgstr "Help"
+
+#: main.py:801
+msgid "使い方(Scrapbox)"
+msgstr "How to use (Scrapbox)"
+
+#: main.py:803
+msgid "https://scrapbox.io/Garech/RPPtoEXO%E3%81%AE%E7%94%BB%E9%9D%A2%E3%81%AE%E8%AA%AC%E6%98%8E"
+msgstr "https://scrapbox.io/Garech/RPPtoEXO%E3%81%AE%E7%94%BB%E9%9D%A2%E3%81%AE%E8%AA%AC%E6%98%8E"
+
+#: main.py:804
+msgid "最新バージョンを確認(GitHub)"
+msgstr "Check the latest version (GitHub)"
+
+#: main.py:806
+msgid "制作者の連絡先(Twitter)"
+msgstr "Contact developer (Twitter)"
+
+#: main.py:808
+msgid "このソフトについて"
+msgstr "About RPPtoEXO"
+
+#: main.py:832 main.py:877 main.py:990
+msgid "参照…"
+msgstr "Browse..."
+
+#: main.py:845
+msgid "保存先…"
+msgstr "Save As..."
+
+#: main.py:854
+msgid "追加対象 : "
+msgstr "Target : "
+
+#: main.py:856
+msgid "自動検出"
+msgstr "Auto"
+
+#: main.py:858
+msgid "動画"
+msgstr "Video"
+
+#: main.py:860
+msgid "画像"
+msgstr "Image"
+
+#: main.py:862
+msgid "フィルタ"
+msgstr "Filter"
+
+#: main.py:864
+msgid "シーン番号: "
+msgstr "Scene No."
+
+#: main.py:870
+msgid "素材 : "
+msgstr "Reference : "
+
+#: main.py:891
+msgid "上のオブジェクトでクリッピング"
+msgstr "Clip with the object above"
+
+#: main.py:896
+msgid "拡張描画"
+msgstr "Adv. drawing"
+
+#: main.py:901
+msgid "アルファチャンネルを読み込む"
+msgstr "Import alpha channel"
+
+#: main.py:906
+msgid "ループ再生"
+msgstr "Loop playback"
+
+#: main.py:909
+msgid "再生速度 : "
+msgstr "vPlay : "
+
+#: main.py:916
+msgid "再生位置 : "
+msgstr "Playback pos. : "
+
+#: main.py:932
+msgid "左右反転"
+msgstr "Flip horizontal"
+
+#: main.py:935
+msgid "上下反転"
+msgstr "Flip vertical"
+
+#: main.py:938
+msgid "隙間なく配置"
+msgstr "No gap"
+
+#: main.py:941
+msgid ""
+"偶数番目Objを\n"
+"別レイヤ配置"
+msgstr "Split even objects\n to separate layer"
+
+#: main.py:946
+msgid "時間選択 (秒)"
+msgstr "Time selection(sec)"
+
+#: main.py:984
+msgid "効果のクリア"
+msgstr "Clear filter"
+
+#: main.py:992
+msgid "エイリアス : "
+msgstr "Ailas File : "
+
+#: main.py:1003
+msgid "スクリプト制御 "
+msgstr "Script control "
+
+#: rpp2exo/exo.py:35
+msgid ""
+"★警告: 動画として読み込めませんでした。動画ファイルの場合、再生位置が正常に反映されません。\n"
+"対象ファイル: %s"
+msgstr "*Warning: Could not load as video. In the case of a video file, the playback position is not reflected correctly. \nTarget : %s"
+
+#: rpp2exo/rpp.py:41
+msgid "★ファイルを開くことができませんでした。: %s"
+msgstr "*Warning: Could not open file. : %s"
+
+#: rpp2exo/rpp.py:58
+msgid "選択時間 (%s~%s)"
+msgstr "Selection time (%s~%s)"
+
+#: rpp2exo/rpp.py:227 rpp2exo/rpp.py:248
+msgid "トラック: %s / 開始位置(秒): %s"
+msgstr "Track: %s / Start pos.(sec): %s"
+
