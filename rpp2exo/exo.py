@@ -1,6 +1,8 @@
 import binascii
 
 import cv2
+import gettext
+import os
 from decimal import Decimal, ROUND_HALF_UP
 from rpp2exo.dict import ExDict
 
@@ -20,6 +22,14 @@ class Exo:
         self.res_y = 1080
         self.mydict = mydict
         self.exedit_lang = mydict['ExEditLang']
+        # 翻訳用
+        global _
+        _ = gettext.translation(
+            'text',  # domain: 辞書ファイルの名前
+            localedir=os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)))),  # 辞書ファイル配置ディレクトリ
+            languages=[mydict['DisplayLang']],  # 翻訳に使用する言語
+            fallback=True
+        ).gettext
 
     def fetch_fps(self, file_path):
         file_fps = []
@@ -31,7 +41,7 @@ class Exo:
             cap = cv2.VideoCapture(path.replace('\\', '/'))
             fps = float(cap.get(cv2.CAP_PROP_FPS))
             if fps == 0.0:
-                print("★警告: 動画として読み込めませんでした。動画ファイルの場合、再生位置が正常に反映されません。\n対象ファイル: " + path)
+                print(_("★警告: 動画として読み込めませんでした。動画ファイルの場合、再生位置が正常に反映されません。\n対象ファイル: %s") % path)
             cap.release()
             file_fps.append(fps)
         file_fps.append(0.0)

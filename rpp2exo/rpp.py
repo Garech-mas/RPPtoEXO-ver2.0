@@ -1,5 +1,6 @@
 import os
 import re
+import gettext
 
 srch_type = {"VIDEO": "VIDEO",  # 動画ファイル
              "WAVE": "AUDIO",  # WAV ファイル
@@ -11,7 +12,7 @@ srch_type = {"VIDEO": "VIDEO",  # 動画ファイル
 
 
 class Rpp:
-    def __init__(self, path):  # コンストラクタ 初期化
+    def __init__(self, path, display_lang=''):  # コンストラクタ 初期化
         self.rpp_path = path
         self.start_pos = 0.0
         self.end_pos = 100000.0
@@ -25,6 +26,14 @@ class Rpp:
             "fileidx": [-1],
             "filetype": ['']
         }
+        # 翻訳用
+        global _
+        _ = gettext.translation(
+            'text',  # domain: 辞書ファイルの名前
+            localedir=os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)))),  # 辞書ファイル配置ディレクトリ
+            languages=[display_lang],  # 翻訳に使用する言語
+            fallback=True
+        ).gettext
 
     def load_track(self):  # トラック名を読み込む
         tree = self.make_treedict(1)[0]
@@ -37,7 +46,7 @@ class Rpp:
                 with open(path, mode='r', encoding='UTF-8', errors='replace') as f:
                     self.rpp_ary = f.readlines()
         except FileNotFoundError as e:
-            print("★ファイルを開くことができませんでした。: " + path)
+            print(_("★ファイルを開くことができませんでした。: %s") % path)
             raise e
 
     def load_marker_list(self):  # RPPからマーカー・リージョンを取得し、リスト化して返す
@@ -54,7 +63,7 @@ class Rpp:
                 if st > en:
                     st, en = en, st
                 if not (st == en == '0.0'):
-                    time_ps_list.append('選択時間 (' + st + '~' + en + ')')
+                    time_ps_list.append(_('選択時間 (%s~%s)') % (st, en))
 
             if self.rpp_ary[index].split()[0] == "MARKER":
                 marker = self.rpp_ary[index].split()
@@ -223,8 +232,8 @@ class Rpp:
                    ("SOURCE SECTION/MODE" not in itemdict or itemdict["SOURCE SECTION/MODE"][0] != "3")):
                     # 逆再生＋セクションのアイテムだったら
                     if "SOURCE SECTION/MODE" in itemdict and itemdict["SOURCE SECTION/MODE"][0] == "2":
-                        end["exist_mode2"].append("トラック: " + track_name +
-                                                  " / 開始位置(秒): " + str(int(self.objDict["pos"][-1] * 1000) / 1000))
+                        end["exist_mode2"].append(_("トラック: %s / 開始位置(秒): %s") %
+                                                  (track_name, str(int(self.objDict["pos"][-1] * 1000) / 1000)))
 
                     end_length = self.objDict["length"][-1]
                     sec_length = float(itemdict["SOURCE SECTION/LENGTH"][0]) / float(itemdict["PLAYRATE"][0])
@@ -244,8 +253,8 @@ class Rpp:
                     self.objDict["length"][-1] = sec_length * (sec_count + 1) - end_length
 
                 if "SM" in itemdict:  # 伸縮マーカー付きアイテム
-                    end["exist_stretch_marker"].append("トラック: " + track_name +
-                                                       " / 開始位置(秒): " + str(int(self.objDict["pos"][-1] * 1000) / 1000))
+                    end["exist_stretch_marker"].append(_("トラック: %s / 開始位置(秒): %s") %
+                                                  (track_name, str(int(self.objDict["pos"][-1] * 1000) / 1000)))
 
             index += 1
 
