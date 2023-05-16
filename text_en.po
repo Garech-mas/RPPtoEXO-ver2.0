@@ -285,7 +285,7 @@ msgstr "How to use (Scrapbox)"
 
 #: main.py:803
 msgid "https://scrapbox.io/Garech/RPPtoEXO%E3%81%AE%E7%94%BB%E9%9D%A2%E3%81%AE%E8%AA%AC%E6%98%8E"
-msgstr "https://scrapbox.io/Garech/RPPtoEXO%E3%81%AE%E7%94%BB%E9%9D%A2%E3%81%AE%E8%AA%AC%E6%98%8E"
+msgstr "https://scrapbox.io/Garech/How_To_Use_RPPtoEXO"
 
 #: main.py:804
 msgid "最新バージョンを確認(GitHub)"
@@ -369,7 +369,7 @@ msgstr "Flip vertical"
 
 #: main.py:938
 msgid "隙間なく配置"
-msgstr "No gap"
+msgstr "Fill gaps"
 
 #: main.py:941
 msgid ""
