@@ -266,7 +266,7 @@ def insert_treedict(tree, prefix, iid):  # ツリー表示でトラック１行�
     for k in tree:
         iid += 1
         if k == list(tree.keys())[-1]:  # 最下層のフォルダ内トラックの場合 視覚上の縦繋がりを消す
-            tvw_slct_track.insert("all", "end", text=prefix + "└" + k, iid=str(iid))
+            tvw_slct_track.insert("all", "end", text=str(iid).zfill(2) + prefix + "└" + k, iid=str(iid))
 
             # 親トラックがミュート状態の場合、こっそりゼロ幅スペース(​)を挿入して子トラックが後から区別できるように
             if "​" not in k and "​" not in prefix:
@@ -275,7 +275,7 @@ def insert_treedict(tree, prefix, iid):  # ツリー表示でトラック１行�
                 iid = insert_treedict(tree[k], prefix + "　", iid) if "​" not in k else \
                     insert_treedict(tree[k], prefix + "　​", iid)  # フォルダ開始部の場合、prefixを追加して再帰呼び出し
         else:
-            tvw_slct_track.insert("all", "end", text=prefix + "├" + k, iid=str(iid))
+            tvw_slct_track.insert("all", "end", text=str(iid).zfill(2) + prefix + "├" + k, iid=str(iid))
             if "​" not in k and "​" not in prefix:
                 tvw_slct_track.change_state(str(iid), 'checked')
             if tree[k]:
