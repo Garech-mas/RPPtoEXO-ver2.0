@@ -703,7 +703,8 @@ def set_time2(self):  # 下側のタイム選択ComboBox適用
 
 # ファイルD&D時に使う関数
 def drop_file(target, event):
-    target.set(event.data)
+    print(type(event.data))
+    target.set(event.data[1:event.data.find('}')])
 
 
 # メニューバー用
