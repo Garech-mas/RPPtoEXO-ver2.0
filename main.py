@@ -561,10 +561,11 @@ def run():
                         if str(hEntryE[runcount].get()) == "":
                             messagebox.showinfo(_("エラー"), _("追加フィルタ効果の終点が入力されていません。"))
                             return 0
-                        if not trackbar_error and EffDict[mydict["Effect"][i][0]][x][-1] != -2 and \
-                                (-1 < float(hEntryS[runcount].get()) < 0 or -1 < float(hEntryE[runcount].get()) < 0):
-                            patched_error(_('AviUtl本体のバグの影響により、トラックバーの-1越0未満 ( -0.* ) の値は反映されません。'))
-                            trackbar_error = True
+                        # 移動方法の終点にスクリプト名などの文字列が入力できなくなっていたため削除  近いうちに全て作り直さなきゃ
+                        # if not trackbar_error and EffDict[mydict["Effect"][i][0]][x][-1] != -2 and \
+                        #         (-1 < float(hEntryS[runcount].get()) < 0 or -1 < float(hEntryE[runcount].get()) < 0):
+                        #     patched_error(_('AviUtl本体のバグの影響により、トラックバーの-1越0未満 ( -0.* ) の値は反映されません。'))
+                        #     trackbar_error = True
                         eff = [EffDict[mydict["Effect"][i][0]][x][0],
                                set_decimal(hEntryS[runcount], EffDict[mydict["Effect"][i][0]][x][-1]) + ","
                                + set_decimal(hEntryE[runcount], EffDict[mydict["Effect"][i][0]][x][-1]) + ","
