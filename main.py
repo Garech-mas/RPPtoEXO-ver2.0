@@ -367,7 +367,7 @@ def add_filter_label():
             hLabel2.append(b)
             hEntryS.append(StringVar())
             hEntrySE.append(ttk.Entry(
-                frame_effprm, textvariable=hEntryS[mydict["EffNum"]], width=5))
+                frame_effprm, textvariable=hEntryS[mydict["EffNum"]], width=7))
             hEntrySE[mydict["EffNum"]].grid(
                 row=mydict["EffNum"] + mydict["EffCount"] + mydict["EffCbNum"], column=1, columnspan=4, sticky=W + E)
             hEntrySE[mydict["EffNum"]].insert(END, EffDict[svr_add_eff.get()][n][1])
@@ -379,7 +379,7 @@ def add_filter_label():
 
             hEntryE.append(StringVar())
             hEntryEE.append(ttk.Entry(
-                frame_effprm, textvariable=hEntryE[mydict["EffNum"]], width=5))
+                frame_effprm, textvariable=hEntryE[mydict["EffNum"]], width=7))
 
             hEntryConf.append(StringVar())
             hEntryConfE.append(ttk.Entry(
@@ -397,7 +397,7 @@ def add_filter_label():
             hLabel2.append(b)
             hEntryS.append(StringVar())
             hEntrySE.append(ttk.Entry(
-                frame_effprm, textvariable=hEntryS[mydict["EffNum"]], width=5))
+                frame_effprm, textvariable=hEntryS[mydict["EffNum"]], width=7))
             hEntrySE[mydict["EffNum"]].grid(
                 row=mydict["EffNum"] + mydict["EffCount"] + mydict["EffCbNum"], column=1, padx=5)
             hEntrySE[mydict["EffNum"]].insert(END, EffDict[svr_add_eff.get()][n][1])
@@ -411,7 +411,7 @@ def add_filter_label():
 
             hEntryE.append(StringVar())
             hEntryEE.append(ttk.Entry(
-                frame_effprm, textvariable=hEntryE[mydict["EffNum"]], width=5))
+                frame_effprm, textvariable=hEntryE[mydict["EffNum"]], width=7))
             hEntryEE[mydict["EffNum"]].grid(
                 row=mydict["EffNum"] + mydict["EffCount"] + mydict["EffCbNum"], column=3, padx=5)
 
@@ -459,6 +459,7 @@ def del_filter_label():  # 効果パラメータ入力画面破棄
 
 def run():
     try:
+        read_cfg()
         mydict["RPPPath"] = svr_rpp_input.get().replace('"', '')
         if svr_exo_input.get().replace('"', '').lower().endswith(".exo") or svr_exo_input.get().replace('"', '') == "":
             mydict["EXOPath"] = svr_exo_input.get().replace('"', '')
@@ -552,8 +553,9 @@ def run():
                                 -1 < float(hEntryS[runcount].get()) < 0:
                             patched_error(_('AviUtl本体のバグの影響により、トラックバーの-1越0未満 ( -0.* ) の値は反映されません。'))
                             trackbar_error = True
+
                         eff = [EffDict[mydict["Effect"][i][0]][x][0],
-                               str(hEntryS[runcount].get())]
+                               set_decimal(hEntryS[runcount], EffDict[mydict["Effect"][i][0]][x][-1])]
                         mydict["Effect"][i].append(eff)
                     else:  # 移動ありの場合
                         if str(hEntryE[runcount].get()) == "":
@@ -564,16 +566,18 @@ def run():
                             patched_error(_('AviUtl本体のバグの影響により、トラックバーの-1越0未満 ( -0.* ) の値は反映されません。'))
                             trackbar_error = True
                         eff = [EffDict[mydict["Effect"][i][0]][x][0],
-                               str(hEntryS[runcount].get()) + "," + str(hEntryE[runcount].get()) + "," + str(
-                                   XDict[hEntryX[runcount].get()])]
+                               set_decimal(hEntryS[runcount], EffDict[mydict["Effect"][i][0]][x][-1]) + ","
+                               + set_decimal(hEntryE[runcount], EffDict[mydict["Effect"][i][0]][x][-1]) + ","
+                               + str(XDict[hEntryX[runcount].get()])]
                         if XDict[hEntryX[runcount].get()] != "":
                             eff[1] += str(hEntryConf[runcount].get())
                             if not str(XDict[hEntryX[runcount].get()]).isascii():
                                 patched_error(_("AviUtl本体のバグの影響により、移動の設定の値は反映されません。"))
                         if XDict[hEntryX[runcount].get()] != "" and hEntryConf[runcount].get() != "":
                             eff = [EffDict[mydict["Effect"][i][0]][x][0],
-                                   str(hEntryS[runcount].get()) + "," + str(hEntryE[runcount].get()) + "," + str(
-                                       XDict[hEntryX[runcount].get()]) + "," + str(hEntryConf[runcount].get())]
+                                   set_decimal(hEntryS[runcount], EffDict[mydict["Effect"][i][0]][x][-1]) + ","
+                                   + set_decimal(hEntryE[runcount], EffDict[mydict["Effect"][i][0]][x][-1]) + ","
+                                   + str(XDict[hEntryX[runcount].get()]) + "," + str(hEntryConf[runcount].get())]
                         mydict["Effect"][i].append(eff)
                     runcount += 1
                 elif EffDict[mydict["Effect"][i][0]][x][-1] == -1:  # チェックボックスの場合
@@ -581,11 +585,27 @@ def run():
                            str(hCheckBox[runcountcb].get())]
                     mydict["Effect"][i].append(eff)
                     runcountcb += 1
-    except ValueError:
+    except ValueError as e:
         messagebox.showinfo(_("エラー"), _("半角の数値を入力すべき箇所へ不正な文字列が入力されています。"))
         return 0
     thread = threading.Thread(target=main)
     thread.start()
+
+
+def set_decimal(entry, unit):
+    try:
+        m = float(entry.get())
+    except ValueError:
+        return entry.get()
+    if unit == 0.01:
+        n = format(m, '.2f')
+    elif unit == 0:
+        n = format(m, '.1f')
+    else:
+        n = str(int(m))
+
+    entry.set(n)
+    return n
 
 
 # GUI変更時に値の状態を変更する関数
@@ -791,7 +811,7 @@ if __name__ == '__main__':
 
     menu_help.add_command(label=_('使い方(Scrapbox)'),
                           command=lambda: open_website(
-                        _('https://scrapbox.io/Garech/RPPtoEXO%E3%81%AE%E7%94%BB%E9%9D%A2%E3%81%AE%E8%AA%AC%E6%98%8E')))
+                              _('https://scrapbox.io/Garech/RPPtoEXO%E3%81%AE%E7%94%BB%E9%9D%A2%E3%81%AE%E8%AA%AC%E6%98%8E')))
     menu_help.add_command(label=_('最新バージョンを確認(GitHub)'),
                           command=lambda: open_website('https://github.com/Garech-mas/RPPtoEXO-ver2.0/releases/latest'))
     menu_help.add_command(label=_('制作者の連絡先(Twitter)'),
@@ -852,7 +872,8 @@ if __name__ == '__main__':
     rbt_trgt_pic.grid(row=0, column=3)
     rbt_trgt_filter = ttk.Radiobutton(frame_trgt, value=3, variable=ivr_trgt_mode, text=_('フィルタ'), command=mode_command)
     rbt_trgt_filter.grid(row=0, column=4)
-    rbt_trgt_scene = ttk.Radiobutton(frame_trgt, value=4, variable=ivr_trgt_mode, text=_('シーン番号: '), command=mode_command)
+    rbt_trgt_scene = ttk.Radiobutton(frame_trgt, value=4, variable=ivr_trgt_mode, text=_('シーン番号: '),
+                                     command=mode_command)
     rbt_trgt_scene.grid(row=0, column=5)
     svr_scene_idx = StringVar()
     ent_scene_idx = ttk.Entry(frame_trgt, textvariable=svr_scene_idx, width=3, state='disable')
