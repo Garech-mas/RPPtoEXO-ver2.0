@@ -1,6 +1,6 @@
 #####################################################################################
-#               RPP to EXO ver 2.03                                                 #
-#                                                                       2023/05/16  #
+#               RPP to EXO ver 2.04                                                 #
+#                                                                       2023/06/24  #
 #       Original Written by Maimai (@Maimai22015/YTPMV.info)                        #
 #       Forked by Garech (@Garec_)                                                  #
 #                                                                                   #
@@ -24,7 +24,7 @@ import rpp2exo
 from rpp2exo import Rpp, Exo
 from rpp2exo.dict import *
 
-R2E_VERSION = '2.03'
+R2E_VERSION = '2.04'
 
 rpp_cl = Rpp("")
 mydict = mydict
@@ -593,13 +593,15 @@ def run():
 
 
 def set_decimal(entry, unit):
+    if unit == 0:
+        return entry.get()
     try:
         m = float(entry.get())
     except ValueError:
         return entry.get()
     if unit == 0.01:
         n = format(m, '.2f')
-    elif unit == 0:
+    elif unit == 0.1:
         n = format(m, '.1f')
     else:
         n = str(int(m))
