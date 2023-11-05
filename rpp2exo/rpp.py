@@ -67,8 +67,14 @@ class Rpp:
 
             if self.rpp_ary[index].split()[0] == "MARKER":
                 marker = self.rpp_ary[index].split()
-                if marker[-1] != 'R':
+                # <7.0 仕様のリージョン終に要素数を合わせる
+                if '{' in marker[-1]:       # リージョン始/マーカー (RPP <7.0)
                     del marker[-1]
+                elif '{' in marker[-2]:     # マーカー (RPP >7.0)
+                    del marker[-2:]
+                elif '""' in marker[-2]:    # リージョン終 (RPP >7.0)
+                    marker += [1, 1]
+
                 if int(marker[-4]) % 2 == 0:  # マーカー
                     marker_name = ' ' + ' '.join(marker[3:-4]).replace('"', '')
                     pos = str(int(float(marker[2]) * 1000) / 1000)
