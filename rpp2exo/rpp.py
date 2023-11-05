@@ -73,7 +73,7 @@ class Rpp:
                 elif '{' in marker[-2]:     # マーカー (RPP >7.0)
                     del marker[-2:]
                 elif '""' in marker[-2]:    # リージョン終 (RPP >7.0)
-                    marker += [1, 1]
+                    marker += [1, 1, 1]
 
                 if int(marker[-4]) % 2 == 0:  # マーカー
                     marker_name = ' ' + ' '.join(marker[3:-4]).replace('"', '')
