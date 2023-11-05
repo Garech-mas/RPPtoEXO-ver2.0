@@ -21,12 +21,13 @@ from tkinter import ttk, Menu
 from ttkwidgets import CheckboxTreeview
 from tkinterdnd2 import *
 import rpp2exo
-from rpp2exo import Rpp, Exo
+from rpp2exo import Rpp, Exo, Midi
 from rpp2exo.dict import *
 
 R2E_VERSION = '2.04'
 
 rpp_cl = Rpp("")
+midi_cl = Midi("")
 mydict = mydict
 
 
@@ -58,27 +59,54 @@ def main():
 
     try:
         exo_cl = Exo(mydict)
-        if ivr_slct_time.get():
-            rpp_cl.start_pos = float(cmb_time1.get())
-            rpp_cl.end_pos = float(cmb_time2.get()) if cmb_time2.get() != '' else 99999.0
-            if rpp_cl.start_pos < rpp_cl.end_pos:
-                pass
-            elif rpp_cl.start_pos > rpp_cl.end_pos:
-                rpp_cl.start_pos, rpp_cl.end_pos = rpp_cl.end_pos, rpp_cl.start_pos
+        # RPPファイル用処理
+        if mydict["RPPPath"].lower().endswith(".rpp"):
+            if ivr_slct_time.get():
+                rpp_cl.start_pos = float(cmb_time1.get())
+                rpp_cl.end_pos = float(cmb_time2.get()) if cmb_time2.get() != '' else 99999.0
+                if rpp_cl.start_pos < rpp_cl.end_pos:
+                    pass
+                elif rpp_cl.start_pos > rpp_cl.end_pos:
+                    rpp_cl.start_pos, rpp_cl.end_pos = rpp_cl.end_pos, rpp_cl.start_pos
+                else:
+                    rpp_cl.start_pos = 0.0
+                    rpp_cl.end_pos = 99999.0
             else:
                 rpp_cl.start_pos = 0.0
                 rpp_cl.end_pos = 99999.0
-        else:
-            rpp_cl.start_pos = 0.0
-            rpp_cl.end_pos = 99999.0
-        file_path, end1 = rpp_cl.main(mydict["OutputType"] == 0, mydict["Track"])
 
-        btn_exec["text"] = _("実行中") + " (2/3)"
-        file_fps = exo_cl.fetch_fps(file_path)
+            file_path, end1 = rpp_cl.main(mydict["OutputType"] == 0, mydict["Track"])
 
-        btn_exec["text"] = _("実行中") + " (3/3)"
-        end3 = exo_cl.make_exo(rpp_cl.objDict, file_path, file_fps)
-        end = end1 | end3
+            btn_exec["text"] = _("実行中") + " (2/3)"
+            file_fps = exo_cl.fetch_fps(file_path)
+
+            btn_exec["text"] = _("実行中") + " (3/3)"
+            end3 = exo_cl.make_exo(rpp_cl.objDict, file_path, file_fps)
+            end = end1 | end3
+        # 選択時間の設定：MIDIファイル
+        elif mydict["RPPPath"].lower().endswith(".mid") or mydict["RPPPath"].lower().endswith(".midi"):
+            if ivr_slct_time.get():
+                midi_cl.start_pos = float(cmb_time1.get())
+                midi_cl.end_pos = float(cmb_time2.get()) if cmb_time2.get() != '' else 99999.0
+                if midi_cl.start_pos < midi_cl.end_pos:
+                    pass
+                elif midi_cl.start_pos > midi_cl.end_pos:
+                    midi_cl.start_pos, midi_cl.end_pos = midi_cl.end_pos, midi_cl.start_pos
+                else:
+                    midi_cl.start_pos = 0.0
+                    midi_cl.end_pos = 99999.0
+            else:
+                midi_cl.start_pos = 0.0
+                midi_cl.end_pos = 99999.0
+
+            file_path, end1 = midi_cl.main(mydict["Track"])
+
+            btn_exec["text"] = _("実行中") + " (2/3)"
+            file_fps = exo_cl.fetch_fps(file_path)
+
+            btn_exec["text"] = _("実行中") + " (3/3)"
+            end3 = exo_cl.make_exo(midi_cl.objDict, file_path, file_fps)
+            end = end1 | end3
 
     except PermissionError as e:
         if e.filename.lower().endswith('.exo'):
@@ -202,9 +230,13 @@ def write_cfg(value, setting_type, section):  # 設定保存
 
 
 def slct_rpp():  # 参照ボタン
-    filetype = [(_("REAPERプロジェクトファイル"), "*.rpp")]
+    filetype = [
+        (_("対応ファイル"), "*.rpp;*.mid;*.midi"),
+        (_("REAPERプロジェクトファイル"), "*.rpp"),
+        (_("MIDIファイル"), "*.mid;*.midi"),
+    ]
     filepath = filedialog.askopenfilename(
-        filetypes=filetype, initialdir=mydict["RPPLastDir"], title=_("RPPファイルを選択"))
+        filetypes=filetype, initialdir=mydict["RPPLastDir"], title=_("RPP・MIDIファイルを選択"))
     if filepath != '':
         svr_rpp_input.set(filepath)
         write_cfg(filepath, "RPPDir", "Directory")
@@ -258,6 +290,13 @@ def set_rppinfo(reload=0):  # RPP内の各トラックの情報を表示する
         except (PermissionError, FileNotFoundError):
             return True
         tree = rpp_cl.load_track()
+        insert_treedict(tree, "", 0)
+    elif filepath.lower().endswith(".mid") or filepath.lower().endswith(".midi"):
+        try:
+            midi_cl.load(filepath)
+        except (PermissionError, FileNotFoundError):
+            return True
+        tree = midi_cl.load_track()
         insert_treedict(tree, "", 0)
     return True
 
@@ -750,6 +789,7 @@ def about_rpp2exo():
 if __name__ == '__main__':
     read_cfg()
     rpp_cl.__init__('', mydict['DisplayLang'])
+    midi_cl.__init__('', mydict['DisplayLang'])
 
     # 翻訳用クラスの設定
     _ = gettext.translation(
