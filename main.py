@@ -1,6 +1,6 @@
 #####################################################################################
-#               RPP to EXO ver 2.05.3                                               #
-#                                                                       2023/11/07  #
+#               RPP to EXO ver 2.05.4                                               #
+#                                                                       2023/11/12  #
 #       Original Written by Maimai (@Maimai22015/YTPMV.info)                        #
 #       Forked by Garech (@Garec_)                                                  #
 #                                                                                   #
@@ -24,7 +24,7 @@ import rpp2exo
 from rpp2exo import Rpp, Exo
 from rpp2exo.dict import *
 
-R2E_VERSION = '2.05.3'
+R2E_VERSION = '2.05.4'
 
 rpp_cl = Rpp("")
 mydict = mydict
@@ -703,7 +703,8 @@ def set_time2(self):  # 下側のタイム選択ComboBox適用
 
 # ファイルD&D時に使う関数
 def drop_file(target, event):
-    target.set(event.data[1:event.data.find('}')])
+    paths = root.tk.splitlist(event.data)
+    target.set(paths[0])
 
 
 # メニューバー用
