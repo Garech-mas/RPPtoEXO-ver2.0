@@ -284,6 +284,16 @@ def insert_treedict(tree, prefix, iid):  # ツリー表示でトラック１行�
     return iid
 
 
+def to_absolute(path):
+    if not path:
+        return ''
+    if os.path.isabs(path):
+        return path
+    else:
+
+        return os.path.dirname(mydict["RPPPath"]) + '/' + path
+
+
 # 動的なエフェクト設定生成
 # 参考：https://qiita.com/nnahito/items/41be8e02a6ebc91386e7
 hLabel = []  # ラベルのハンドル格納
@@ -462,12 +472,12 @@ def run():
         read_cfg()
         mydict["RPPPath"] = svr_rpp_input.get().replace('"', '')
         if svr_exo_input.get().replace('"', '').lower().endswith(".exo") or svr_exo_input.get().replace('"', '') == "":
-            mydict["EXOPath"] = svr_exo_input.get().replace('"', '')
+            mydict["EXOPath"] = to_absolute(svr_exo_input.get().replace('"', ''))
         else:
-            mydict["EXOPath"] = svr_exo_input.get().replace('"', '') + ".exo"
+            mydict["EXOPath"] = to_absolute(svr_exo_input.get().replace('"', '') + ".exo")
         mydict["OutputType"] = ivr_trgt_mode.get()
-        mydict["SrcPath"] = svr_src_input.get().replace('"', '').replace('/', '\\')
-        mydict["EffPath"] = svr_alias_input.get().replace('"', '')
+        mydict["SrcPath"] = to_absolute(svr_src_input.get().replace('"', '')).replace('/', '\\')
+        mydict["EffPath"] = to_absolute(svr_alias_input.get().replace('"', ''))
         mydict["IsAlpha"] = ivr_import_alpha.get()
         mydict["IsLoop"] = ivr_loop.get()
         mydict["SrcPosition"] = svr_obj_playpos.get()
@@ -704,7 +714,7 @@ def set_time2(self):  # 下側のタイム選択ComboBox適用
 # ファイルD&D時に使う関数
 def drop_file(target, event):
     paths = root.tk.splitlist(event.data)
-    target.set(paths[0])
+    target.set(paths[0].replace('\\', '/'))
 
 
 # メニューバー用

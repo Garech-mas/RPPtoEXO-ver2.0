@@ -35,6 +35,12 @@ class Rpp:
             fallback=True
         ).gettext
 
+    def to_absolute(self, src):
+        if os.path.isabs(src):
+            return src
+        else:
+            return os.path.dirname(self.rpp_path) .replace('/', '\\') + '\\' + src
+
     def load_track(self):  # トラック名を読み込む
         tree = self.make_treedict(1)[0]
         return tree
@@ -212,7 +218,7 @@ class Rpp:
                     for srch in srch_type.keys():  # ファイルパス処理
                         keyy = "SOURCE " + srch + "/FILE"
                         if "SOURCE SECTION/" + keyy in itemdict:
-                            path = itemdict["SOURCE SECTION/" + keyy][-1]
+                            path = self.to_absolute(itemdict["SOURCE SECTION/" + keyy][-1])
                             if is_audio(path):
                                 continue
                             if path not in file_path:
@@ -221,7 +227,7 @@ class Rpp:
                             self.objDict["filetype"].append(srch_type[srch])
                             srchflg = 1
                         elif keyy in itemdict:
-                            path = itemdict[keyy][-1]
+                            path = self.to_absolute(itemdict[keyy][-1])
                             if is_audio(path):
                                 continue
                             if path not in file_path:
