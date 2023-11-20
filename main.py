@@ -579,16 +579,17 @@ def run():
                         eff = [EffDict[mydict["Effect"][i][0]][x][0],
                                set_decimal(hEntryS[runcount], EffDict[mydict["Effect"][i][0]][x][-1]) + ","
                                + set_decimal(hEntryE[runcount], EffDict[mydict["Effect"][i][0]][x][-1]) + ","
-                               + str(XDict[hEntryX[runcount].get()])]
-                        if XDict[hEntryX[runcount].get()] != "":
+                               + str(XDict.get(hEntryX[runcount].get(), '15@' + hEntryX[runcount].get()))]
+                        if XDict.get(hEntryX[runcount].get(), 'a') != "":
                             eff[1] += str(hEntryConf[runcount].get())
-                            if not str(XDict[hEntryX[runcount].get()]).isascii():
+                            if not str(XDict.get(hEntryX[runcount].get(), hEntryX[runcount].get())).isascii():
                                 patched_error(_("AviUtl本体のバグの影響により、移動の設定の値は反映されません。"))
-                        if XDict[hEntryX[runcount].get()] != "" and hEntryConf[runcount].get() != "":
+                        if XDict.get(hEntryX[runcount].get(), 'a') != "" and hEntryConf[runcount].get() != "":
                             eff = [EffDict[mydict["Effect"][i][0]][x][0],
                                    set_decimal(hEntryS[runcount], EffDict[mydict["Effect"][i][0]][x][-1]) + ","
                                    + set_decimal(hEntryE[runcount], EffDict[mydict["Effect"][i][0]][x][-1]) + ","
-                                   + str(XDict[hEntryX[runcount].get()]) + "," + str(hEntryConf[runcount].get())]
+                                   + str(XDict.get(hEntryX[runcount].get(), '15@' + hEntryX[runcount].get())) + ","
+                                   + str(hEntryConf[runcount].get())]
                         mydict["Effect"][i].append(eff)
                     runcount += 1
                 elif EffDict[mydict["Effect"][i][0]][x][-1] == -1:  # チェックボックスの場合
