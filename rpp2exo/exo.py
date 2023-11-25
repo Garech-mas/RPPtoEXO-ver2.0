@@ -206,24 +206,14 @@ class Exo:
                 if file[file.find('.'):] == ".avi":  # AVIファイルの場合だけ、透過AVIの可能性があるためアルファチャンネル有
                     is_alpha = 1
 
-                # TODO:逆再生オブジェクトへの対応（めんどくさい……）
-
-                # オブジェクトのFPSと再生速度からプロジェクトのフレーム数に直すための重みを計算
-                rate_weight = file_fps[objdict["fileidx"][index]] / self.mydict["fps"] * objdict["playrate"][index]
                 play_pos = int(objdict["soffs"][index] * file_fps[objdict["fileidx"][index]] + 1)
                 play_rate = int(objdict["playrate"][index] * 1000) / 10.0
-                playstop_pos = int(play_pos + abs(rate_weight * (obj_frame_length - 1)))
-                # for playbreak_pos in self.mydict["BreakFrames"]:
-                #     # 強制停止フレームがオブジェクトの中にあったら
-                #     if play_pos < playbreak_pos < playstop_pos:
-                #         # TODO playbreak_posを一個目のendの値に合わせます
-                #         bf = int()
-                #         pass
 
                 exo_5 = ".0]\n_name=" + self.t("動画ファイル") + \
                         "\n" + self.t("再生位置") + "=" + str(play_pos) + \
                         "\n" + self.t("再生速度") + "=" + str(play_rate) + \
-                        "\n" + self.t("ループ再生") + "=" + str(objdict["loop"][index]) + \
+                        "\n" + self.t("ループ再生") + "=" + \
+                        (str(objdict["loop"][index]) if self.mydict["IsLoop"] else '0') + \
                         "\n" + self.t("アルファチャンネルを読み込む") + "=" + str(is_alpha) + \
                         "\nfile=" + file
             elif self.mydict["OutputType"] == 1:  # 動画オブジェクト
@@ -245,30 +235,9 @@ class Exo:
 
             # メディアオブジェクト
             if self.mydict["OutputType"] != 3:
-                if self.mydict["IsExSet"]:  # 拡張描画
-                    exo_7 = "." + str(1 + filter_count) + \
-                            "]\n_name=" + self.t("拡張描画") + \
-                            "\nX=" + str(self.mydict["X"]) + "\nY=" + str(self.mydict["Y"]) + \
-                            "\nZ=" + str(self.mydict["Z"]) + \
-                            "\n" + self.t("拡大率") + "=" + str(self.mydict["Size"]) + \
-                            "\n" + self.t("透明度") + "=" + str(self.mydict["Alpha"]) + \
-                            "\n" + self.t("縦横比") + "=" + str(self.mydict["Ratio"]) + \
-                            "\n" + self.t("X軸回転") + "=" + str(self.mydict["XRotation"]) + \
-                            "\n" + self.t("Y軸回転") + "=" + str(self.mydict["YRotation"]) + \
-                            "\n" + self.t("Z軸回転") + "=" + str(self.mydict["ZRotation"]) + \
-                            "\n" + self.t("中心X") + "=" + str(self.mydict["XCenter"]) + \
-                            "\n" + self.t("中心Y") + "=" + str(self.mydict["YCenter"]) + \
-                            "\n" + self.t("中心Z") + "=" + str(self.mydict["ZCenter"]) + \
-                            "\n" + self.t("裏面を表示しない") + "=0" + "\nblend=" + str(self.mydict["Blend"])
-                else:  # 標準描画
-                    exo_7 = "." + str(1 + filter_count) + \
-                            "]\n_name=標準描画" + \
-                            "\nX=" + str(self.mydict["X"]) + "\nY=" + str(self.mydict["Y"]) + \
-                            "\nZ=" + str(self.mydict["Z"]) + \
-                            "\n" + self.t("拡大率") + "=" + str(self.mydict["Size"]) + \
-                            "\n" + self.t("透明度") + "=" + str(self.mydict["Alpha"]) + \
-                            "\n" + self.t("回転") + "=" + str(self.mydict["Rotation"]) + \
-                            "\nblend=" + str(self.mydict["Blend"])
+                exo_7 = '.' + str(1 + filter_count) + ']'
+                for txt in self.mydict['Param']:
+                    exo_7 += '\n' + txt
 
                 exo_result = (exo_result + exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) +
                               exo_4 + exo_4_2 + str(item_count) + exo_5 + exo_eff + exo_script + exo_6 +

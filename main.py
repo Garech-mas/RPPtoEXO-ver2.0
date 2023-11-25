@@ -1,6 +1,6 @@
 #####################################################################################
-#               RPP to EXO ver 2.05.4                                               #
-#                                                                       2023/11/12  #
+#               RPP to EXO ver 2.06                                                 #
+#                                                                       2023/11/26  #
 #       Original Written by Maimai (@Maimai22015/YTPMV.info)                        #
 #       Forked by Garech (@Garec_)                                                  #
 #                                                                                   #
@@ -24,10 +24,9 @@ import rpp2exo
 from rpp2exo import Rpp, Exo
 from rpp2exo.dict import *
 
-R2E_VERSION = '2.05.4'
+R2E_VERSION = '2.06'
 
 rpp_cl = Rpp("")
-mydict = mydict
 
 
 def patched_error(msg):
@@ -356,82 +355,65 @@ def add_filter_label():
         if EffDict[svr_add_eff.get()][n][-1] == -1:
             hCheckBox.append(StringVar())
             hCheckBox[mydict["EffCbNum"]].set(0)
-            hCheckBoxCb.append(ttk.Checkbutton(
-                frame_effprm,
-                padding=0,
-                text=EffDict[svr_add_eff.get()][n][0],
-                onvalue=1,
-                offvalue=0,
-                variable=hCheckBox[mydict["EffCbNum"]]))
-            hCheckBoxCb[mydict["EffCbNum"]].grid(
-                row=mydict["EffNum"] + mydict["EffCount"] + mydict["EffCbNum"], columnspan=4, column=1, sticky=W)
+            hCheckBoxCb.append(ttk.Checkbutton(frame_effprm, padding=0, text=EffDict[svr_add_eff.get()][n][0],
+                onvalue=1, offvalue=0, variable=hCheckBox[mydict["EffCbNum"]]))
+            hCheckBoxCb[mydict["EffCbNum"]].grid(row=mydict["EffNum"] + mydict["EffCount"] + mydict["EffCbNum"],
+                                                 columnspan=4, column=1, sticky=W)
             mydict["EffCbNum"] += 1
         elif EffDict[svr_add_eff.get()][n][-1] == -2:  # Entryだけの項目(めっちゃ強引な実装だから全体的に書き直したい…)
             hLabel.append(StringVar())
-            hLabel[mydict["EffNum"] + mydict["EffCount"]
-                   ].set(EffDict[svr_add_eff.get()][n][0])
-            b = ttk.Label(
-                frame_effprm, textvariable=hLabel[mydict["EffNum"] + mydict["EffCount"]])
-            b.grid(row=mydict["EffNum"] + mydict["EffCount"] + mydict["EffCbNum"],
-                   column=0, padx=5)
+            hLabel[mydict["EffNum"] + mydict["EffCount"]].set(EffDict[svr_add_eff.get()][n][0])
+            b = ttk.Label(frame_effprm, textvariable=hLabel[mydict["EffNum"] + mydict["EffCount"]])
+            b.grid(row=mydict["EffNum"] + mydict["EffCount"] + mydict["EffCbNum"], column=0, padx=5)
             hLabel2.append(b)
             hEntryS.append(StringVar())
-            hEntrySE.append(ttk.Entry(
-                frame_effprm, textvariable=hEntryS[mydict["EffNum"]], width=7))
-            hEntrySE[mydict["EffNum"]].grid(
-                row=mydict["EffNum"] + mydict["EffCount"] + mydict["EffCbNum"], column=1, columnspan=4, sticky=W + E)
+            hEntrySE.append(ttk.Entry(frame_effprm, textvariable=hEntryS[mydict["EffNum"]], width=7))
+            hEntrySE[mydict["EffNum"]].grid(row=mydict["EffNum"] + mydict["EffCount"] + mydict["EffCbNum"],
+                                            column=1, columnspan=4, sticky=W + E)
             hEntrySE[mydict["EffNum"]].insert(END, EffDict[svr_add_eff.get()][n][1])
             hEntryX.append(StringVar())
-            hEntryXCb.append(ttk.Combobox(
-                frame_effprm, textvariable=hEntryX[mydict["EffNum"]]))
+            hEntryXCb.append(ttk.Combobox(frame_effprm, textvariable=hEntryX[mydict["EffNum"]]))
             hEntryXCb[mydict["EffNum"]]['values'] = list(XDict.keys())
             hEntryXCb[mydict["EffNum"]].set(list(XDict.keys())[0])
-
             hEntryE.append(StringVar())
-            hEntryEE.append(ttk.Entry(
-                frame_effprm, textvariable=hEntryE[mydict["EffNum"]], width=7))
-
+            hEntryEE.append(ttk.Entry(frame_effprm, textvariable=hEntryE[mydict["EffNum"]], width=7))
             hEntryConf.append(StringVar())
-            hEntryConfE.append(ttk.Entry(
-                frame_effprm, textvariable=hEntryConf[mydict["EffNum"]], width=5))
-
+            hEntryConfE.append(ttk.Entry(frame_effprm, textvariable=hEntryConf[mydict["EffNum"]], width=5))
             mydict["EffNum"] += 1
         else:
             hLabel.append(StringVar())
-            hLabel[mydict["EffNum"] + mydict["EffCount"]
-                   ].set(EffDict[svr_add_eff.get()][n][0])
-            b = ttk.Label(
-                frame_effprm, textvariable=hLabel[mydict["EffNum"] + mydict["EffCount"]])
-            b.grid(row=mydict["EffNum"] + mydict["EffCount"] + mydict["EffCbNum"],
-                   column=0, padx=5)
+            hLabel[mydict["EffNum"] + mydict["EffCount"]].set(EffDict[svr_add_eff.get()][n][0])
+            b = ttk.Label(frame_effprm, textvariable=hLabel[mydict["EffNum"] + mydict["EffCount"]])
+            b.grid(row=mydict["EffNum"] + mydict["EffCount"] + mydict["EffCbNum"], column=0, padx=5)
             hLabel2.append(b)
             hEntryS.append(StringVar())
-            hEntrySE.append(ttk.Entry(
-                frame_effprm, textvariable=hEntryS[mydict["EffNum"]], width=7))
-            hEntrySE[mydict["EffNum"]].grid(
-                row=mydict["EffNum"] + mydict["EffCount"] + mydict["EffCbNum"], column=1, padx=5)
+            hEntrySE.append(ttk.Entry(frame_effprm, textvariable=hEntryS[mydict["EffNum"]], width=7))
+            hEntrySE[mydict["EffNum"]].grid(row=mydict["EffNum"] + mydict["EffCount"] + mydict["EffCbNum"],
+                                            column=1, padx=5)
             hEntrySE[mydict["EffNum"]].insert(END, EffDict[svr_add_eff.get()][n][1])
+            set_decimal(hEntryS[mydict["EffNum"]], EffDict[svr_add_eff.get()][n][2])
             hEntryX.append(StringVar())
-            hEntryXCb.append(ttk.Combobox(
-                frame_effprm, textvariable=hEntryX[mydict["EffNum"]]))
+            hEntryXCb.append(ttk.Combobox(frame_effprm, textvariable=hEntryX[mydict["EffNum"]]))
             hEntryXCb[mydict["EffNum"]]['values'] = list(XDict.keys())
             hEntryXCb[mydict["EffNum"]].set(list(XDict.keys())[0])
-            hEntryXCb[mydict["EffNum"]].grid(
-                row=mydict["EffNum"] + mydict["EffCount"] + mydict["EffCbNum"], column=2, padx=5)
+            hEntryXCb[mydict["EffNum"]].grid(row=mydict["EffNum"] + mydict["EffCount"] + mydict["EffCbNum"],
+                                             column=2, padx=5)
 
             hEntryE.append(StringVar())
-            hEntryEE.append(ttk.Entry(
-                frame_effprm, textvariable=hEntryE[mydict["EffNum"]], width=7))
-            hEntryEE[mydict["EffNum"]].grid(
-                row=mydict["EffNum"] + mydict["EffCount"] + mydict["EffCbNum"], column=3, padx=5)
+            hEntryEE.append(ttk.Entry(frame_effprm, textvariable=hEntryE[mydict["EffNum"]], width=7))
+            hEntryEE[mydict["EffNum"]].grid(row=mydict["EffNum"] + mydict["EffCount"] + mydict["EffCbNum"],
+                                            column=3, padx=5)
 
             hEntryConf.append(StringVar())
             hEntryConfE.append(ttk.Entry(
                 frame_effprm, textvariable=hEntryConf[mydict["EffNum"]], width=5))
-            hEntryConfE[mydict["EffNum"]].grid(
-                row=mydict["EffNum"] + mydict["EffCount"] + mydict["EffCbNum"], column=4, padx=5)
+            hEntryConfE[mydict["EffNum"]].grid(row=mydict["EffNum"] + mydict["EffCount"] + mydict["EffCbNum"],
+                                               column=4, padx=5)
 
             mydict["EffNum"] += 1
+    canvas.update()
+    canvas.configure(scrollregion=(0, 0, frame_right.winfo_height(), frame_right.winfo_height()))
+    canvas.grid(row=0, column=2, sticky=N, ipadx=frame_right.winfo_width()/2, ipady=310)
 
 
 def del_filter_label():  # 効果パラメータ入力画面破棄
@@ -465,59 +447,152 @@ def del_filter_label():  # 効果パラメータ入力画面破棄
     hEntryConfE.clear()
     hCheckBox.clear()
     hCheckBoxCb.clear()
+    canvas.update()
+    canvas.configure(scrollregion=(0, 0, frame_right.winfo_height(), frame_right.winfo_height()))
+    canvas.grid(row=0, column=2, sticky=N, ipadx=frame_right.winfo_width()/2, ipady=310)
+
+
+mLabel = []  # ラベルのハンドル格納
+mLabel2 = []  # ラベル実体
+mSELabel = []  # 始点終点ラベルハンドル
+mSELabelE = []  # 始点終点ラベル実体
+mEntryS = []  # Entry 開始点
+mEntryE = []  # Entry 終点
+mEntryX = []  # Entry 移動方法
+mEntryConf = []  # Entry 設定
+mEntrySE = []  # Entry実体 開始点
+mEntryEE = []  # Entry実体 終点
+mEntryXCb = []  # コンボボックス実体 移動方法
+mEntryConfE = []  # Entry 設定実体
+
+
+def toggle_media_label(flg):
+    if flg == 2:  # 拡張描画切り替え
+        # 回転を消す
+        mLabel2[6].grid_remove()
+        mEntrySE[5].grid_remove()
+        mEntryEE[5].grid_remove()
+        mEntryXCb[5].grid_remove()
+        mEntryConfE[5].grid_remove()
+
+        # 回転の値をZ軸回転にコピー
+        mEntryS[9].set(mEntryS[5].get())
+        mEntryE[9].set(mEntryE[5].get())
+        mEntryX[9].set(mEntryX[5].get())
+        mEntryConf[9].set(mEntryConf[5].get())
+
+        # 拡張描画の設定項目を描画
+        for i in range(6, 13):
+            mLabel2[i+1].grid()
+            mEntrySE[i].grid()
+            mEntryXCb[i].grid()
+            mEntryEE[i].grid()
+            mEntryConfE[i].grid()
+    elif flg == 1:  # 標準描画切り替え
+        # 拡張描画の設定項目を消す
+        for i in range(6, 13):
+            mLabel2[i+1].grid_remove()
+            mEntrySE[i].grid_remove()
+            mEntryEE[i].grid_remove()
+            mEntryXCb[i].grid_remove()
+            mEntryConfE[i].grid_remove()
+
+        # Z軸回転の値を回転にコピー
+        mEntryS[5].set(mEntryS[9].get())
+        mEntryE[5].set(mEntryE[9].get())
+        mEntryX[5].set(mEntryX[9].get())
+        mEntryConf[5].set(mEntryConf[9].get())
+
+        # 回転を描画
+        mLabel2[6].grid()
+        mEntrySE[5].grid()
+        mEntryXCb[5].grid()
+        mEntryEE[5].grid()
+        mEntryConfE[5].grid()
+    elif flg == 0:
+        frame_stddraw.grid(row=1)
+        frame_optdraw.grid(row=2, sticky='W')
+
+    else:  # フィルタ切り替え
+        frame_stddraw.grid_remove()
+        frame_optdraw.grid_remove()
 
 
 def run():
-    try:
-        read_cfg()
-        mydict["RPPPath"] = svr_rpp_input.get().replace('"', '')
-        if svr_exo_input.get().replace('"', '').lower().endswith(".exo") or svr_exo_input.get().replace('"', '') == "":
-            mydict["EXOPath"] = to_absolute(svr_exo_input.get().replace('"', ''))
-        else:
-            mydict["EXOPath"] = to_absolute(svr_exo_input.get().replace('"', '') + ".exo")
-        mydict["OutputType"] = ivr_trgt_mode.get()
-        mydict["SrcPath"] = to_absolute(svr_src_input.get().replace('"', '')).replace('/', '\\')
-        mydict["EffPath"] = to_absolute(svr_alias_input.get().replace('"', ''))
-        mydict["IsAlpha"] = ivr_import_alpha.get()
-        mydict["IsLoop"] = ivr_loop.get()
-        mydict["SrcPosition"] = svr_obj_playpos.get()
-        mydict["SrcRate"] = svr_obj_playrate.get()
-        # mydict["BreakFrames"] = list(map(int, svr_stop_frame.get().split(','))) if svr_stop_frame.get() else []
+    read_cfg()
+    mydict["RPPPath"] = svr_rpp_input.get().replace('"', '')
+    if svr_exo_input.get().replace('"', '').lower().endswith(".exo") or svr_exo_input.get().replace('"', '') == "":
+        mydict["EXOPath"] = to_absolute(svr_exo_input.get().replace('"', ''))
+    else:
+        mydict["EXOPath"] = to_absolute(svr_exo_input.get().replace('"', '') + ".exo")
+    mydict["OutputType"] = ivr_trgt_mode.get()
+    mydict["SrcPath"] = to_absolute(svr_src_input.get().replace('"', '')).replace('/', '\\')
+    mydict["EffPath"] = to_absolute(svr_alias_input.get().replace('"', ''))
+    mydict["IsAlpha"] = ivr_import_alpha.get()
+    mydict["IsLoop"] = ivr_loop.get()
+    if is_float(svr_fps_input.get()):
         mydict["fps"] = float(svr_fps_input.get())
-        mydict["ScriptText"] = txt_script.get('1.0', 'end-1c')
-        mydict["ObjFlipType"] = ivr_v_flip.get() + ivr_h_flip.get()
-        mydict["SepLayerEvenObj"] = ivr_sep_even.get()
-        mydict["NoGap"] = ivr_no_gap.get()
-        mydict["clipping"] = ivr_clipping.get()
-        mydict["IsExSet"] = ivr_adv_draw.get()
-        mydict["X"] = ParamEntry1.get()
-        mydict["Y"] = ParamEntry2.get()
-        mydict["Z"] = ParamEntry3.get()
-        mydict["Size"] = ParamEntry4.get()
-        mydict["Alpha"] = ParamEntry5.get()
-        mydict["Ratio"] = ParamEntry6.get()
-        mydict["Rotation"] = ParamEntry7.get()
-        mydict["XRotation"] = ParamEntry8.get()
-        mydict["YRotation"] = ParamEntry9.get()
-        mydict["ZRotation"] = ParamEntry10.get()
-        mydict["XCenter"] = ParamEntry11.get()
-        mydict["YCenter"] = ParamEntry12.get()
-        mydict["ZCenter"] = ParamEntry13.get()
-        mydict["SceneIdx"] = int(svr_scene_idx.get() or 0)
-        mydict["Blend"] = BlendDict[ParamCombo15.get()]
-        mydict["Track"] = tvw_slct_track.get_checked()
-        mydict["DisplayLang"] = svr_lang_r2e.get()
-        mydict["ExEditLang"] = svr_lang_aul.get()
-    except ValueError:
-        if svr_fps_input.get() != '':
-            messagebox.showinfo(_("エラー"), _("半角の数値を入力すべき箇所へ不正な文字列が入力されています。"))
-            return 0
-        else:
-            mydict["fps"] = ""
+    else:
+        mydict["fps"] = ''
+    mydict["ScriptText"] = txt_script.get('1.0', 'end-1c')
+    mydict["ObjFlipType"] = ivr_v_flip.get() + ivr_h_flip.get()
+    mydict["SepLayerEvenObj"] = ivr_sep_even.get()
+    mydict["NoGap"] = ivr_no_gap.get()
+    mydict["clipping"] = ivr_clipping.get()
+    mydict["IsExSet"] = ivr_adv_draw.get()
+    mydict["SceneIdx"] = int(svr_scene_idx.get() or 0)
+    mydict["Track"] = tvw_slct_track.get_checked()
+    mydict["DisplayLang"] = svr_lang_r2e.get()
+    mydict["ExEditLang"] = svr_lang_aul.get()
 
-    trackbar_error = False
+    mydict["Param"] = []
+
+    def set_mparam(i, mv=1, tp=1):
+        if not is_float(mEntryS[i].get()):
+            messagebox.showinfo(_("エラー"), _("%s : %s の値が正しく入力されていません。") % (mLabel[0].get(), mLabel[i+1].get()))
+            raise ValueError
+        if mv and -1 < float(mEntryS[i].get()) < 0:
+            patched_error(_('AviUtl本体のバグの影響により、トラックバーの-1越0未満 ( -0.* ) の値は反映されません。'))
+            return 1, tp
+        mydict["Param"].append(mLabel[i+1].get() + '=' + set_decimal(mEntryS[i], prmlist[i][2]))
+        if mEntryX[i].get() == list(XDict.keys())[0] or mEntryX[i].get() == "":
+            return mv, tp
+        # 以下、移動方法ありの場合の処理
+        if not is_float(mEntryE[i].get()):
+            messagebox.showinfo(_("エラー"), _("%s : %s の終点が正しく入力されていません。") % (mLabel[0].get(), mLabel[i+1].get()))
+            raise ValueError
+        if mv and -1 < float(mEntryE[i].get()) < 0:
+            patched_error(_('AviUtl本体のバグの影響により、トラックバーの-1越0未満 ( -0.* ) の値は反映されません。'))
+            return 1, tp
+        mydict["Param"][-1] += ',' + set_decimal(mEntryE[i], prmlist[i][2]) + ','\
+            + str(XDict.get(mEntryX[i].get(), '15@' + mEntryX[i].get()))
+        if mEntryConf[i].get() != '':
+            if not is_float(mEntryE[i].get()):
+                messagebox.showinfo(_("エラー"),
+                                    _("%s : %s の終点が正しく入力されていません。") % (mLabel[0].get(), mLabel[i + 1].get()))
+                raise ValueError
+            mydict["Param"][-1] += ',' + str(int(mEntryConf[i].get()))
+            if tp and not str(XDict.get(mEntryX[i].get(), mEntryX[i].get())).isascii():
+                patched_error(_("AviUtl本体のバグの影響により、移動の設定の値は反映されません。"))
+                return mv, 1
+        return mv, tp
 
     try:
+        show_mv, show_tp = (0, 0)
+        if ivr_adv_draw.get():
+            mydict['Param'].append('_name=' + ExDict['拡張描画'])
+            for i in [0, 1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14]:
+                show_mv, show_tp = set_mparam(i, show_mv, show_tp)
+            mydict['Param'].append(ExDict['裏面を表示しない'] + '=0')
+        else:
+            mydict['Param'].append('_name=' + ExDict['標準描画'])
+            for i in [0, 1, 2, 3, 4, 5, 13, 14]:
+                show_mv, show_tp = set_mparam(i, show_mv, show_tp)
+
+        mydict['SrcRate'] = mydict['Param'].pop()[5:]
+        mydict['SrcPosition'] = mydict['Param'].pop()[5:]
+        mydict['Param'].append('blend=' + str(BlendDict[ParamCombo15.get()]))
+
         if mydict["RPPPath"] == "":
             messagebox.showinfo(_("エラー"), _("読み込むRPPを入力してください。"))
             return 0
@@ -530,6 +605,9 @@ def run():
         elif not mydict["Track"]:
             messagebox.showinfo(_("エラー"), _("出力するトラックを選択してください。"))
             return 0
+        elif ivr_slct_time.get() and (not is_float(cmb_time1.get()) or not is_float(cmb_time2.get())):
+            messagebox.showinfo(_("エラー"), _("時間選択 (秒) の値が正しく入力されていません。"))
+            return 0
 
         if (mydict["SceneIdx"] <= 0 or mydict["SceneIdx"] >= 50) and mydict["OutputType"] == 4:
             messagebox.showinfo(_("エラー"), _("正しいシーン番号を入力してください。（範囲 : 1 ~ 49）"))
@@ -537,53 +615,45 @@ def run():
         elif mydict["SceneIdx"] != 1 and mydict["OutputType"] == 4:
             patched_error(_('AviUtl本体のバグの影響により、シーン番号は反映されません。'))
 
-        # トラックバーエラーの検知
-        if (-1 < float(mydict["X"]) < 0 or -1 < float(mydict["Y"]) < 0 or -1 < float(mydict["Z"]) < 0 or
-                -1 < float(mydict["Size"]) < 0 or -1 < float(mydict["Alpha"]) < 0 or -1 < float(mydict["Ratio"]) < 0 or
-                -1 < float(mydict["Rotation"]) < 0 or -1 < float(mydict["XRotation"]) < 0 or
-                -1 < float(mydict["YRotation"]) < 0 or -1 < float(mydict["ZRotation"]) < 0 or
-                -1 < float(mydict["XCenter"]) < 0 or -1 < float(mydict["YCenter"]) < 0 or -1 < float(
-                    mydict["ZCenter"]) < 0 or
-                -1 < float(mydict["Blend"]) < 0 or -1 < float(mydict["SrcRate"]) < 0):
-            patched_error(_('AviUtl本体のバグの影響により、トラックバーの-1越0未満 ( -0.* ) の値は反映されません。'))
-            trackbar_error = True
-
         count = mydict["EffCount"]
         runcount = 0
         runcountcb = 0
         eff = ""
-
         for i in range(0, int(count)):
-            # runcount += 1
             del mydict["Effect"][i][1:]
             for x in range(len(EffDict[mydict["Effect"][i][0]])):
                 if EffDict[mydict["Effect"][i][0]][x][-1] != -1:  # チェックボックスでない場合
-                    if hEntryX[runcount].get() == list(XDict.keys())[0]:  # 移動なしの場合
-                        if not trackbar_error and EffDict[mydict["Effect"][i][0]][x][-1] != -2 and \
+                    if EffDict[mydict["Effect"][i][0]][x][-1] != -2 and not is_float(hEntryS[runcount].get()):
+                        messagebox.showinfo(_("エラー"), _("%s : %s の値が正しく入力されていません。")
+                                            % (mydict["Effect"][i][0], EffDict[mydict["Effect"][i][0]][x][0]))
+                        return 0
+                    if hEntryX[runcount].get() == list(XDict.keys())[0] or hEntryX[runcount].get() == "":  # 移動なしの場合
+                        if show_mv and EffDict[mydict["Effect"][i][0]][x][-1] != -2 and \
                                 -1 < float(hEntryS[runcount].get()) < 0:
                             patched_error(_('AviUtl本体のバグの影響により、トラックバーの-1越0未満 ( -0.* ) の値は反映されません。'))
-                            trackbar_error = True
+                            show_mv = False
 
                         eff = [EffDict[mydict["Effect"][i][0]][x][0],
                                set_decimal(hEntryS[runcount], EffDict[mydict["Effect"][i][0]][x][-1])]
                         mydict["Effect"][i].append(eff)
                     else:  # 移動ありの場合
-                        if str(hEntryE[runcount].get()) == "":
-                            messagebox.showinfo(_("エラー"), _("追加フィルタ効果の終点が入力されていません。"))
+                        if not is_float(hEntryE[runcount].get()):
+                            messagebox.showinfo(_("エラー"), _("%s : %s の終点が正しく入力されていません。")
+                                                % (mydict["Effect"][i][0], EffDict[mydict["Effect"][i][0]][x][0]))
                             return 0
-                        # 移動方法の終点にスクリプト名などの文字列が入力できなくなっていたため削除  近いうちに全て作り直さなきゃ
-                        # if not trackbar_error and EffDict[mydict["Effect"][i][0]][x][-1] != -2 and \
-                        #         (-1 < float(hEntryS[runcount].get()) < 0 or -1 < float(hEntryE[runcount].get()) < 0):
-                        #     patched_error(_('AviUtl本体のバグの影響により、トラックバーの-1越0未満 ( -0.* ) の値は反映されません。'))
-                        #     trackbar_error = True
+                        if show_mv and EffDict[mydict["Effect"][i][0]][x][-1] != -2 and \
+                                (-1 < float(hEntryS[runcount].get()) < 0 or -1 < float(hEntryE[runcount].get()) < 0):
+                            patched_error(_('AviUtl本体のバグの影響により、トラックバーの-1越0未満 ( -0.* ) の値は反映されません。'))
+                            show_mv = False
                         eff = [EffDict[mydict["Effect"][i][0]][x][0],
                                set_decimal(hEntryS[runcount], EffDict[mydict["Effect"][i][0]][x][-1]) + ","
                                + set_decimal(hEntryE[runcount], EffDict[mydict["Effect"][i][0]][x][-1]) + ","
                                + str(XDict.get(hEntryX[runcount].get(), '15@' + hEntryX[runcount].get()))]
                         if XDict.get(hEntryX[runcount].get(), 'a') != "":
                             eff[1] += str(hEntryConf[runcount].get())
-                            if not str(XDict.get(hEntryX[runcount].get(), hEntryX[runcount].get())).isascii():
+                            if show_tp and not str(XDict.get(hEntryX[runcount].get(), hEntryX[runcount].get())).isascii():
                                 patched_error(_("AviUtl本体のバグの影響により、移動の設定の値は反映されません。"))
+                                show_tp = False
                         if XDict.get(hEntryX[runcount].get(), 'a') != "" and hEntryConf[runcount].get() != "":
                             eff = [EffDict[mydict["Effect"][i][0]][x][0],
                                    set_decimal(hEntryS[runcount], EffDict[mydict["Effect"][i][0]][x][-1]) + ","
@@ -597,8 +667,7 @@ def run():
                            str(hCheckBox[runcountcb].get())]
                     mydict["Effect"][i].append(eff)
                     runcountcb += 1
-    except ValueError as e:
-        messagebox.showinfo(_("エラー"), _("半角の数値を入力すべき箇所へ不正な文字列が入力されています。"))
+    except ValueError:
         return 0
     thread = threading.Thread(target=main)
     thread.start()
@@ -622,6 +691,14 @@ def set_decimal(entry, unit):
     return n
 
 
+def is_float(value):
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False
+
+
 # GUI変更時に値の状態を変更する関数
 def mode_command():  # 「追加対象」変更時の状態切り替え
     if ivr_trgt_mode.get() == 1 or ivr_trgt_mode.get() == 2:  # 「素材」テキストボックス・参照ボタン
@@ -636,6 +713,15 @@ def mode_command():  # 「追加対象」変更時の状態切り替え
     else:
         ent_scene_idx['state'] = 'disable'
 
+    if ivr_trgt_mode.get() == 3:  # 上のオブジェクトでクリッピング・拡張描画・設定項目
+        chk_clipping['state'] = 'disable'
+        chk_adv_draw['state'] = 'disable'
+        toggle_media_label(-1)
+    else:
+        chk_clipping['state'] = 'enable'
+        chk_adv_draw['state'] = 'enable'
+        toggle_media_label(0)
+
     if ivr_trgt_mode.get() == 1:  # アルファチャンネルを読み込む
         chk_import_alpha['state'] = 'enable'
     else:
@@ -643,32 +729,22 @@ def mode_command():  # 「追加対象」変更時の状態切り替え
 
     if ivr_trgt_mode.get() == 1 or ivr_trgt_mode.get() == 4:  # ループ再生・再生速度・再生位置
         chk_loop['state'] = 'enable'
-        ent_obj_playrate['state'] = 'enable'
-        ent_obj_playpos['state'] = 'enable'
 
+        # 拡張描画の設定項目を描画
+        for i in range(13, 15):
+            mLabel2[i + 1].grid()
+            mEntrySE[i].grid()
+            mEntryXCb[i].grid()
+            mEntryEE[i].grid()
+            mEntryConfE[i].grid()
     else:
-        chk_loop['state'] = 'disable'
-        ent_obj_playrate['state'] = 'disable'
-        ent_obj_playpos['state'] = 'disable'
-
-
-def advdraw_command():  # 「拡張描画」変更時の状態切り替え
-    if ivr_adv_draw.get() == 0:
-        ParamEntryE6['state'] = 'disable'
-        ParamEntryE8['state'] = 'disable'
-        ParamEntryE9['state'] = 'disable'
-        ParamEntryE10['state'] = 'disable'
-        ParamEntryE11['state'] = 'disable'
-        ParamEntryE12['state'] = 'disable'
-        ParamEntryE13['state'] = 'disable'
-    else:
-        ParamEntryE6['state'] = 'enable'
-        ParamEntryE8['state'] = 'enable'
-        ParamEntryE9['state'] = 'enable'
-        ParamEntryE10['state'] = 'enable'
-        ParamEntryE11['state'] = 'enable'
-        ParamEntryE12['state'] = 'enable'
-        ParamEntryE13['state'] = 'enable'
+        # 拡張描画の設定項目を消す
+        for i in range(13, 15):
+            mLabel2[i + 1].grid_remove()
+            mEntrySE[i].grid_remove()
+            mEntryEE[i].grid_remove()
+            mEntryXCb[i].grid_remove()
+            mEntryConfE[i].grid_remove()
 
 
 def change_time_cb():  # 「時間選択」変更時の状態切り替え
@@ -783,6 +859,7 @@ if __name__ == '__main__':
     root = TkinterDnD.Tk()
     root.title('RPPtoEXO v' + R2E_VERSION)
     root.columnconfigure(1, weight=1)
+    root.resizable(False, False)
 
     # メニューバー作成
     mbar = Menu(root, tearoff=0)
@@ -826,19 +903,27 @@ if __name__ == '__main__':
 
     menu_help.add_command(label=_('使い方(Scrapbox)'),
                           command=lambda: open_website(
-                              _('https://scrapbox.io/Garech/RPPtoEXO%E3%81%AE%E7%94%BB%E9%9D%A2%E3%81%AE%E8%AA%AC%E6%98%8E')))
+                              _('https://scrapbox.io/Garech/RPPtoEXO%E3%81%AE%E7%94%BB%E9%9D%A2%E3%81%AE%E8%AA%AC%E6%98%8E_(v2.6~)')))
     menu_help.add_command(label=_('最新バージョンを確認(GitHub)'),
                           command=lambda: open_website('https://github.com/Garech-mas/RPPtoEXO-ver2.0/releases/latest'))
     menu_help.add_command(label=_('制作者の連絡先(Twitter)'),
                           command=lambda: open_website('https://twitter.com/Garec_'))
     menu_help.add_command(label=_('このソフトについて'), command=about_rpp2exo)
 
+    # フレーム・キャンバス設定
     frame_left = ttk.Frame(root)
     frame_left.grid(row=0, column=0)
     frame_center = ttk.Frame(root)
     frame_center.grid(row=0, column=1)
-    frame_right = ttk.Frame(root)
-    frame_right.grid(row=0, column=2)
+
+    canvas = Canvas(root, width=200, height=200, highlightthickness=0)
+    vsb_canvas = ttk.Scrollbar(canvas, orient=VERTICAL, command=canvas.yview)
+    canvas.grid(row=0, column=2, sticky=N, ipadx=200, ipady=310)
+    canvas.configure(yscrollcommand=vsb_canvas.set)
+    frame_right = ttk.Frame(canvas)
+    vsb_canvas.pack(side=RIGHT, fill=Y)
+    canvas.create_window((0, 0), window=frame_right, anchor='nw')
+    canvas.configure(scrollregion=(0, 0, 392, 392))
 
     # frame_rpp RPP選択
     frame_rpp = ttk.Frame(frame_left, padding=5)
@@ -871,9 +956,77 @@ if __name__ == '__main__':
     btn_exo_saveas = ttk.Button(frame_exo, text=_('保存先…'), command=save_exo)
     btn_exo_saveas.grid(row=1, column=3)
 
-    # frame_trgt 追加対象オブジェクト・素材指定
-    frame_trgt = ttk.Frame(frame_left, padding=5)
-    frame_trgt.grid(row=2, column=0)
+    # frame_r2e ソフト独自設定 / 時間選択 / トラック選択
+    frame_r2e = ttk.Frame(frame_left, padding=10)
+    frame_r2e.grid(row=4, column=0)
+
+    ivr_v_flip = IntVar()
+    chk_v_flip = ttk.Checkbutton(frame_r2e, padding=5, text=_('左右反転'), onvalue=1, offvalue=0, variable=ivr_v_flip)
+    chk_v_flip.grid(row=1, column=0, sticky=W)
+    ivr_h_flip = IntVar()
+    chk_h_flip = ttk.Checkbutton(frame_r2e, padding=5, text=_('上下反転'), onvalue=2, offvalue=0, variable=ivr_h_flip)
+    chk_h_flip.grid(row=2, column=0, sticky=W)
+    ivr_no_gap = IntVar()
+    chk_no_gap = ttk.Checkbutton(frame_r2e, padding=5, text=_('隙間なく配置'), onvalue=1, offvalue=0, variable=ivr_no_gap)
+    chk_no_gap.grid(row=3, column=0, sticky=W)
+    ivr_sep_even = IntVar()
+    chk_sep_even = ttk.Checkbutton(frame_r2e, padding=5, text=_('偶数番目Objを\n別レイヤ配置'), onvalue=1, offvalue=0,
+                                   variable=ivr_sep_even)
+    chk_sep_even.grid(row=4, column=0, sticky=W)
+
+    ivr_slct_time = IntVar()
+    chk_slct_time = ttk.Checkbutton(frame_r2e, padding=5, text=_('時間選択 (秒)'), onvalue=1, offvalue=0,
+                                    variable=ivr_slct_time, command=change_time_cb)
+    chk_slct_time.grid(row=5, column=0, sticky=W)
+    svr_time_preset = StringVar()
+    svr_time_preset.set('')
+    cmb_time_preset = ttk.Combobox(frame_r2e, textvariable=svr_time_preset, width=10, state='disable')
+    cmb_time_preset.bind('<<ComboboxSelected>>', set_time)
+    cmb_time_preset.grid(row=6, column=0, padx=5, pady=3, sticky=W + E)
+
+    svr_time1 = StringVar()
+    cmb_time1 = ttk.Combobox(frame_r2e, textvariable=svr_time1, width=10, state='disable')
+    cmb_time1.bind('<<ComboboxSelected>>', set_time1)
+    cmb_time1.grid(row=7, column=0, padx=5, pady=3, sticky=W + E)
+    svr_time2 = StringVar()
+    cmb_time2 = ttk.Combobox(frame_r2e, textvariable=svr_time2, width=10, state='disable')
+    cmb_time2.bind('<<ComboboxSelected>>', set_time2)
+    cmb_time2.grid(row=8, column=0, padx=5, pady=(3, 110), sticky=W + E)
+
+    tvw_slct_track = CheckboxTreeview(frame_r2e, show='tree', height=24)
+    tvw_slct_track.grid(row=0, column=1, rowspan=9, sticky=N + S + E + W)
+    tvw_slct_track.column("#0", width=300)
+    ttk.Style().configure('Checkbox.Treeview', rowheight=15, borderwidth=1, relief='sunken', indent=0)
+
+    vsb_slct_track = Scrollbar(frame_r2e, orient=VERTICAL, command=tvw_slct_track.yview)
+    vsb_slct_track.grid(row=0, column=2, rowspan=9, sticky=N + S)
+    tvw_slct_track['yscrollcommand'] = vsb_slct_track.set
+
+    # frame_alias 効果をファイルから読み込む
+    frame_alias = ttk.Frame(frame_left, padding=5)
+    frame_alias.grid(row=6, column=0)
+    btn_alias_browse = ttk.Button(frame_alias, text=_('参照…'), command=slct_filter_cfg_file)
+    btn_alias_browse.grid(row=0, column=2)
+    lbl_alias_input = ttk.Label(frame_alias, text=_('エイリアス : '))
+    lbl_alias_input.grid(row=0, column=0, sticky=W)
+    svr_alias_input = StringVar()
+    ent_alias_input = ttk.Entry(frame_alias, textvariable=svr_alias_input, width=40)
+    ent_alias_input.grid(row=0, column=1)
+    ent_alias_input.drop_target_register(DND_FILES)
+    ent_alias_input.dnd_bind("<<Drop>>", partial(drop_file, svr_alias_input))
+
+    # frame_script スクリプト制御
+    frame_script = ttk.Frame(frame_left, padding=10)
+    frame_script.grid(row=7, column=0)
+    lbl_script = ttk.Label(frame_script, text=_('スクリプト制御 '))
+    lbl_script.grid(row=0, column=0, sticky=W)
+    svr_script = StringVar()
+    txt_script = Text(frame_script, width=50, height=10)
+    txt_script.grid(row=0, column=1)
+
+    # frame_trgt 追加対象オブジェクト・素材指定、オブジェクト設定チェックボックス
+    frame_trgt = ttk.Frame(frame_right, padding=5)
+    frame_trgt.grid(row=0, column=0, columnspan=2)
     ivr_trgt_mode = IntVar()
     ivr_trgt_mode.set(1)
 
@@ -904,103 +1057,91 @@ if __name__ == '__main__':
     btn_src_browse = ttk.Button(frame_trgt, text=_('参照…'), command=slct_source)
     btn_src_browse.grid(row=1, column=5, columnspan=2, sticky=E)
 
-    # lbl_stop_frame = ttk.Label(frame_trgt, text='強制停止F : ')
-    # lbl_stop_frame.grid(row=2, column=0, sticky=E)
-    # svr_stop_frame = StringVar()
-    # ent_stop_frame = ttk.Entry(frame_trgt, textvariable=svr_stop_frame, width=60)
-    # ent_stop_frame.grid(row=2, column=1, columnspan=6, sticky=W)
-
-    # frame_obj  オブジェクト設定
-    frame_obj = ttk.Frame(frame_left, padding=1)
-    frame_obj.grid(row=3, column=0)
-
     ivr_clipping = IntVar()
-    chk_clipping = ttk.Checkbutton(frame_obj, padding=5, text=_('上のオブジェクトでクリッピング'), onvalue=1, offvalue=0,
-                                   variable=ivr_clipping)
-    chk_clipping.grid(row=0, column=0, sticky=W)
+    chk_clipping = ttk.Checkbutton(frame_trgt, padding=5, text=ExDict['上のオブジェクトでクリッピング'],
+                                   onvalue=1, offvalue=0, variable=ivr_clipping)
+    chk_clipping.grid(row=2, column=0, columnspan=3, sticky=W)
     ivr_adv_draw = IntVar()
     ivr_adv_draw.set(0)
-    chk_adv_draw = ttk.Checkbutton(frame_obj, padding=5, text=_('拡張描画'), onvalue=1, offvalue=0, variable=ivr_adv_draw,
-                                   command=advdraw_command)
-    chk_adv_draw.grid(row=0, column=1, sticky=W)
+    chk_adv_draw = ttk.Checkbutton(frame_trgt, padding=5, text=ExDict['拡張描画'], onvalue=1, offvalue=0,
+                                   variable=ivr_adv_draw, command=lambda: toggle_media_label(ivr_adv_draw.get()+1))
+    chk_adv_draw.grid(row=2, column=5, columnspan=2, sticky=E)
+
+    # frame_stddraw オブジェクトの標準パラメータ設定
+    frame_stddraw = ttk.Frame(frame_right, padding=5, borderwidth=3)
+    frame_stddraw.grid(row=1)
+
+    # 描画名ラベル
+    mLabel.append(StringVar())
+    mLabel[0].set(ExDict['標準描画'])
+    b = ttk.Label(frame_stddraw, textvariable=mLabel[0])
+    b.grid(row=0, column=0)
+    mLabel2.append(b)
+    # 始点終点ラベル
+    mSELabel.append(StringVar())
+    mSELabel[0].set(_("始点"))
+    b = ttk.Label(frame_stddraw, textvariable=mSELabel[0])
+    b.grid(row=0, column=1)
+    mSELabelE.append(b)
+    mSELabel.append(StringVar())
+    mSELabel[1].set(_("終点"))
+    b = ttk.Label(frame_stddraw, textvariable=mSELabel[1])
+    b.grid(row=0, column=3)
+    mSELabelE.append(b)
+    mSELabel.append(StringVar())
+    mSELabel[2].set(_("設定"))
+    b = ttk.Label(frame_stddraw, textvariable=mSELabel[2])
+    b.grid(row=0, column=4)
+    mSELabelE.append(b)
+
+    for n in range(len(prmlist)):
+        mLabel.append(StringVar())
+        mLabel[n+1].set(ExDict.get(prmlist[n][0], prmlist[n][0]))
+        b = ttk.Label(frame_stddraw, textvariable=mLabel[n+1])
+        b.grid(row=n+1, column=0, padx=5)
+        mLabel2.append(b)
+        mEntryS.append(StringVar())
+        mEntrySE.append(ttk.Entry(frame_stddraw, textvariable=mEntryS[n], width=7))
+        mEntrySE[n].grid(row=n+1, column=1, padx=5)
+        mEntrySE[n].insert(END, prmlist[n][1])
+        mEntryX.append(StringVar())
+        mEntryXCb.append(ttk.Combobox(frame_stddraw, textvariable=mEntryX[n]))
+        mEntryXCb[n]['values'] = list(XDict.keys())
+        mEntryXCb[n].set(list(XDict.keys())[0])
+        mEntryXCb[n].grid(row=n+1, column=2, padx=5)
+
+        mEntryE.append(StringVar())
+        mEntryEE.append(ttk.Entry(frame_stddraw, textvariable=mEntryE[n], width=7))
+        mEntryEE[n].grid(row=n+1, column=3, padx=5)
+
+        mEntryConf.append(StringVar())
+        mEntryConfE.append(ttk.Entry(frame_stddraw, textvariable=mEntryConf[n], width=5))
+        mEntryConfE[n].grid(row=n+1, column=4, padx=5)
+    toggle_media_label(1)
+
+    frame_optdraw = ttk.Frame(frame_right, borderwidth=3)
+    frame_optdraw.grid(row=2, sticky='W')
+
+    lbl_blend = ttk.Label(frame_optdraw, text=ExDict['合成モード'])
+    lbl_blend.grid(row=0, column=0, padx=10)
+    Param15 = StringVar()
+    ParamCombo15 = ttk.Combobox(frame_optdraw, textvariable=Param15, state='readonly')
+    ParamCombo15['values'] = list(BlendDict.keys())
+    ParamCombo15.set(list(BlendDict.keys())[0])
+    ParamCombo15.grid(row=0, column=1, columnspan=2, sticky=W + E)
     ivr_import_alpha = IntVar()
     ivr_import_alpha.set(0)
-    chk_import_alpha = ttk.Checkbutton(frame_obj, padding=5, text=_('アルファチャンネルを読み込む'), onvalue=1, offvalue=0,
-                                       variable=ivr_import_alpha)
-    chk_import_alpha.grid(row=1, column=0, sticky=W)
+    chk_import_alpha = ttk.Checkbutton(frame_optdraw, padding=5, text=ExDict['アルファチャンネルを読み込む'],
+                                       onvalue=1, offvalue=0, variable=ivr_import_alpha)
+    chk_import_alpha.grid(row=1, column=2, sticky=W)
     ivr_loop = IntVar()
     ivr_loop.set(0)
-    chk_loop = ttk.Checkbutton(frame_obj, padding=5, text=_('ループ再生'), onvalue=1, offvalue=0, variable=ivr_loop)
+    chk_loop = ttk.Checkbutton(frame_optdraw, padding=5, text=ExDict['ループ再生'], onvalue=1, offvalue=0, variable=ivr_loop)
     chk_loop.grid(row=1, column=1, sticky=W)
 
-    lbl_obj_playrate = ttk.Label(frame_obj, text=_('再生速度 : '))
-    lbl_obj_playrate.grid(row=0, column=3, sticky=E, padx=(8, 0))
-    svr_obj_playrate = StringVar()
-    ent_obj_playrate = ttk.Entry(frame_obj, textvariable=svr_obj_playrate, width=10)
-    ent_obj_playrate.grid(row=0, column=4, sticky=W + E)
-    ent_obj_playrate.insert(END, "100.0")
-
-    lbl_obj_playpos = ttk.Label(frame_obj, text=_('再生位置 : '))
-    lbl_obj_playpos.grid(row=1, column=3, sticky=E, padx=(8, 0))
-    svr_obj_playpos = StringVar()
-    ent_obj_playpos = ttk.Entry(frame_obj, textvariable=svr_obj_playpos, width=10)
-    ent_obj_playpos.grid(row=1, column=4, sticky=W + E)
-    ent_obj_playpos.insert(END, "1")
-
-    # frame_r2e ソフト独自設定 / 時間選択 / トラック選択
-    frame_r2e = ttk.Frame(frame_left, padding=10)
-    frame_r2e.grid(row=4, column=0)
-
-    # v1 = IntVar()
-    # v1.set(1)
-    # cb1 = ttk.Checkbutton(frame4a, padding=5, text='トラック毎に\n設定を調整する', onvalue=1, offvalue=0, variable=v1)
-    # cb1.grid(row=0, column=0, sticky=W)
-    ivr_v_flip = IntVar()
-    chk_v_flip = ttk.Checkbutton(frame_r2e, padding=5, text=_('左右反転'), onvalue=1, offvalue=0, variable=ivr_v_flip)
-    chk_v_flip.grid(row=1, column=0, sticky=W)
-    ivr_h_flip = IntVar()
-    chk_h_flip = ttk.Checkbutton(frame_r2e, padding=5, text=_('上下反転'), onvalue=2, offvalue=0, variable=ivr_h_flip)
-    chk_h_flip.grid(row=2, column=0, sticky=W)
-    ivr_no_gap = IntVar()
-    chk_no_gap = ttk.Checkbutton(frame_r2e, padding=5, text=_('隙間なく配置'), onvalue=1, offvalue=0, variable=ivr_no_gap)
-    chk_no_gap.grid(row=3, column=0, sticky=W)
-    ivr_sep_even = IntVar()
-    chk_sep_even = ttk.Checkbutton(frame_r2e, padding=5, text=_('偶数番目Objを\n別レイヤ配置'), onvalue=1, offvalue=0,
-                                   variable=ivr_sep_even)
-    chk_sep_even.grid(row=4, column=0, sticky=W)
-
-    ivr_slct_time = IntVar()
-    chk_slct_time = ttk.Checkbutton(frame_r2e, padding=5, text=_('時間選択 (秒)'), onvalue=1, offvalue=0,
-                                    variable=ivr_slct_time,
-                                    command=change_time_cb)
-    chk_slct_time.grid(row=5, column=0, sticky=W)
-    svr_time_preset = StringVar()
-    svr_time_preset.set('')
-    cmb_time_preset = ttk.Combobox(frame_r2e, textvariable=svr_time_preset, width=10, state='disable')
-    cmb_time_preset.bind('<<ComboboxSelected>>', set_time)
-    cmb_time_preset.grid(row=6, column=0, padx=5, pady=3, sticky=W + E)
-
-    svr_time1 = StringVar()
-    cmb_time1 = ttk.Combobox(frame_r2e, textvariable=svr_time1, width=10, state='disable')
-    cmb_time1.bind('<<ComboboxSelected>>', set_time1)
-    cmb_time1.grid(row=7, column=0, padx=5, pady=3, sticky=W + E)
-    svr_time2 = StringVar()
-    cmb_time2 = ttk.Combobox(frame_r2e, textvariable=svr_time2, width=10, state='disable')
-    cmb_time2.bind('<<ComboboxSelected>>', set_time2)
-    cmb_time2.grid(row=8, column=0, padx=5, pady=3, sticky=W + E)
-
-    tvw_slct_track = CheckboxTreeview(frame_r2e, show='tree', height=5)
-    tvw_slct_track.grid(row=0, column=1, rowspan=9, sticky=N + S + E + W)
-    tvw_slct_track.column("#0", width=300)
-    ttk.Style().configure('Checkbox.Treeview', rowheight=15, borderwidth=1, relief='sunken', indent=0)
-
-    vsb_slct_track = Scrollbar(frame_r2e, orient=VERTICAL, command=tvw_slct_track.yview)
-    vsb_slct_track.grid(row=0, column=2, rowspan=9, sticky=N + S)
-    tvw_slct_track['yscrollcommand'] = vsb_slct_track.set
-
     # frame_eff エフェクト追加/削除
-    frame_eff = ttk.Frame(frame_left, padding=5)
-    frame_eff.grid(row=5, column=0)
+    frame_eff = ttk.Frame(frame_right, padding=5)
+    frame_eff.grid(row=3, column=0)
     svr_add_eff = StringVar()
     cmb_add_eff = ttk.Combobox(frame_eff, textvariable=svr_add_eff, state='readonly')
     cmb_add_eff['values'] = list(EffDict.keys())
@@ -1011,166 +1152,9 @@ if __name__ == '__main__':
     btn_clear_eff = ttk.Button(frame_eff, text=_('効果のクリア'), command=del_filter_label)
     btn_clear_eff.grid(row=0, column=2)
 
-    # frame_alias 効果をファイルから読み込む
-    frame_alias = ttk.Frame(frame_left, padding=5)
-    frame_alias.grid(row=6, column=0)
-    btn_alias_browse = ttk.Button(frame_alias, text=_('参照…'), command=slct_filter_cfg_file)
-    btn_alias_browse.grid(row=0, column=2)
-    lbl_alias_input = ttk.Label(frame_alias, text=_('エイリアス : '))
-    lbl_alias_input.grid(row=0, column=0, sticky=W)
-    svr_alias_input = StringVar()
-    ent_alias_input = ttk.Entry(frame_alias, textvariable=svr_alias_input, width=40)
-    ent_alias_input.grid(row=0, column=1)
-    ent_alias_input.drop_target_register(DND_FILES)
-    ent_alias_input.dnd_bind("<<Drop>>", partial(drop_file, svr_alias_input))
-
-    # frame_script スクリプト制御
-    frame_script = ttk.Frame(frame_left, padding=10)
-    frame_script.grid(row=7, column=0)
-    lbl_script = ttk.Label(frame_script, text=_('スクリプト制御 '))
-    lbl_script.grid(row=0, column=0, sticky=W)
-    svr_script = StringVar()
-    txt_script = Text(frame_script, width=50, height=10)
-    txt_script.grid(row=0, column=1)
-
-    # frame_effprm エフェクトのパラメータ設定 (動的)
-    frame_effprm = ttk.Frame(frame_right, padding=10, borderwidth=3)
-    frame_effprm.grid()
-
-    # frame_baseprm 基本パラメータ設定
-    frame_baseprm = ttk.Frame(frame_center, padding=10)
-    frame_baseprm.grid(row=0, column=0)
-
-    Param1 = StringVar()
-    Param1.set('X : ')
-    ParamLabel1 = ttk.Label(frame_baseprm, textvariable=Param1)
-    ParamLabel1.grid(row=0, column=0, sticky=W + E)
-    ParamEntry1 = StringVar()
-    ParamEntryE1 = ttk.Entry(frame_baseprm, textvariable=ParamEntry1, width=5)
-    ParamEntryE1.grid(row=0, column=1, sticky=W + E)
-    ParamEntryE1.insert(END, "0.0")
-
-    Param2 = StringVar()
-    Param2.set('Y : ')
-    ParamLabel2 = ttk.Label(frame_baseprm, textvariable=Param2)
-    ParamLabel2.grid(row=1, column=0, sticky=W + E)
-    ParamEntry2 = StringVar()
-    ParamEntryE2 = ttk.Entry(frame_baseprm, textvariable=ParamEntry2, width=5)
-    ParamEntryE2.grid(row=1, column=1, sticky=W + E)
-    ParamEntryE2.insert(END, "0.0")
-
-    Param3 = StringVar()
-    Param3.set('Z : ')
-    ParamLabel3 = ttk.Label(frame_baseprm, textvariable=Param3)
-    ParamLabel3.grid(row=2, column=0, sticky=W + E)
-    ParamEntry3 = StringVar()
-    ParamEntryE3 = ttk.Entry(frame_baseprm, textvariable=ParamEntry3, width=5)
-    ParamEntryE3.grid(row=2, column=1, sticky=W + E)
-    ParamEntryE3.insert(END, "0.0")
-
-    Param4 = StringVar()
-    Param4.set(ExDict['拡大率'] + ' : ')
-    ParamLabel4 = ttk.Label(frame_baseprm, textvariable=Param4)
-    ParamLabel4.grid(row=3, column=0, sticky=W + E)
-    ParamEntry4 = StringVar()
-    ParamEntryE4 = ttk.Entry(frame_baseprm, textvariable=ParamEntry4, width=5)
-    ParamEntryE4.grid(row=3, column=1, sticky=W + E)
-    ParamEntryE4.insert(END, "100.0")
-
-    Param5 = StringVar()
-    Param5.set(ExDict['透明度'] + ' : ')
-    ParamLabel5 = ttk.Label(frame_baseprm, textvariable=Param5)
-    ParamLabel5.grid(row=4, column=0, sticky=W + E)
-    ParamEntry5 = StringVar()
-    ParamEntryE5 = ttk.Entry(frame_baseprm, textvariable=ParamEntry5, width=5)
-    ParamEntryE5.grid(row=4, column=1, sticky=W + E)
-    ParamEntryE5.insert(END, "0.0")
-
-    Param7 = StringVar()
-    Param7.set(ExDict['回転'] + ' : ')
-    ParamLabel7 = ttk.Label(frame_baseprm, textvariable=Param7)
-    ParamLabel7.grid(row=5, column=0, sticky=W + E)
-    ParamEntry7 = StringVar()
-    ParamEntryE7 = ttk.Entry(frame_baseprm, textvariable=ParamEntry7, width=5)
-    ParamEntryE7.grid(row=5, column=1, sticky=W + E)
-    ParamEntryE7.insert(END, "0.00")
-
-    Param15 = StringVar()
-    ParamCombo15 = ttk.Combobox(frame_baseprm, textvariable=Param15, state='readonly')
-    ParamCombo15['values'] = list(BlendDict.keys())
-    ParamCombo15.set(list(BlendDict.keys())[0])
-    ParamCombo15.grid(row=6, column=0, pady=(0, 10), columnspan=2, sticky=W + E)
-
-    Param6 = StringVar()
-    Param6.set(ExDict['縦横比'] + ' : ')
-    ParamLabel6 = ttk.Label(frame_baseprm, textvariable=Param6)
-    ParamLabel6.grid(row=7, column=0, sticky=W + E)
-    ParamEntry6 = StringVar()
-    ParamEntryE6 = ttk.Entry(frame_baseprm, textvariable=ParamEntry6, width=5)
-    ParamEntryE6.grid(row=7, column=1, sticky=W + E)
-    ParamEntryE6.insert(END, "0.0")
-
-    Param8 = StringVar()
-    Param8.set(ExDict['X軸回転'] + ' : ')
-    ParamLabel8 = ttk.Label(frame_baseprm, textvariable=Param8)
-    ParamLabel8.grid(row=8, column=0, sticky=W + E)
-    ParamEntry8 = StringVar()
-    ParamEntryE8 = ttk.Entry(frame_baseprm, textvariable=ParamEntry8, width=5)
-    ParamEntryE8.grid(row=8, column=1, sticky=W + E)
-    ParamEntryE8.insert(END, "0.00")
-
-    Param9 = StringVar()
-    Param9.set(ExDict['Y軸回転'] + ' : ')
-    ParamLabel9 = ttk.Label(frame_baseprm, textvariable=Param9)
-    ParamLabel9.grid(row=9, column=0, sticky=W + E)
-    ParamEntry9 = StringVar()
-    ParamEntryE9 = ttk.Entry(frame_baseprm, textvariable=ParamEntry9, width=5)
-    ParamEntryE9.grid(row=9, column=1, sticky=W + E)
-    ParamEntryE9.insert(END, "0.00")
-
-    Param10 = StringVar()
-    Param10.set(ExDict['Z軸回転'] + ' : ')
-    ParamLabel10 = ttk.Label(frame_baseprm, textvariable=Param10)
-    ParamLabel10.grid(row=10, column=0, sticky=W + E)
-    ParamEntry10 = StringVar()
-    ParamEntryE10 = ttk.Entry(frame_baseprm, textvariable=ParamEntry10, width=5)
-    ParamEntryE10.grid(row=10, column=1, sticky=W + E)
-    ParamEntryE10.insert(END, "0.00")
-
-    Param11 = StringVar()
-    Param11.set(ExDict['中心X'] + ' : ')
-    ParamLabel11 = ttk.Label(frame_baseprm, textvariable=Param11)
-    ParamLabel11.grid(row=11, column=0, sticky=W + E)
-    ParamEntry11 = StringVar()
-    ParamEntryE11 = ttk.Entry(frame_baseprm, textvariable=ParamEntry11, width=5)
-    ParamEntryE11.grid(row=11, column=1, sticky=W + E)
-    ParamEntryE11.insert(END, "0.0")
-
-    Param12 = StringVar()
-    Param12.set(ExDict['中心Y'] + ' : ')
-    ParamLabel12 = ttk.Label(frame_baseprm, textvariable=Param12)
-    ParamLabel12.grid(row=12, column=0, sticky=W + E)
-    ParamEntry12 = StringVar()
-    ParamEntryE12 = ttk.Entry(frame_baseprm, textvariable=ParamEntry12, width=5)
-    ParamEntryE12.grid(row=12, column=1, sticky=W + E)
-    ParamEntryE12.insert(END, "0.0")
-
-    Param13 = StringVar()
-    Param13.set(ExDict['中心Z'] + ' : ')
-    ParamLabel13 = ttk.Label(frame_baseprm, textvariable=Param13)
-    ParamLabel13.grid(row=13, column=0, sticky=W + E)
-    ParamEntry13 = StringVar()
-    ParamEntryE13 = ttk.Entry(frame_baseprm, textvariable=ParamEntry13, width=5)
-    ParamEntryE13.grid(row=13, column=1, sticky=W + E)
-    ParamEntryE13.insert(END, "0.0")
-
-    ParamEntryE6['state'] = 'disable'
-    ParamEntryE8['state'] = 'disable'
-    ParamEntryE9['state'] = 'disable'
-    ParamEntryE10['state'] = 'disable'
-    ParamEntryE11['state'] = 'disable'
-    ParamEntryE12['state'] = 'disable'
-    ParamEntryE13['state'] = 'disable'
+    # frame_effprm エフェクトのパラメータ設定
+    frame_effprm = ttk.Frame(frame_right, padding=5, borderwidth=3)
+    frame_effprm.grid(row=4)
 
     # frame_exec 実行
     frame_exec = ttk.Frame(frame_left, padding=(0, 5))
