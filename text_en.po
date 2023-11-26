@@ -285,7 +285,7 @@ msgstr "How to use (Scrapbox)"
 
 #: main.py:925
 msgid "https://scrapbox.io/Garech/RPPtoEXO%E3%81%AE%E7%94%BB%E9%9D%A2%E3%81%AE%E8%AA%AC%E6%98%8E_(v2.6~)"
-msgstr "https://scrapbox.io/Garech/How_To_Use_RPPtoEXO_(v2.6~)"
+msgstr "https://scrapbox.io/Garech/How_To_Use_RPPtoEXO_(v2.6+)"
 
 #: main.py:926
 msgid "最新バージョンを確認(GitHub)"
