@@ -103,14 +103,24 @@ class Rpp:
         value = {}
         while True:
             index += 1
+            name = ''
+            isbus = []
             while index < len(self.rpp_ary) and self.rpp_ary[index].split()[0] != "<TRACK":
                 index += 1
             if index >= len(self.rpp_ary):
                 return value, index, 0
 
-            mute = int(self.rpp_ary[index + 6][13])
-            name = str(self.rpp_ary[index + 1][9:-1]) + "[M​]" * mute
-            isbus = self.rpp_ary[index + 9].split()  # [1] > フォルダ始端・終端 [2] > 階層を何個下るか
+            for i in range(index + 1, index + 12):
+                spl = re.split(' +|\r\n|\n|\r', self.rpp_ary[i])[1:-1]
+                key = spl.pop(0)
+                if key == 'NAME':
+                    name = str(self.rpp_ary[i][9:-1])
+                elif key == 'MUTESOLO':
+                    mute = int(self.rpp_ary[i][13])
+                    name += "[M​]" * mute
+                elif key == 'ISBUS':
+                    isbus = self.rpp_ary[i].split()  # [1] > フォルダ始端・終端 [2] > 階層を何個下るか
+
             while name in value:
                 name += " "  # トラック名が被っていた場合、末尾に半角スペースを被った数分付加して後から区別できるように
             value[name] = {}

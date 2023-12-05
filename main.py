@@ -1,6 +1,6 @@
 #####################################################################################
-#               RPP to EXO ver 2.06                                                 #
-#                                                                       2023/11/26  #
+#               RPP to EXO ver 2.06.1                                               #
+#                                                                       2023/12/05  #
 #       Original Written by Maimai (@Maimai22015/YTPMV.info)                        #
 #       Forked by Garech (@Garec_)                                                  #
 #                                                                                   #
@@ -24,7 +24,7 @@ import rpp2exo
 from rpp2exo import Rpp, Exo
 from rpp2exo.dict import *
 
-R2E_VERSION = '2.06'
+R2E_VERSION = '2.06.1'
 
 rpp_cl = Rpp("")
 
