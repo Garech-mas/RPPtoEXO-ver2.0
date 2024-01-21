@@ -1,10 +1,10 @@
 #####################################################################################
 #               RPP to EXO ver 2.06.1                                               #
-#                                                                       2023/12/05  #
+#                                                                       2024/01/06  #
 #       Original Written by Maimai (@Maimai22015/YTPMV.info)                        #
-#       Forked by Garech (@Garec_)                                                  #
+#       Forked by Garech (@Garec_), wakanameko (@wakanameko2)                       #
 #                                                                                   #
-#       協力：SHI(@sbt54864666)                                                      #
+#       協力：SHI(@sbt54864666)                                                     #
 #####################################################################################
 
 import configparser
@@ -535,9 +535,10 @@ def run():
     else:
         mydict["fps"] = ''
     mydict["ScriptText"] = txt_script.get('1.0', 'end-1c')
-    mydict["ObjFlipType"] = ivr_v_flip.get() + ivr_h_flip.get()
+    mydict["ObjFlipType"] = ivr_v_flip.get() + ivr_h_flip.get() + ivr_vh_flip.get() + ivr_hv_flip.get() # Added vhf
     mydict["SepLayerEvenObj"] = ivr_sep_even.get()
     mydict["NoGap"] = ivr_no_gap.get()
+    mydict["RandomPlay"] = ivr_randplay.get()
     mydict["clipping"] = ivr_clipping.get()
     mydict["IsExSet"] = ivr_adv_draw.get()
     mydict["SceneIdx"] = int(svr_scene_idx.get() or 0)
@@ -832,7 +833,8 @@ def open_website(site):
 def about_rpp2exo():
     messagebox.showinfo('RPPtoEXO v' + R2E_VERSION, 'RPPtoEXO ver' + R2E_VERSION +
                         '\nOriginal (~v1.08) made by maimai22015\n   Twitter: @Maimai22016'
-                        '\nLatest Version (v2.0~) made by Garech\n   Twitter: @Garec_')
+                        '\nLatest Version (v2.0~) made by Garech\n   Twitter: @Garec_'
+                        '\nForked Version (v2.0~) made by wakanameko\n   Twitter: @wakanameko2')
 
 
 if __name__ == '__main__':
@@ -908,6 +910,8 @@ if __name__ == '__main__':
                           command=lambda: open_website('https://github.com/Garech-mas/RPPtoEXO-ver2.0/releases/latest'))
     menu_help.add_command(label=_('制作者の連絡先(Twitter)'),
                           command=lambda: open_website('https://twitter.com/Garec_'))
+    menu_help.add_command(label=_('いらん機能追加した人の連絡先(Twitter)'),
+                          command=lambda: open_website('https://twitter.com/wakanameko2'))
     menu_help.add_command(label=_('このソフトについて'), command=about_rpp2exo)
 
     # フレーム・キャンバス設定
@@ -966,32 +970,41 @@ if __name__ == '__main__':
     ivr_h_flip = IntVar()
     chk_h_flip = ttk.Checkbutton(frame_r2e, padding=5, text=_('上下反転'), onvalue=2, offvalue=0, variable=ivr_h_flip)
     chk_h_flip.grid(row=2, column=0, sticky=W)
+    ivr_vh_flip = IntVar()  # added rotate
+    chk_vh_flip = ttk.Checkbutton(frame_r2e, padding=5, text=_('回転(時計回り)'), onvalue=3, offvalue=0, variable=ivr_vh_flip)
+    chk_vh_flip.grid(row=3, column=0, sticky=W)
+    ivr_hv_flip = IntVar()  # added rotate
+    chk_hv_flip = ttk.Checkbutton(frame_r2e, padding=5, text=_('回転(反時計回り)'), onvalue=4, offvalue=0, variable=ivr_hv_flip)
+    chk_hv_flip.grid(row=4, column=0, sticky=W)
     ivr_no_gap = IntVar()
     chk_no_gap = ttk.Checkbutton(frame_r2e, padding=5, text=_('隙間なく配置'), onvalue=1, offvalue=0, variable=ivr_no_gap)
-    chk_no_gap.grid(row=3, column=0, sticky=W)
+    chk_no_gap.grid(row=5, column=0, sticky=W)
+    ivr_randplay = IntVar()
+    chk_randplay = ttk.Checkbutton(frame_r2e, padding=5, text=_('再生位置ランダム'), onvalue=1, offvalue=0, variable=ivr_randplay)
+    chk_randplay.grid(row=6, column=0, sticky=W)
     ivr_sep_even = IntVar()
     chk_sep_even = ttk.Checkbutton(frame_r2e, padding=5, text=_('偶数番目Objを\n別レイヤ配置'), onvalue=1, offvalue=0,
                                    variable=ivr_sep_even)
-    chk_sep_even.grid(row=4, column=0, sticky=W)
+    chk_sep_even.grid(row=7, column=0, sticky=W)
 
     ivr_slct_time = IntVar()
     chk_slct_time = ttk.Checkbutton(frame_r2e, padding=5, text=_('時間選択 (秒)'), onvalue=1, offvalue=0,
                                     variable=ivr_slct_time, command=change_time_cb)
-    chk_slct_time.grid(row=5, column=0, sticky=W)
+    chk_slct_time.grid(row=8, column=0, sticky=W)
     svr_time_preset = StringVar()
     svr_time_preset.set('')
     cmb_time_preset = ttk.Combobox(frame_r2e, textvariable=svr_time_preset, width=10, state='disable')
     cmb_time_preset.bind('<<ComboboxSelected>>', set_time)
-    cmb_time_preset.grid(row=6, column=0, padx=5, pady=3, sticky=W + E)
+    cmb_time_preset.grid(row=9, column=0, padx=5, pady=3, sticky=W + E)
 
     svr_time1 = StringVar()
     cmb_time1 = ttk.Combobox(frame_r2e, textvariable=svr_time1, width=10, state='disable')
     cmb_time1.bind('<<ComboboxSelected>>', set_time1)
-    cmb_time1.grid(row=7, column=0, padx=5, pady=3, sticky=W + E)
+    cmb_time1.grid(row=10, column=0, padx=5, pady=3, sticky=W + E)
     svr_time2 = StringVar()
     cmb_time2 = ttk.Combobox(frame_r2e, textvariable=svr_time2, width=10, state='disable')
     cmb_time2.bind('<<ComboboxSelected>>', set_time2)
-    cmb_time2.grid(row=8, column=0, padx=5, pady=(3, 110), sticky=W + E)
+    cmb_time2.grid(row=11, column=0, padx=5, pady=(3, 110), sticky=W + E)
 
     tvw_slct_track = CheckboxTreeview(frame_r2e, show='tree', height=24)
     tvw_slct_track.grid(row=0, column=1, rowspan=9, sticky=N + S + E + W)
