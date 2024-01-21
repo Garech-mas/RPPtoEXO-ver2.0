@@ -1,5 +1,5 @@
 import binascii
-
+import random
 import cv2
 import gettext
 import os
@@ -181,6 +181,16 @@ class Exo:
                 elif (bfidx + item_count) % 4 == 3:
                     exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + self.add_reversal(ud=1)
                     filter_count += 1
+            elif self.mydict["ObjFlipType"] == 4:  # 反時計回り反転
+                if (bfidx + item_count) % 4 == 1:
+                    exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + self.add_reversal(ud=1)
+                    filter_count += 1
+                elif (bfidx + item_count) % 4 == 2:
+                    exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + self.add_reversal(ud=1, lr=1)
+                    filter_count += 1
+                elif (bfidx + item_count) % 4 == 3:
+                    exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + self.add_reversal(lr=1)
+                    filter_count += 1
 
             if self.mydict["ScriptText"] != "":  # スクリプト制御追加する場合
                 exo_script = ("\n[" + str(item_count) + "." + str(1 + filter_count) +
@@ -217,12 +227,26 @@ class Exo:
                         "\n" + self.t("アルファチャンネルを読み込む") + "=" + str(is_alpha) + \
                         "\nfile=" + file
             elif self.mydict["OutputType"] == 1:  # 動画オブジェクト
-                exo_5 = ".0]\n_name=" + self.t("動画ファイル") + \
-                        "\n" + self.t("再生位置") + "=" + str(self.mydict["SrcPosition"]) + \
-                        "\n" + self.t("再生速度") + "=" + str(self.mydict["SrcRate"]) + \
-                        "\n" + self.t("ループ再生") + "=" + str(self.mydict["IsLoop"]) + \
-                        "\n" + self.t("アルファチャンネルを読み込む") + "=" + str(self.mydict["IsAlpha"]) + \
-                        "\nfile=" + str(self.mydict["SrcPath"])
+                if self.mydict["RandomPlay"] == True:   #再生位置ランダム
+                    videoload = cv2.VideoCapture(str(self.mydict["SrcPath"]))   # 動画を読み込む
+                    video_frame_count = videoload.get(cv2.CAP_PROP_FRAME_COUNT) # フレーム数
+
+                    randPlayPos = random.randint(1, int(video_frame_count))
+
+                    exo_5 = ".0]\n_name=" + self.t("動画ファイル") + \
+                            "\n" + self.t("再生位置") + "=" + str(randPlayPos) + \
+                            "\n" + self.t("再生速度") + "=" + str(self.mydict["SrcRate"]) + \
+                            "\n" + self.t("ループ再生") + "=" + str(self.mydict["IsLoop"]) + \
+                            "\n" + self.t("アルファチャンネルを読み込む") + "=" + str(self.mydict["IsAlpha"]) + \
+                            "\nfile=" + str(self.mydict["SrcPath"])
+                else:
+                    exo_5 = ".0]\n_name=" + self.t("動画ファイル") + \
+                            "\n" + self.t("再生位置") + "=" + str(self.mydict["SrcPosition"]) + \
+                            "\n" + self.t("再生速度") + "=" + str(self.mydict["SrcRate"]) + \
+                            "\n" + self.t("ループ再生") + "=" + str(self.mydict["IsLoop"]) + \
+                            "\n" + self.t("アルファチャンネルを読み込む") + "=" + str(self.mydict["IsAlpha"]) + \
+                            "\nfile=" + str(self.mydict["SrcPath"])
+
             elif self.mydict["OutputType"] == 2:  # 画像オブジェクト
                 exo_5 = ".0]\n_name=" + self.t("画像ファイル") + \
                         "\nfile=" + str(self.mydict["SrcPath"])
