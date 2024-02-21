@@ -1,6 +1,6 @@
 #####################################################################################
-#               RPP to EXO ver 2.06.1                                               #
-#                                                                       2023/12/05  #
+#               RPP to EXO ver 2.07                                                 #
+#                                                                       2024/02/21  #
 #       Original Written by Maimai (@Maimai22015/YTPMV.info)                        #
 #       Forked by Garech (@Garec_)                                                  #
 #                                                                                   #
@@ -18,15 +18,18 @@ from tkinter import *
 from tkinter import filedialog
 from tkinter import messagebox
 from tkinter import ttk, Menu
+
+import psutil
 from ttkwidgets import CheckboxTreeview
 from tkinterdnd2 import *
 import rpp2exo
-from rpp2exo import Rpp, Exo
+from rpp2exo import Rpp, Exo, YMM4
 from rpp2exo.dict import *
 
-R2E_VERSION = '2.06.1'
+R2E_VERSION = '2.07'
 
 rpp_cl = Rpp("")
+ymm4_cl = YMM4(mydict)
 
 
 def patched_error(msg):
@@ -56,7 +59,12 @@ def main():
     btn_exec["text"] = _("実行中") + " (1/3)"
 
     try:
-        exo_cl = Exo(mydict)
+        chk = 0
+        while chk != 1 and mydict['UseYMM4']:
+            chk = check_ymm4()
+            if chk < 0:
+                return
+
         if ivr_slct_time.get():
             rpp_cl.start_pos = float(cmb_time1.get())
             rpp_cl.end_pos = float(cmb_time2.get()) if cmb_time2.get() != '' else 99999.0
@@ -72,11 +80,16 @@ def main():
             rpp_cl.end_pos = 99999.0
         file_path, end1 = rpp_cl.main(mydict["OutputType"] == 0, mydict["Track"])
 
-        btn_exec["text"] = _("実行中") + " (2/3)"
-        file_fps = exo_cl.fetch_fps(file_path)
+        if mydict["UseYMM4"]:
+            btn_exec["text"] = _("実行中") + " (3/3)"
+            end3 = ymm4_cl.run(rpp_cl.objDict, file_path)
+        else:
+            exo_cl = Exo(mydict)
+            btn_exec["text"] = _("実行中") + " (2/3)"
+            file_fps = exo_cl.fetch_fps(file_path)
 
-        btn_exec["text"] = _("実行中") + " (3/3)"
-        end3 = exo_cl.make_exo(rpp_cl.objDict, file_path, file_fps)
+            btn_exec["text"] = _("実行中") + " (3/3)"
+            end3 = exo_cl.make_exo(rpp_cl.objDict, file_path, file_fps)
         end = end1 | end3
 
     except PermissionError as e:
@@ -96,6 +109,8 @@ def main():
     except rpp2exo.exo.ItemNotFoundError:
         messagebox.showerror(_("エラー"), _("出力範囲内に変換対象のアイテムが見つかりませんでした。\n"
                                          "出力対象トラック、時間選択の設定を見直してください。"))
+    except rpp2exo.ymm4.TemplateNotFoundError:
+        messagebox.showerror(_("エラー"), _("エイリアスに指定されているテンプレートは存在しませんでした。"))
     except Exception as e:
         messagebox.showerror(_("エラー"), _("予期せぬエラーが発生しました。不正なRPPファイルの可能性があります。\n"
                                          "最新バージョンのREAPERをインストールし、RPPファイルを再保存して再試行してください。\n"
@@ -121,26 +136,59 @@ def main():
         if "layer_over_100" in end:
             print(_("★警告: 出力処理時にEXOのレイヤー数が100を超えたため、正常に生成できませんでした。"))
 
+        if 'keyframe_exists' in end:
+            print("★警告: エイリアスファイルに中間点が存在したため、正常に生成できませんでした。")
+
+        if 'byoga_henkan_not_exists' in end:
+            print("★警告: YMM4では上下反転機能が実装されていないため、上下反転の設定は反映されません。\n"
+                  "    描画変換プラグインを導入し、テンプレートを再生成することで読み込むことができます。")
+
         if not mydict['PatchExists'] and mydict['HasPatchError']:
             print(_("★警告: AviUtl 拡張編集のバグにより、オブジェクトの設定は正常に反映されません。"))
             end = end | {1: 1}
 
-        if end == {}:
-            ret = messagebox.askyesno(_("正常終了"), _("正常に生成されました。\n保存先のフォルダを開きますか？"))
+        ret_aul = False
+        ret_ymm4 = False
+        if not mydict['UseYMM4']:
+            if end == {}:
+                ret_aul = messagebox.askyesno(_("正常終了"), _("正常に生成されました。\n保存先のフォルダを開きますか？"))
+            else:
+                ret_aul = messagebox.askyesno(_("警告"),
+                                          _("一部アイテムが正常に生成できませんでした。詳細はコンソールをご覧ください。\n保存先のフォルダを開きますか？"), icon="warning")
         else:
-            ret = messagebox.askyesno(_("警告"),
-                                      _("一部アイテムが正常に生成できませんでした。詳細はコンソールをご覧ください。\n保存先のフォルダを開きますか？"), icon="warning")
+            if end == {}:
+                ret_ymm4 = messagebox.askyesno(_("正常終了"), _("正常に生成されました。\nゆっくりMovieMaker4を開きますか？"))
+            else:
+                ret_ymm4 = messagebox.askyesno(_("警告"),
+                                          _("一部アイテムが正常に生成できませんでした。詳細はコンソールをご覧ください。\nゆっくりMovieMaker4を開きますか？"), icon="warning")
 
-        if ret:
+        if ret_aul:
             path = os.path.dirname(mydict["EXOPath"]).replace('/', '\\')
             if path == "":
                 path = os.getcwd()
             subprocess.Popen(['explorer', path], shell=True)
+        elif ret_ymm4:
+            subprocess.Popen(mydict['YMM4Path'])
+
     finally:
         print('--------------------------------------------------------------------------')
         btn_exec['state'] = 'normal'
         root['cursor'] = 'arrow'
         btn_exec["text"] = _("実行")
+
+
+def check_ymm4():
+    for proc in psutil.process_iter():
+        try:
+            if proc.exe() == mydict["YMM4Path"].replace('/', '\\'):
+                ret = messagebox.askretrycancel('警告', 'YMM4が実行されている間はRPPtoYMM4の処理をすることができません。\n', icon="warning")
+                if not ret:
+                    return -1  # 処理を終了する
+                else:
+                    return 0  # 再試行する
+        except psutil.AccessDenied:
+            pass
+    return 1  # YMM4未検知
 
 
 def read_cfg():
@@ -157,6 +205,8 @@ def read_cfg():
             ('', 'SrcDir', 'Directory'),  # 素材の保存ディレクトリ
             ('', 'AlsDir', 'Directory'),  # エイリアスの保存ディレクトリ
             ('0', 'patch_exists', 'Param'),  # patch.aulが存在するか 0/1
+            ('0', 'use_ymm4', 'Param'),   # YMM4を使うかどうか 0/1
+            ('', 'ymm4path', 'Param'),    # YMM4の実行ファイルパス
             ('ja', 'display', 'Language'),  # 表示言語
             ('ja', 'exedit', 'Language'),  # 拡張編集の言語
         ]:
@@ -176,6 +226,8 @@ def read_cfg():
             mydict["SrcLastDir"] = config_ini.get("Directory", "SrcDir")
             mydict["AlsLastDir"] = config_ini.get("Directory", "AlsDir")
             mydict["PatchExists"] = int(config_ini.get("Param", "patch_exists"))
+            mydict["UseYMM4"] = int(config_ini.get("Param", "use_ymm4"))
+            mydict["YMM4Path"] = config_ini.get("Param", "ymm4path")
             mydict["DisplayLang"] = config_ini.get("Language", "display")
             mydict["ExEditLang"] = config_ini.get("Language", "exedit")
 
@@ -519,7 +571,6 @@ def toggle_media_label(flg):
 
 
 def run():
-    read_cfg()
     mydict["RPPPath"] = svr_rpp_input.get().replace('"', '')
     if svr_exo_input.get().replace('"', '').lower().endswith(".exo") or svr_exo_input.get().replace('"', '') == "":
         mydict["EXOPath"] = to_absolute(svr_exo_input.get().replace('"', ''))
@@ -548,7 +599,7 @@ def run():
     mydict["Param"] = []
 
     def set_mparam(i, mv=1, tp=1):
-        if not is_float(mEntryS[i].get()):
+        if not is_float(mEntryS[i].get()) and not mydict['UseYMM4']:
             messagebox.showinfo(_("エラー"), _("%s : %s の値が正しく入力されていません。") % (mLabel[0].get(), mLabel[i+1].get()))
             raise ValueError
         if mv and -1 < float(mEntryS[i].get()) < 0:
@@ -713,7 +764,7 @@ def mode_command():  # 「追加対象」変更時の状態切り替え
     else:
         ent_scene_idx['state'] = 'disable'
 
-    if ivr_trgt_mode.get() == 3:  # 上のオブジェクトでクリッピング・拡張描画・設定項目
+    if ivr_trgt_mode.get() == 3 and not mydict['UseYMM4']:  # 上のオブジェクトでクリッピング・拡張描画・設定項目
         chk_clipping['state'] = 'disable'
         chk_adv_draw['state'] = 'disable'
         toggle_media_label(-1)
@@ -815,6 +866,35 @@ def change_lang_aul():
     confirm_restart()
 
 
+# YMM4パス切り替え
+def change_ymm4_path():
+    filetype = [(_("ゆっくりMovieMaker4実行ファイル"), "YukkuriMovieMaker.exe")]
+    filepath = filedialog.askopenfilename(
+        filetypes=filetype, initialdir=os.path.dirname(mydict["YMM4Path"]),
+        title=_("ゆっくりMovieMaker4の実行ファイルを選択"))
+    if filepath != '':
+        mydict['YMM4Path'] = filepath
+        ymm4_cl.load()
+        write_cfg(filepath, "ymm4Path", "Param")
+    return filepath != ''
+
+
+# YMM4使用切り替え
+def change_ymm4():
+    if ivr_use_ymm4.get() == mydict['UseYMM4']:
+        return
+    if ivr_use_ymm4.get() == 1:
+        if change_ymm4_path():
+            write_cfg(int(ivr_use_ymm4.get()), "use_ymm4", "Param")
+            confirm_restart()
+        else:
+            ivr_use_ymm4.set(mydict['UseYMM4'])
+            return
+
+    write_cfg(int(ivr_use_ymm4.get()), "use_ymm4", "Param")
+    confirm_restart()
+
+
 # 再起動通知
 def confirm_restart():
     ret = messagebox.askyesno(_("注意"), _("設定を反映するにはソフトを再起動する必要があります。再起動しますか？"),
@@ -877,7 +957,22 @@ if __name__ == '__main__':
     ivr_patch_exists = IntVar()
     ivr_patch_exists.set(mydict['PatchExists'])
     menu_setting.add_checkbutton(label=_('拡張編集v0.92由来のエラーを無視'), variable=ivr_patch_exists,
-                                 command=lambda: write_cfg(int(ivr_patch_exists.get()), "patch_exists", "Param"))
+                                 command=lambda: [
+                                     write_cfg(int(ivr_patch_exists.get()), "patch_exists", "Param"),
+                                     mydict.update(PatchExists=ivr_patch_exists.get())
+                                  ])
+    ivr_use_ymm4 = IntVar()
+    ivr_use_ymm4.set(mydict['UseYMM4'])
+    menu_setting.add_checkbutton(label=_('ゆっくりMovieMaker4モードで使う'), variable=ivr_use_ymm4, command=change_ymm4)
+
+    # ゆっくりMovieMaker4 使用時の書き換え処理
+    if mydict['UseYMM4']:
+        ymm4_cl.load()
+        XDict = rpp2exo.dict.XDict['ymm4']
+        BlendDict = rpp2exo.dict.BlendDict['ymm4']
+        root.title('RPPtoYMM4 (RPPtoEXO) v' + R2E_VERSION)
+        ivr_byohen_exists = IntVar()
+        menu_setting.add_command(label='YMM4の読込み場所を変更', command=change_ymm4_path)
 
     # 言語設定メニュー
     menu_lang = Menu(mbar, tearoff=0)
@@ -918,7 +1013,8 @@ if __name__ == '__main__':
 
     canvas = Canvas(root, width=200, height=200, highlightthickness=0)
     vsb_canvas = ttk.Scrollbar(canvas, orient=VERTICAL, command=canvas.yview)
-    canvas.grid(row=0, column=2, sticky=N, ipadx=200, ipady=310)
+
+    canvas.grid(row=0, column=2, sticky=N, ipadx=200, ipady=230 if mydict['UseYMM4'] else 310)
     canvas.configure(yscrollcommand=vsb_canvas.set)
     frame_right = ttk.Frame(canvas)
     vsb_canvas.pack(side=RIGHT, fill=Y)
@@ -946,15 +1042,17 @@ if __name__ == '__main__':
     # frame_exo EXO指定
     frame_exo = ttk.Frame(frame_left, padding=5)
     frame_exo.grid(row=1, column=0)
-    lbl_exo_input = ttk.Label(frame_exo, text='* EXO : ')
+    lbl_exo_input = ttk.Label(frame_exo, text='* EXO : ') if not mydict["UseYMM4"] else ttk.Label(
+        frame_exo, text='* 保存ﾃﾝﾌﾟﾚｰﾄ名 : ')
     lbl_exo_input.grid(row=1, column=0)
     svr_exo_input = StringVar()
     ent_exo_input = ttk.Entry(frame_exo, textvariable=svr_exo_input, width=50)
     ent_exo_input.grid(row=1, column=1)
-    ent_exo_input.drop_target_register(DND_FILES)
-    ent_exo_input.dnd_bind("<<Drop>>", partial(drop_file, svr_exo_input))
-    btn_exo_saveas = ttk.Button(frame_exo, text=_('保存先…'), command=save_exo)
-    btn_exo_saveas.grid(row=1, column=3)
+    if not mydict["UseYMM4"]:
+        ent_exo_input.drop_target_register(DND_FILES)
+        ent_exo_input.dnd_bind("<<Drop>>", partial(drop_file, svr_exo_input))
+        btn_exo_saveas = ttk.Button(frame_exo, text=_('保存先…'), command=save_exo)
+        btn_exo_saveas.grid(row=1, column=3)
 
     # frame_r2e ソフト独自設定 / 時間選択 / トラック選択
     frame_r2e = ttk.Frame(frame_left, padding=10)
@@ -1005,24 +1103,31 @@ if __name__ == '__main__':
     # frame_alias 効果をファイルから読み込む
     frame_alias = ttk.Frame(frame_left, padding=5)
     frame_alias.grid(row=6, column=0)
-    btn_alias_browse = ttk.Button(frame_alias, text=_('参照…'), command=slct_filter_cfg_file)
-    btn_alias_browse.grid(row=0, column=2)
     lbl_alias_input = ttk.Label(frame_alias, text=_('エイリアス : '))
     lbl_alias_input.grid(row=0, column=0, sticky=W)
     svr_alias_input = StringVar()
-    ent_alias_input = ttk.Entry(frame_alias, textvariable=svr_alias_input, width=40)
-    ent_alias_input.grid(row=0, column=1)
-    ent_alias_input.drop_target_register(DND_FILES)
-    ent_alias_input.dnd_bind("<<Drop>>", partial(drop_file, svr_alias_input))
+    if not mydict['UseYMM4']:
+        btn_alias_browse = ttk.Button(frame_alias, text=_('参照…'), command=slct_filter_cfg_file)
+        btn_alias_browse.grid(row=0, column=2)
+        ent_alias_input = ttk.Entry(frame_alias, textvariable=svr_alias_input, width=40)
+        ent_alias_input.grid(row=0, column=1)
+        ent_alias_input.drop_target_register(DND_FILES)
+        ent_alias_input.dnd_bind("<<Drop>>", partial(drop_file, svr_alias_input))
+    else:
+        cmb_ymm4_saveas = ttk.Combobox(frame_alias, textvariable=svr_alias_input, values=ymm4_cl.temp_list, width=50, state='readonly')
+        cmb_ymm4_saveas.grid(row=0, column=1)
+        btn_rpp_reload = ttk.Button(frame_alias, text='↻', command=ymm4_cl.load, width=2)
+        btn_rpp_reload.grid(row=0, column=2)
 
     # frame_script スクリプト制御
     frame_script = ttk.Frame(frame_left, padding=10)
-    frame_script.grid(row=7, column=0)
-    lbl_script = ttk.Label(frame_script, text=_('スクリプト制御 '))
-    lbl_script.grid(row=0, column=0, sticky=W)
-    svr_script = StringVar()
     txt_script = Text(frame_script, width=50, height=10)
-    txt_script.grid(row=0, column=1)
+    if not mydict['UseYMM4']:
+        frame_script.grid(row=7, column=0)
+        lbl_script = ttk.Label(frame_script, text=_('スクリプト制御 '))
+        lbl_script.grid(row=0, column=0, sticky=W)
+        svr_script = StringVar()
+        txt_script.grid(row=0, column=1)
 
     # frame_trgt 追加対象オブジェクト・素材指定、オブジェクト設定チェックボックス
     frame_trgt = ttk.Frame(frame_right, padding=5)
@@ -1040,12 +1145,20 @@ if __name__ == '__main__':
     rbt_trgt_pic.grid(row=0, column=3)
     rbt_trgt_filter = ttk.Radiobutton(frame_trgt, value=3, variable=ivr_trgt_mode, text=_('フィルタ'), command=mode_command)
     rbt_trgt_filter.grid(row=0, column=4)
-    rbt_trgt_scene = ttk.Radiobutton(frame_trgt, value=4, variable=ivr_trgt_mode, text=_('シーン番号: '),
-                                     command=mode_command)
-    rbt_trgt_scene.grid(row=0, column=5)
+
     svr_scene_idx = StringVar()
     ent_scene_idx = ttk.Entry(frame_trgt, textvariable=svr_scene_idx, width=3, state='disable')
-    ent_scene_idx.grid(row=0, column=6)
+
+    if not mydict['UseYMM4']:
+        rbt_trgt_scene = ttk.Radiobutton(frame_trgt, value=4, variable=ivr_trgt_mode, text=_('シーン番号: '),
+                                         command=mode_command)
+        rbt_trgt_scene.grid(row=0, column=5)
+        ent_scene_idx.grid(row=0, column=6)
+    else:
+        rbt_trgt_scene = ttk.Radiobutton(frame_trgt, value=4, variable=ivr_trgt_mode, text=_('立ち絵'),
+                                         command=mode_command)
+        rbt_trgt_scene.grid(row=0, column=5)
+        svr_scene_idx.set('1')
 
     lbl_src_input = ttk.Label(frame_trgt, text=_('素材 : '))
     lbl_src_input.grid(row=1, column=0, sticky=E)
@@ -1063,9 +1176,10 @@ if __name__ == '__main__':
     chk_clipping.grid(row=2, column=0, columnspan=3, sticky=W)
     ivr_adv_draw = IntVar()
     ivr_adv_draw.set(0)
-    chk_adv_draw = ttk.Checkbutton(frame_trgt, padding=5, text=ExDict['拡張描画'], onvalue=1, offvalue=0,
-                                   variable=ivr_adv_draw, command=lambda: toggle_media_label(ivr_adv_draw.get()+1))
-    chk_adv_draw.grid(row=2, column=5, columnspan=2, sticky=E)
+    if not mydict['UseYMM4']:
+        chk_adv_draw = ttk.Checkbutton(frame_trgt, padding=5, text=ExDict['拡張描画'], onvalue=1, offvalue=0,
+                                       variable=ivr_adv_draw, command=lambda: toggle_media_label(ivr_adv_draw.get()+1))
+        chk_adv_draw.grid(row=2, column=5, columnspan=2, sticky=E)
 
     # frame_stddraw オブジェクトの標準パラメータ設定
     frame_stddraw = ttk.Frame(frame_right, padding=5, borderwidth=3)
@@ -1118,6 +1232,13 @@ if __name__ == '__main__':
         mEntryConfE.append(ttk.Entry(frame_stddraw, textvariable=mEntryConf[n], width=5))
         mEntryConfE[n].grid(row=n+1, column=4, padx=5)
     toggle_media_label(1)
+    if mydict['UseYMM4']:
+        mEntryS[4].set('100.0')
+        mEntryS[13].set('00:00:00')
+        mLabel[5].set('不透明度')
+        mLabel[6].set('回転角')
+        mEntryXCb[13]['state'] = 'disable'
+        mEntryXCb[14]['state'] = 'disable'
 
     frame_optdraw = ttk.Frame(frame_right, borderwidth=3)
     frame_optdraw.grid(row=2, sticky='W')
@@ -1140,21 +1261,22 @@ if __name__ == '__main__':
     chk_loop.grid(row=1, column=1, sticky=W)
 
     # frame_eff エフェクト追加/削除
-    frame_eff = ttk.Frame(frame_right, padding=5)
-    frame_eff.grid(row=3, column=0)
-    svr_add_eff = StringVar()
-    cmb_add_eff = ttk.Combobox(frame_eff, textvariable=svr_add_eff, state='readonly')
-    cmb_add_eff['values'] = list(EffDict.keys())
-    cmb_add_eff.set(list(EffDict.keys())[0])
-    cmb_add_eff.grid(row=0, column=0)
-    btn_add_eff = ttk.Button(frame_eff, text='+', command=add_filter_label)
-    btn_add_eff.grid(row=0, column=1)
-    btn_clear_eff = ttk.Button(frame_eff, text=_('効果のクリア'), command=del_filter_label)
-    btn_clear_eff.grid(row=0, column=2)
+    if not mydict['UseYMM4']:
+        frame_eff = ttk.Frame(frame_right, padding=5)
+        frame_eff.grid(row=3, column=0)
+        svr_add_eff = StringVar()
+        cmb_add_eff = ttk.Combobox(frame_eff, textvariable=svr_add_eff, state='readonly')
+        cmb_add_eff['values'] = list(EffDict.keys())
+        cmb_add_eff.set(list(EffDict.keys())[0])
+        cmb_add_eff.grid(row=0, column=0)
+        btn_add_eff = ttk.Button(frame_eff, text='+', command=add_filter_label)
+        btn_add_eff.grid(row=0, column=1)
+        btn_clear_eff = ttk.Button(frame_eff, text=_('効果のクリア'), command=del_filter_label)
+        btn_clear_eff.grid(row=0, column=2)
 
-    # frame_effprm エフェクトのパラメータ設定
-    frame_effprm = ttk.Frame(frame_right, padding=5, borderwidth=3)
-    frame_effprm.grid(row=4)
+        # frame_effprm エフェクトのパラメータ設定
+        frame_effprm = ttk.Frame(frame_right, padding=5, borderwidth=3)
+        frame_effprm.grid(row=4)
 
     # frame_exec 実行
     frame_exec = ttk.Frame(frame_left, padding=(0, 5))

@@ -181,6 +181,45 @@ XDict = {
         # 追加する際は
         # "GUI上で表示される名前": "15@スクリプト名"
     },
+    "ymm4": {
+        "なし": "なし",
+        "直線移動": "直線移動",
+        "加減速移動": "加減速移動",
+        "移動量指定": "移動量指定",
+        "ランダム移動": "ランダム移動",
+        "反復移動": "反復移動",
+        "補完移動": "補完移動",
+        "緩急1_加速": "Sine_In",
+        "緩急1_減速": "Sine_Out",
+        "緩急1_加減速": "Sine_InOut",
+        "緩急2_加速": "Quad_In",
+        "緩急2_減速": "Quad_Out",
+        "緩急2_加減速": "Quad_InOut",
+        "緩急3_加速": "Cubic_In",
+        "緩急3_減速": "Cubic_Out",
+        "緩急3_加減速": "Cubic_InOut",
+        "緩急4_加速": "Quart_In",
+        "緩急4_減速": "Quart_Out",
+        "緩急4_加減速": "Quart_InOut",
+        "緩急5_加速": "Quint_In",
+        "緩急5_減速": "Quint_Out",
+        "緩急5_加減速": "Quint_InOut",
+        "緩急6_加速": "Expo_In",
+        "緩急6_減速": "Expo_Out",
+        "緩急6_加減速": "Expo_InOut",
+        "円弧_加速": "Circ_In",
+        "円弧_減速": "Circ_Out",
+        "円弧_加減速": "Circ_InOut",
+        "戻る_加速": "Back_In",
+        "戻る_減速": "Back_Out",
+        "戻る_加減速": "Back_InOut",
+        "バネ_加速": "Elastic_In",
+        "バネ_減速": "Elastic_Out",
+        "バネ_加減速": "Elastic_InOut",
+        "バウンド_加速": "Bounce_In",
+        "バウンド_減速": "Bounce_Out",
+        "バウンド_加減速": "Bounce_InOut"
+    },
     "en": {
         "No movement": "",
         "Rectilinear": 1,
@@ -217,6 +256,20 @@ BlendDict = {
         "陰影": 10,
         "明暗": 11,
         "差分": 12,
+    },
+    "ymm4": {
+        "通常": "Normal",
+        "加算": "Add",
+        "減算": "Subtract",
+        "乗算": "Multiply",
+        "スクリーン": "Screen",
+        "オーバーレイ": "Overlay",
+        "比較(明)": "Lighter",
+        "比較(暗)": "Darker",
+        "輝度": "Luminosity",
+        "焼き込みリニア": "LinearBurn",
+        "リニアライト": "LinearLight",
+        "差分": "Difference",
     },
     "en": {
         "Normal": 0,
@@ -323,6 +376,10 @@ mydict = {
     "AlsLastDir": os.path.abspath(os.path.dirname(__file__)),  # エイリアス
     "PatchExists": 0,  # patch.aulが導入済みか
     "HasPatchError": 0,  # 拡張編集由来のバグが起きたかどうか
+    "UseYMM4": 0,  # ゆっくりMovieMaker4出力にするかどうか
+    "YMM4Path": "",  # YMM4の実態があるパスを選択 (テンプレート適用のため)
+    "ByogaHenkanExists": 0,  # 描画変換プラグインが導入済みか
+    "HasYMM4FlipError": 0,  # YMM4上下反転の警告が出たかどうか
 
     "DisplayLang": "ja",  # 表示言語
     "ExEditLang": "ja",  # 拡張編集の言語
