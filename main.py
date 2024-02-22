@@ -12,6 +12,7 @@ import gettext
 import subprocess
 import sys
 import threading
+import warnings
 import webbrowser
 from functools import partial
 from tkinter import *
@@ -23,13 +24,15 @@ import psutil
 from ttkwidgets import CheckboxTreeview
 from tkinterdnd2 import *
 import rpp2exo
-from rpp2exo import Rpp, Exo, YMM4
+from rpp2exo import Rpp, Exo, YMM4, Midi
 from rpp2exo.dict import *
 
 R2E_VERSION = '2.07'
 
 rpp_cl = Rpp("")
+
 ymm4_cl = YMM4(mydict)
+midi_cl = Midi("")
 
 
 def patched_error(msg):
@@ -53,43 +56,59 @@ def patched_error(msg):
             detail=_('Tips: オリジナルの日本版拡張編集 v0.92を使い、patch.aul プラグインを導入することでこのエラーを回避できます。'))
 
 
+def set_class_pos(cls):
+    if ivr_slct_time.get():
+        cls.start_pos = float(cmb_time1.get())
+        cls.end_pos = float(cmb_time2.get()) if cmb_time2.get() != '' else 99999.0
+        if cls.start_pos < cls.end_pos:
+            pass
+        elif cls.start_pos > cls.end_pos:
+            cls.start_pos, cls.end_pos = cls.end_pos, cls.start_pos
+        else:
+            cls.start_pos = 0.0
+            cls.end_pos = 99999.0
+    else:
+        cls.start_pos = 0.0
+        cls.end_pos = 99999.0
+    return cls
+
+
 def main():
     btn_exec['state'] = 'disable'
     root['cursor'] = 'watch'
     btn_exec["text"] = _("実行中") + " (1/3)"
 
     try:
+        end1 = objdict = {}
+        file_path = file_fps = []
+        exo_cl = Exo(mydict)
         chk = 0
         while chk != 1 and mydict['UseYMM4']:
             chk = check_ymm4()
             if chk < 0:
                 return
 
-        if ivr_slct_time.get():
-            rpp_cl.start_pos = float(cmb_time1.get())
-            rpp_cl.end_pos = float(cmb_time2.get()) if cmb_time2.get() != '' else 99999.0
-            if rpp_cl.start_pos < rpp_cl.end_pos:
-                pass
-            elif rpp_cl.start_pos > rpp_cl.end_pos:
-                rpp_cl.start_pos, rpp_cl.end_pos = rpp_cl.end_pos, rpp_cl.start_pos
-            else:
-                rpp_cl.start_pos = 0.0
-                rpp_cl.end_pos = 99999.0
-        else:
-            rpp_cl.start_pos = 0.0
-            rpp_cl.end_pos = 99999.0
-        file_path, end1 = rpp_cl.main(mydict["OutputType"] == 0, mydict["Track"])
+        # RPPファイル用処理
+        if mydict["RPPPath"].lower().endswith(".rpp"):
+            set_class_pos(rpp_cl)
+            file_path, end1 = rpp_cl.main(mydict["OutputType"] == 0, mydict["Track"])
+            objdict = rpp_cl.objDict
+        # 選択時間の設定：MIDIファイル
+        elif mydict["RPPPath"].lower().endswith(".mid") or mydict["RPPPath"].lower().endswith(".midi"):
+            set_class_pos(midi_cl)
+            end1 = midi_cl.main(mydict["Track"])
+            objdict = midi_cl.objDict
 
         if mydict["UseYMM4"]:
             btn_exec["text"] = _("実行中") + " (3/3)"
-            end3 = ymm4_cl.run(rpp_cl.objDict, file_path)
+            end3 = ymm4_cl.run(objdict, file_path)
         else:
             exo_cl = Exo(mydict)
             btn_exec["text"] = _("実行中") + " (2/3)"
             file_fps = exo_cl.fetch_fps(file_path)
 
             btn_exec["text"] = _("実行中") + " (3/3)"
-            end3 = exo_cl.make_exo(rpp_cl.objDict, file_path, file_fps)
+            end3 = exo_cl.make_exo(objdict, file_path, file_fps)
         end = end1 | end3
 
     except PermissionError as e:
@@ -253,9 +272,13 @@ def write_cfg(value, setting_type, section):  # 設定保存
 
 
 def slct_rpp():  # 参照ボタン
-    filetype = [(_("REAPERプロジェクトファイル"), "*.rpp")]
+    filetype = [
+        (_("対応ファイル"), "*.rpp;*.mid;*.midi"),
+        (_("REAPERプロジェクトファイル"), "*.rpp"),
+        (_("MIDIファイル"), "*.mid;*.midi"),
+    ]
     filepath = filedialog.askopenfilename(
-        filetypes=filetype, initialdir=mydict["RPPLastDir"], title=_("RPPファイルを選択"))
+        filetypes=filetype, initialdir=mydict["RPPLastDir"], title=_("RPP・MIDIファイルを選択"))
     if filepath != '':
         svr_rpp_input.set(filepath)
         write_cfg(filepath, "RPPDir", "Directory")
@@ -304,12 +327,37 @@ def set_rppinfo(reload=0):  # RPP内の各トラックの情報を表示する
     if ivr_slct_time.get():
         change_time_cb()
     if filepath.lower().endswith(".rpp"):
+        rbt_trgt_auto['state'] = chk_slct_time['state'] = 'enable'
         try:
             rpp_cl.load(filepath)
         except (PermissionError, FileNotFoundError):
             return True
         tree = rpp_cl.load_track()
         insert_treedict(tree, "", 0)
+    elif filepath.lower().endswith(".mid") or filepath.lower().endswith(".midi"):
+        rbt_trgt_auto['state'] = chk_slct_time['state'] = 'disable'
+        ivr_slct_time.set(0)
+        change_time_cb()
+        if ivr_trgt_mode.get() == 0:
+            ivr_trgt_mode.set(1)
+            mode_command()
+
+        with warnings.catch_warnings():
+            warnings.filterwarnings('error')
+            try:
+                midi_cl.load(filepath)
+            except (PermissionError, FileNotFoundError):
+                return True
+            except ValueError as e:
+                messagebox.showerror(_('エラー'), _('MIDIファイルの容量が極端に大きいか小さいため、読み込めませんでした。'))
+                raise e
+            except RuntimeWarning as e:
+                messagebox.showwarning(_('警告'), _('MIDIの 拍子/テンポ 情報が正しく読み込めなかった可能性があります。。\n'
+                                                  '生成後、FPSの値が合っているのにテンポが合わない場合、Dominoを使ってMIDIを再出力してください。'))
+                warnings.filterwarnings('default')
+                midi_cl.load(filepath)
+            tree = midi_cl.load_track()
+            insert_treedict(tree, "", 0)
     return True
 
 
@@ -918,6 +966,7 @@ def about_rpp2exo():
 if __name__ == '__main__':
     read_cfg()
     rpp_cl.__init__('', mydict['DisplayLang'])
+    midi_cl.__init__('', mydict['DisplayLang'])
 
     # 翻訳用クラスの設定
     _ = gettext.translation(
