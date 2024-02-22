@@ -58,28 +58,10 @@ class Midi:
             self.objDict["pos"].append(-1)
             self.objDict["length"].append(-1)
 
-            print("Track:", i, "Instrument:", instrument.program, instrument.name, len(instrument.notes),
-                  len(instrument.pitch_bends), len(instrument.control_changes))
             for note in instrument.notes:
                 start_time_formatted = note.start
                 end_time_formatted = note.end
-                print(f'{note.pitch:10} {start_time_formatted:10} {end_time_formatted:10}')
                 self.objDict['pos'].append(note.start)
                 self.objDict['length'].append(note.end - note.start)
 
         return {}
-
-
-print('5' in ['1', '15'])
-
-# def seconds_to_minutes_seconds(seconds):
-#     minutes = math.floor(seconds / 60)
-#     seconds %= 60
-#     return f"{minutes:02}:{seconds:02}"
-#
-# midi_data = pretty_midi.PrettyMIDI(r"C:\Users\msh_0\Music\【耳コピ】柴又【SD-90】.mid")
-#
-# print(f'{"Note":>10} {"Start":>10} {"End":>10}')
-
-
-

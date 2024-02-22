@@ -271,6 +271,7 @@ def set_rppinfo(reload=0):  # RPP内の各トラックの情報を表示する
     if ivr_slct_time.get():
         change_time_cb()
     if filepath.lower().endswith(".rpp"):
+        rbt_trgt_auto['state'] = chk_slct_time['state'] = 'enable'
         try:
             rpp_cl.load(filepath)
         except (PermissionError, FileNotFoundError):
@@ -278,15 +279,25 @@ def set_rppinfo(reload=0):  # RPP内の各トラックの情報を表示する
         tree = rpp_cl.load_track()
         insert_treedict(tree, "", 0)
     elif filepath.lower().endswith(".mid") or filepath.lower().endswith(".midi"):
+        rbt_trgt_auto['state'] = chk_slct_time['state'] = 'disable'
+        ivr_slct_time.set(0)
+        change_time_cb()
+        if ivr_trgt_mode.get() == 0:
+            ivr_trgt_mode.set(1)
+            mode_command()
+
         with warnings.catch_warnings():
             warnings.filterwarnings('error')
             try:
                 midi_cl.load(filepath)
             except (PermissionError, FileNotFoundError):
                 return True
+            except ValueError as e:
+                messagebox.showerror(_('エラー'), _('MIDIファイルの容量が極端に大きいか小さいため、読み込めませんでした。'))
+                raise e
             except RuntimeWarning as e:
-                messagebox.showwarning(_('警告'), _('MIDIの 拍子/テンポ/調号 管理情報が読み込めませんでした。\n'
-                                                  'このままEXOの生成は出来ますが、意図した結果にならない可能性があります。'))
+                messagebox.showwarning(_('警告'), _('MIDIの 拍子/テンポ 情報が正しく読み込めなかった可能性があります。。\n'
+                                                  '生成後、FPSの値が合っているのにテンポが合わない場合、Dominoを使ってMIDIを再出力してください。'))
                 warnings.filterwarnings('default')
                 midi_cl.load(filepath)
             tree = midi_cl.load_track()
