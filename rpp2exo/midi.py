@@ -1,7 +1,6 @@
 import gettext
 import os
-
-import mido
+import pretty_midi
 
 
 class Midi:
@@ -9,7 +8,7 @@ class Midi:
         self.midi_path = path
         self.start_pos = 0.0
         self.end_pos = 100000.0
-        self.midi = None
+        self.midi = pretty_midi.PrettyMIDI()
         self.objDict = {
             "pos": [-1.0],
             "length": [-1.0],
@@ -26,25 +25,22 @@ class Midi:
     def load(self, path):
         self.midi_path = path
         try:
-            self.midi = mido.MidiFile(path)
+            self.midi = pretty_midi.PrettyMIDI(path)
         except FileNotFoundError as e:
             print(_("★ファイルを開くことができませんでした。: %s") % path)
             raise e
 
     def load_track(self):
-        track_names = {}
+        inst_names = {}
+        for inst in self.midi.instruments:
+            name = f'{inst.name} [{len(inst.notes)}]'
+            while name in inst_names:
+                name += ' '
+            inst_names[name] = {}
+            # print("Instrument:", inst.program, inst.name, len(inst.notes),
+            #       len(inst.pitch_bends), len(inst.control_changes))
 
-        for track in self.midi.tracks:
-            track_name = None
-            for msg in track:
-                if msg.type == 'track_name':
-                    track_name = msg.name
-                    break
-
-            if track_name:
-                track_names[track_name] = {}
-
-        return track_names
+        return inst_names
 
     def main(self, sel_track):
         failed = self.load(self.midi_path)
@@ -55,38 +51,35 @@ class Midi:
             "length": [-1.0],
         }
 
-        tick_to_second = mido.tick2second(1, self.midi.ticks_per_beat, tempo=self.midi.tracks[0][0].tempo)
+        for i, instrument in enumerate(self.midi.instruments, start=1):
+            if str(i) not in sel_track:
+                continue
+            # トラックが切り替わる位置に-1を入れる
+            self.objDict["pos"].append(-1)
+            self.objDict["length"].append(-1)
 
-        total_ticks = 0
-        layers = {str(x + 1): [] for x in range(99)}
-        for track in self.midi.tracks:
-            for msg in track:
+            print("Track:", i, "Instrument:", instrument.program, instrument.name, len(instrument.notes),
+                  len(instrument.pitch_bends), len(instrument.control_changes))
+            for note in instrument.notes:
+                start_time_formatted = note.start
+                end_time_formatted = note.end
+                print(f'{note.pitch:10} {start_time_formatted:10} {end_time_formatted:10}')
+                self.objDict['pos'].append(note.start)
+                self.objDict['length'].append(note.end - note.start)
 
-                if msg.type == "note_on":
-                    _layer = "0"
-                    for x in list(layers.keys())[additional_layer:]:
-                        if layers[x] == []:
-                            if _layer == "0":
-                                _layer = x
-                        elif layers[x][0] == msg.note:
-                            raise ValueError()
-                            # raise NotesOverlapError(
-                            #     f"同チャンネルのノーツが重なっています！\nExcepted Notes {msg.note}\nExcepted Channel:{msg.channel}")
+        return {}
 
-                    # if option1:
-                    #     additional_layer = int(not additional_layer)
 
-                    layers[_layer] = [msg.note, current_frame]
-                    max_layer = max(0, int(_layer))
+print('5' in ['1', '15'])
 
-                # note_on_time = 0
-                # if msg.type == 'note_on' and msg.velocity > 0:
-                #     note_on_time = msg.time
-                # elif msg.type == 'note_off':
-                #     note_off_time = msg.time
-                #
-                # if note_on_time is not None and note_off_time is not None:
-                #     return (note_off_time - note_on_time) * tick_to_second
-                #
-                # total_ticks += msg.time
+# def seconds_to_minutes_seconds(seconds):
+#     minutes = math.floor(seconds / 60)
+#     seconds %= 60
+#     return f"{minutes:02}:{seconds:02}"
+#
+# midi_data = pretty_midi.PrettyMIDI(r"C:\Users\msh_0\Music\【耳コピ】柴又【SD-90】.mid")
+#
+# print(f'{"Note":>10} {"Start":>10} {"End":>10}')
+
+
 

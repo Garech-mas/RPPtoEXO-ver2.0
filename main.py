@@ -12,6 +12,7 @@ import gettext
 import subprocess
 import sys
 import threading
+import warnings
 import webbrowser
 from functools import partial
 from tkinter import *
@@ -52,61 +53,46 @@ def patched_error(msg):
             detail=_('Tips: オリジナルの日本版拡張編集 v0.92を使い、patch.aul プラグインを導入することでこのエラーを回避できます。'))
 
 
+def set_class_pos(cls):
+    if ivr_slct_time.get():
+        cls.start_pos = float(cmb_time1.get())
+        cls.end_pos = float(cmb_time2.get()) if cmb_time2.get() != '' else 99999.0
+        if cls.start_pos < cls.end_pos:
+            pass
+        elif cls.start_pos > cls.end_pos:
+            cls.start_pos, cls.end_pos = cls.end_pos, cls.start_pos
+        else:
+            cls.start_pos = 0.0
+            cls.end_pos = 99999.0
+    else:
+        cls.start_pos = 0.0
+        cls.end_pos = 99999.0
+    return cls
+
+
 def main():
     btn_exec['state'] = 'disable'
     root['cursor'] = 'watch'
     btn_exec["text"] = _("実行中") + " (1/3)"
 
     try:
+        end1 = {}
+        file_path = file_fps = []
         exo_cl = Exo(mydict)
         # RPPファイル用処理
         if mydict["RPPPath"].lower().endswith(".rpp"):
-            if ivr_slct_time.get():
-                rpp_cl.start_pos = float(cmb_time1.get())
-                rpp_cl.end_pos = float(cmb_time2.get()) if cmb_time2.get() != '' else 99999.0
-                if rpp_cl.start_pos < rpp_cl.end_pos:
-                    pass
-                elif rpp_cl.start_pos > rpp_cl.end_pos:
-                    rpp_cl.start_pos, rpp_cl.end_pos = rpp_cl.end_pos, rpp_cl.start_pos
-                else:
-                    rpp_cl.start_pos = 0.0
-                    rpp_cl.end_pos = 99999.0
-            else:
-                rpp_cl.start_pos = 0.0
-                rpp_cl.end_pos = 99999.0
-
+            set_class_pos(rpp_cl)
             file_path, end1 = rpp_cl.main(mydict["OutputType"] == 0, mydict["Track"])
-
             btn_exec["text"] = _("実行中") + " (2/3)"
             file_fps = exo_cl.fetch_fps(file_path)
-
-            btn_exec["text"] = _("実行中") + " (3/3)"
-            end3 = exo_cl.make_exo(rpp_cl.objDict, file_path, file_fps)
-            end = end1 | end3
         # 選択時間の設定：MIDIファイル
         elif mydict["RPPPath"].lower().endswith(".mid") or mydict["RPPPath"].lower().endswith(".midi"):
-            if ivr_slct_time.get():
-                midi_cl.start_pos = float(cmb_time1.get())
-                midi_cl.end_pos = float(cmb_time2.get()) if cmb_time2.get() != '' else 99999.0
-                if midi_cl.start_pos < midi_cl.end_pos:
-                    pass
-                elif midi_cl.start_pos > midi_cl.end_pos:
-                    midi_cl.start_pos, midi_cl.end_pos = midi_cl.end_pos, midi_cl.start_pos
-                else:
-                    midi_cl.start_pos = 0.0
-                    midi_cl.end_pos = 99999.0
-            else:
-                midi_cl.start_pos = 0.0
-                midi_cl.end_pos = 99999.0
+            set_class_pos(midi_cl)
+            end1 = midi_cl.main(mydict["Track"])
 
-            file_path, end1 = midi_cl.main(mydict["Track"])
-
-            btn_exec["text"] = _("実行中") + " (2/3)"
-            file_fps = exo_cl.fetch_fps(file_path)
-
-            btn_exec["text"] = _("実行中") + " (3/3)"
-            end3 = exo_cl.make_exo(midi_cl.objDict, file_path, file_fps)
-            end = end1 | end3
+        btn_exec["text"] = _("実行中") + " (3/3)"
+        end3 = exo_cl.make_exo(midi_cl.objDict, file_path, file_fps)
+        end = end1 | end3
 
     except PermissionError as e:
         if e.filename.lower().endswith('.exo'):
@@ -292,12 +278,19 @@ def set_rppinfo(reload=0):  # RPP内の各トラックの情報を表示する
         tree = rpp_cl.load_track()
         insert_treedict(tree, "", 0)
     elif filepath.lower().endswith(".mid") or filepath.lower().endswith(".midi"):
-        try:
-            midi_cl.load(filepath)
-        except (PermissionError, FileNotFoundError):
-            return True
-        tree = midi_cl.load_track()
-        insert_treedict(tree, "", 0)
+        with warnings.catch_warnings():
+            warnings.filterwarnings('error')
+            try:
+                midi_cl.load(filepath)
+            except (PermissionError, FileNotFoundError):
+                return True
+            except RuntimeWarning as e:
+                messagebox.showwarning(_('警告'), _('MIDIの 拍子/テンポ/調号 管理情報が読み込めませんでした。\n'
+                                                  'このままEXOの生成は出来ますが、意図した結果にならない可能性があります。'))
+                warnings.filterwarnings('default')
+                midi_cl.load(filepath)
+            tree = midi_cl.load_track()
+            insert_treedict(tree, "", 0)
     return True
 
 
