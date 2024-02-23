@@ -365,6 +365,7 @@ mydict = {
     "ObjFlipType": 0,  # 0=反転なし  1=左右反転  2=上下反転  3=時計回り反転
     "SepLayerEvenObj": 0,  # 偶数オブジェクトを別レイヤ―に配置するか
     "NoGap": 0,  # オブジェクト間の隙間を埋めるか
+    "RandomPlay": 0,  # 動画の再生位置を個別にランダムにするかどうか
     # "BreakFrames": [0],  # 強制停止フレームのリスト  動画オブジェクトがこのフレームを越えないように処理
     "OutputType": 0,  # 1=動画  2=画像  3=フィルタ  4=シーン  として出力
     "IsExSet": 0,  # 拡張描画を有効にするか
@@ -374,6 +375,7 @@ mydict = {
     "EXOLastDir": os.path.abspath(os.path.dirname(__file__)),  # EXO
     "SrcLastDir": os.path.abspath(os.path.dirname(__file__)),  # 素材
     "AlsLastDir": os.path.abspath(os.path.dirname(__file__)),  # エイリアス
+    "IsCCW": 0,  # 左右・上下反転時に反時計回りにするかどうか
     "PatchExists": 0,  # patch.aulが導入済みか
     "HasPatchError": 0,  # 拡張編集由来のバグが起きたかどうか
     "UseYMM4": 0,  # ゆっくりMovieMaker4出力にするかどうか

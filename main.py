@@ -4,7 +4,7 @@
 #       Original Written by Maimai (@Maimai22015/YTPMV.info)                        #
 #       Forked by Garech (@Garec_)                                                  #
 #                                                                                   #
-#       協力：SHI(@sbt54864666)                                                      #
+#       協力：SHI (@sbt54864666), wakanameko (@wakanameko2)                          #
 #####################################################################################
 
 import configparser
@@ -223,6 +223,7 @@ def read_cfg():
             ('', 'EXODir', 'Directory'),  # EXOの保存ディレクトリ
             ('', 'SrcDir', 'Directory'),  # 素材の保存ディレクトリ
             ('', 'AlsDir', 'Directory'),  # エイリアスの保存ディレクトリ
+            ('1', 'is_ccw', 'Param'),     # 左右・上下反転時に反時計回りにするかどうか 0/1
             ('0', 'patch_exists', 'Param'),  # patch.aulが存在するか 0/1
             ('0', 'use_ymm4', 'Param'),   # YMM4を使うかどうか 0/1
             ('', 'ymm4path', 'Param'),    # YMM4の実行ファイルパス
@@ -244,6 +245,7 @@ def read_cfg():
             mydict["EXOLastDir"] = config_ini.get("Directory", "EXODir")
             mydict["SrcLastDir"] = config_ini.get("Directory", "SrcDir")
             mydict["AlsLastDir"] = config_ini.get("Directory", "AlsDir")
+            mydict["IsCCW"] = int(config_ini.get("Param", "is_ccw"))
             mydict["PatchExists"] = int(config_ini.get("Param", "patch_exists"))
             mydict["UseYMM4"] = int(config_ini.get("Param", "use_ymm4"))
             mydict["YMM4Path"] = config_ini.get("Param", "ymm4path")
@@ -352,8 +354,8 @@ def set_rppinfo(reload=0):  # RPP内の各トラックの情報を表示する
                 messagebox.showerror(_('エラー'), _('MIDIファイルの容量が極端に大きいか小さいため、読み込めませんでした。'))
                 raise e
             except RuntimeWarning as e:
-                messagebox.showwarning(_('警告'), _('MIDIの 拍子/テンポ 情報が正しく読み込めなかった可能性があります。。\n'
-                                                  '生成後、FPSの値が合っているのにテンポが合わない場合、Dominoを使ってMIDIを再出力してください。'))
+                messagebox.showwarning(_('警告'), _('MIDIの 拍子/テンポ 情報が正しく読み込めなかった可能性があります。\n'
+                                                  '生成後、FPSの値が合っているにも関わらずテンポが合わない場合、Dominoを使ってMIDIを再出力してください。'))
                 warnings.filterwarnings('default')
                 midi_cl.load(filepath)
             tree = midi_cl.load_track()
@@ -935,6 +937,7 @@ def change_ymm4():
         if change_ymm4_path():
             write_cfg(int(ivr_use_ymm4.get()), "use_ymm4", "Param")
             confirm_restart()
+            return
         else:
             ivr_use_ymm4.set(mydict['UseYMM4'])
             return
@@ -1003,6 +1006,18 @@ if __name__ == '__main__':
     # 生成設定メニュー
     menu_setting = Menu(mbar, tearoff=0)
     mbar.add_cascade(label=_('生成設定'), menu=menu_setting)
+    ivr_is_ccw = IntVar()
+    ivr_is_ccw.set(mydict['IsCCW'])
+    menu_is_ccw = Menu(mbar, tearoff=0)
+    menu_setting.add_cascade(label='左右上下反転時の回転方向', menu=menu_is_ccw)
+    menu_is_ccw.add_radiobutton(label='時計回り', value=0, variable=ivr_is_ccw, command=lambda: [
+                                     write_cfg(0, "is_ccw", "Param"),
+                                     mydict.update(IsCCW=0)
+                                  ])
+    menu_is_ccw.add_radiobutton(label='反時計回り', value=1, variable=ivr_is_ccw, command=lambda: [
+                                     write_cfg(1, "is_ccw", "Param"),
+                                     mydict.update(IsCCW=1)
+                                  ])
     ivr_patch_exists = IntVar()
     ivr_patch_exists.set(mydict['PatchExists'])
     menu_setting.add_checkbutton(label=_('拡張編集v0.92由来のエラーを無視'), variable=ivr_patch_exists,
