@@ -70,6 +70,11 @@ class Exo:
         layer = 1  # オブジェクトのあるレイヤー（RPP上で複数トラックある場合は別トラックに配置する）
         bfidx = 0  # item_countの調整用 レイヤー頭のitem_count-bfidxが0になるような値を設定
 
+        video_frame_count = 0  # 動画の総フレーム数 (再生時間ランダム用)
+        if self.mydict['RandomPlay']:
+            videoload = cv2.VideoCapture(str(self.mydict["SrcPath"]))  # 動画を読み込む
+            video_frame_count = videoload.get(cv2.CAP_PROP_FRAME_COUNT)  # フレーム数
+
         for index in range(1, len(objdict["length"])):
             exo_5 = ""
             exo_eff = ""
@@ -217,25 +222,14 @@ class Exo:
                         "\n" + self.t("アルファチャンネルを読み込む") + "=" + str(is_alpha) + \
                         "\nfile=" + file
             elif self.mydict["OutputType"] == 1:  # 動画オブジェクト
-                if self.mydict["RandomPlay"] == True:   #再生位置ランダム
-                    videoload = cv2.VideoCapture(str(self.mydict["SrcPath"]))   # 動画を読み込む
-                    video_frame_count = videoload.get(cv2.CAP_PROP_FRAME_COUNT) # フレーム数
-
-                    randPlayPos = random.randint(1, int(video_frame_count))
-
-                    exo_5 = ".0]\n_name=" + self.t("動画ファイル") + \
-                            "\n" + self.t("再生位置") + "=" + str(randPlayPos) + \
-                            "\n" + self.t("再生速度") + "=" + str(self.mydict["SrcRate"]) + \
-                            "\n" + self.t("ループ再生") + "=" + str(self.mydict["IsLoop"]) + \
-                            "\n" + self.t("アルファチャンネルを読み込む") + "=" + str(self.mydict["IsAlpha"]) + \
-                            "\nfile=" + str(self.mydict["SrcPath"])
-                else:
-                    exo_5 = ".0]\n_name=" + self.t("動画ファイル") + \
-                            "\n" + self.t("再生位置") + "=" + str(self.mydict["SrcPosition"]) + \
-                            "\n" + self.t("再生速度") + "=" + str(self.mydict["SrcRate"]) + \
-                            "\n" + self.t("ループ再生") + "=" + str(self.mydict["IsLoop"]) + \
-                            "\n" + self.t("アルファチャンネルを読み込む") + "=" + str(self.mydict["IsAlpha"]) + \
-                            "\nfile=" + str(self.mydict["SrcPath"])
+                if self.mydict["RandomPlay"]:   # 再生位置ランダム
+                    self.mydict["SrcPosition"] = random.randint(1, int(video_frame_count))
+                exo_5 = ".0]\n_name=" + self.t("動画ファイル") + \
+                        "\n" + self.t("再生位置") + "=" + str(self.mydict["SrcPosition"]) + \
+                        "\n" + self.t("再生速度") + "=" + str(self.mydict["SrcRate"]) + \
+                        "\n" + self.t("ループ再生") + "=" + str(self.mydict["IsLoop"]) + \
+                        "\n" + self.t("アルファチャンネルを読み込む") + "=" + str(self.mydict["IsAlpha"]) + \
+                        "\nfile=" + str(self.mydict["SrcPath"])
 
             elif self.mydict["OutputType"] == 2:  # 画像オブジェクト
                 exo_5 = ".0]\n_name=" + self.t("画像ファイル") + \

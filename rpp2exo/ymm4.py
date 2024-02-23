@@ -1,10 +1,11 @@
 import datetime
 import os
-
 import json
+import random
+
+import cv2
 from copy import deepcopy
 from tkinter import messagebox
-
 from rpp2exo import sur_round
 
 
@@ -93,6 +94,11 @@ class YMM4:
         bf = 0.0  # アイテム一つ前の最終フレーム  ==Endframe
         layer = 0  # オブジェクトのあるレイヤー（RPP上で複数トラックある場合は別トラックに配置する）
         bfidx = 0  # item_countの調整用 レイヤー頭のitem_count-bfidxが0になるような値を設定
+
+        video_seconds = 0  # 動画の総秒数 (再生時間ランダム用)
+        if self.mydict['RandomPlay']:
+            videoload = cv2.VideoCapture(str(self.mydict["SrcPath"]))  # 動画を読み込む
+            video_seconds = videoload.get(cv2.CAP_PROP_FRAME_COUNT) / videoload.get(cv2.CAP_PROP_FPS)  # 秒数
 
         for index in range(1, len(objdict["length"])):
             # オブジェクト最初のフレームと長さの計算
@@ -190,6 +196,8 @@ class YMM4:
                 items[-1]['IsLooped'] = bool(objdict["loop"][index]) if self.mydict["IsLoop"] else False
                 items[-1]['FilePath'] = file
             elif self.mydict["OutputType"] == 1:  # 動画オブジェクト
+                if self.mydict["RandomPlay"]:   # 再生位置ランダム
+                    self.mydict["SrcPosition"] = format_seconds(random.uniform(0, video_seconds))
                 items[-1]['FilePath'] = str(self.mydict["SrcPath"])
                 items[-1]['ContentOffset'] = self.mydict["SrcPosition"]
                 items[-1]['PlaybackRate'] = self.mydict["SrcRate"]

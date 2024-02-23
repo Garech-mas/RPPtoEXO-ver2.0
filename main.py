@@ -1165,6 +1165,7 @@ if __name__ == '__main__':
     vsb_slct_track = Scrollbar(frame_r2e, orient=VERTICAL, command=tvw_slct_track.yview)
     vsb_slct_track.grid(row=0, column=2, rowspan=9, sticky=N + S)
     tvw_slct_track['yscrollcommand'] = vsb_slct_track.set
+    tvw_slct_track.bind('<<TreeviewClose>>', lambda event: tvw_slct_track.expand_all())
 
     # frame_alias 効果をファイルから読み込む
     frame_alias = ttk.Frame(frame_left, padding=5)
