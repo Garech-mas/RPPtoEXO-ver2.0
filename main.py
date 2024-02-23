@@ -824,10 +824,10 @@ def mode_command():  # 「追加対象」変更時の状態切り替え
         chk_adv_draw['state'] = 'enable'
         toggle_media_label(0)
 
-    if ivr_trgt_mode.get() == 1:  # アルファチャンネルを読み込む
-        chk_import_alpha['state'] = 'enable'
+    if ivr_trgt_mode.get() == 1:  # アルファチャンネルを読み込む・再生位置ランダム
+        chk_import_alpha['state'] = chk_randplay['state'] = 'enable'
     else:
-        chk_import_alpha['state'] = 'disable'
+        chk_import_alpha['state'] = chk_randplay['state'] = 'disable'
 
     if ivr_trgt_mode.get() == 1 or ivr_trgt_mode.get() == 4:  # ループ再生・再生速度・再生位置
         chk_loop['state'] = 'enable'
@@ -1132,9 +1132,7 @@ if __name__ == '__main__':
     ivr_no_gap = IntVar()
     chk_no_gap = ttk.Checkbutton(frame_r2e, padding=5, text=_('隙間なく配置'), onvalue=1, offvalue=0, variable=ivr_no_gap)
     chk_no_gap.grid(row=3, column=0, sticky=W)
-    ivr_randplay = IntVar()
-    chk_randplay = ttk.Checkbutton(frame_r2e, padding=5, text=_('再生位置ランダム'), onvalue=1, offvalue=0, variable=ivr_randplay)
-    chk_randplay.grid(row=9, column=0, sticky=W)
+
     ivr_sep_even = IntVar()
     chk_sep_even = ttk.Checkbutton(frame_r2e, padding=5, text=_('偶数番目Objを\n別レイヤ配置'), onvalue=1, offvalue=0,
                                    variable=ivr_sep_even)
@@ -1237,17 +1235,20 @@ if __name__ == '__main__':
     ent_src_input.dnd_bind("<<Drop>>", partial(drop_file, svr_src_input))
     btn_src_browse = ttk.Button(frame_trgt, text=_('参照…'), command=slct_source)
     btn_src_browse.grid(row=1, column=5, columnspan=2, sticky=E)
+    ivr_randplay = IntVar()
+    chk_randplay = ttk.Checkbutton(frame_trgt, padding=5, text=_('再生位置ランダム'), onvalue=1, offvalue=0, variable=ivr_randplay)
+    chk_randplay.grid(row=2, column=0, columnspan=3, sticky=W)
 
     ivr_clipping = IntVar()
     chk_clipping = ttk.Checkbutton(frame_trgt, padding=5, text=ExDict['上のオブジェクトでクリッピング'],
                                    onvalue=1, offvalue=0, variable=ivr_clipping)
-    chk_clipping.grid(row=2, column=0, columnspan=3, sticky=W)
+    chk_clipping.grid(row=3, column=0, columnspan=3, sticky=W)
     ivr_adv_draw = IntVar()
     ivr_adv_draw.set(0)
     chk_adv_draw = ttk.Checkbutton(frame_trgt, padding=5, text=ExDict['拡張描画'], onvalue=1, offvalue=0,
                                    variable=ivr_adv_draw, command=lambda: toggle_media_label(ivr_adv_draw.get() + 1))
     if not mydict['UseYMM4']:
-        chk_adv_draw.grid(row=2, column=5, columnspan=2, sticky=E)
+        chk_adv_draw.grid(row=3, column=5, columnspan=2, sticky=E)
 
     # frame_stddraw オブジェクトの標準パラメータ設定
     frame_stddraw = ttk.Frame(frame_right, padding=5, borderwidth=3)

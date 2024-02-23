@@ -181,16 +181,6 @@ class Exo:
                 elif (bfidx + item_count) % 4 == 1 if self.mydict['IsCCW'] else 3:
                     exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + self.add_reversal(ud=1)
                     filter_count += 1
-            elif self.mydict["ObjFlipType"] == 4:  # 反時計回り反転
-                if (bfidx + item_count) % 4 == 1:
-                    exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + self.add_reversal(ud=1)
-                    filter_count += 1
-                elif (bfidx + item_count) % 4 == 2:
-                    exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + self.add_reversal(ud=1, lr=1)
-                    filter_count += 1
-                elif (bfidx + item_count) % 4 == 3:
-                    exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + self.add_reversal(lr=1)
-                    filter_count += 1
 
             if self.mydict["ScriptText"] != "":  # スクリプト制御追加する場合
                 exo_script = ("\n[" + str(item_count) + "." + str(1 + filter_count) +
