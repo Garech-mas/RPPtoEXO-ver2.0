@@ -1,23 +1,13 @@
-# RPPtoEXO v2.0
-REAPERのプロジェクトファイルから自動で映像を作成するスクリプト
->REAPER Project File (RPP) -> AviUtl Object File (EXO)
->
-**注) AviUtl 拡張編集v0.92 + patch.aul が推奨環境となります。**
+# RPPtoEXO v2.0 バカタレフォーク版
+このリポジトリは、[RPPtoEXO v2.0](https://github.com/Garech-mas/RPPtoEXO-ver2.0)のフォークです。  
+使い方等は、元のリポジトリのREADMEを参照してください。  
 
-**それ以外の環境の場合、正しく動作しない設定項目があります。**
+## 追加機能
+・回転(時計回り/反時計回り)  
+・再生位置ランダム(動画のみ対応)  
 
-## 起動方法
-EXE版の場合、exeをダブルクリックして実行してください。
-
-PY版 (Source Code) をインストールした場合、
-```
-pip install -r requirements.txt
-```
-で依存パッケージをインストールしてから実行してください。
-
-## 使い方・説明
-Scrapboxを見てください。
-https://scrapbox.io/Garech/RPPtoEXO_v2.0
 
 Original made by maimai22015
-https://ytpmv.info/RPPtoEXO/
+https://ytpmv.info/RPPtoEXO/  
+ver2.0 made by [Garech-mas](https://github.com/Garech-mas)
+https://github.com/Garech-mas/RPPtoEXO-ver2.0

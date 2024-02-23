@@ -639,6 +639,7 @@ def run():
     mydict["ObjFlipType"] = ivr_v_flip.get() + ivr_h_flip.get()
     mydict["SepLayerEvenObj"] = ivr_sep_even.get()
     mydict["NoGap"] = ivr_no_gap.get()
+    mydict["RandomPlay"] = ivr_randplay.get()
     mydict["clipping"] = ivr_clipping.get()
     mydict["IsExSet"] = ivr_adv_draw.get()
     mydict["SceneIdx"] = int(svr_scene_idx.get() or 0)
@@ -1131,6 +1132,9 @@ if __name__ == '__main__':
     ivr_no_gap = IntVar()
     chk_no_gap = ttk.Checkbutton(frame_r2e, padding=5, text=_('隙間なく配置'), onvalue=1, offvalue=0, variable=ivr_no_gap)
     chk_no_gap.grid(row=3, column=0, sticky=W)
+    ivr_randplay = IntVar()
+    chk_randplay = ttk.Checkbutton(frame_r2e, padding=5, text=_('再生位置ランダム'), onvalue=1, offvalue=0, variable=ivr_randplay)
+    chk_randplay.grid(row=9, column=0, sticky=W)
     ivr_sep_even = IntVar()
     chk_sep_even = ttk.Checkbutton(frame_r2e, padding=5, text=_('偶数番目Objを\n別レイヤ配置'), onvalue=1, offvalue=0,
                                    variable=ivr_sep_even)
