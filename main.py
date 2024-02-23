@@ -81,6 +81,7 @@ def main():
     try:
         end1 = objdict = {}
         file_path = file_fps = []
+        min_layers = []
         exo_cl = Exo(mydict)
         chk = 0
         while chk != 1 and mydict['UseYMM4']:
@@ -91,24 +92,24 @@ def main():
         # RPPファイル用処理
         if mydict["RPPPath"].lower().endswith(".rpp"):
             set_class_pos(rpp_cl)
-            file_path, end1 = rpp_cl.main(mydict["OutputType"] == 0, mydict["Track"])
+            file_path, min_layers, end1 = rpp_cl.main(mydict["OutputType"] == 0, mydict["Track"], 1 / mydict["fps"])
             objdict = rpp_cl.objDict
         # 選択時間の設定：MIDIファイル
         elif mydict["RPPPath"].lower().endswith(".mid") or mydict["RPPPath"].lower().endswith(".midi"):
             set_class_pos(midi_cl)
-            end1 = midi_cl.main(mydict["Track"])
+            min_layers, end1 = midi_cl.main(mydict["Track"], 1 / mydict["fps"])
             objdict = midi_cl.objDict
 
         if mydict["UseYMM4"]:
             btn_exec["text"] = _("実行中") + " (3/3)"
-            end3 = ymm4_cl.run(objdict, file_path)
+            end3 = ymm4_cl.run(objdict, file_path, min_layers)
         else:
             exo_cl = Exo(mydict)
             btn_exec["text"] = _("実行中") + " (2/3)"
             file_fps = exo_cl.fetch_fps(file_path)
 
             btn_exec["text"] = _("実行中") + " (3/3)"
-            end3 = exo_cl.make_exo(objdict, file_path, file_fps)
+            end3 = exo_cl.make_exo(objdict, min_layers, file_path, file_fps)
         end = end1 | end3
 
     except PermissionError as e:

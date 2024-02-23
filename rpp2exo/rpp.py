@@ -132,7 +132,7 @@ class Rpp:
             elif isbus[1] == "2":
                 return value, index, int(isbus[2]) + 1
 
-    def main(self, auto_src, sel_track):  # rpp_aryを読み込んだ結果をobjDictに入れていく
+    def main(self, auto_src, sel_track, min_second):  # rpp_aryを読み込んだ結果をobjDictに入れていく
         failed = self.load(self.rpp_path)
         if failed:
             raise PermissionError()
@@ -152,6 +152,8 @@ class Rpp:
         index = 0
         track_index = 0
         track_name = ""
+        layer = []
+        min_layers = []
 
         while index < len(self.rpp_ary):
 
@@ -166,6 +168,8 @@ class Rpp:
                     self.objDict["playrate"].append(0)
                     self.objDict["fileidx"].append(-1)
                     self.objDict["filetype"].append('')
+                    min_layers.append(len(layer))
+                    layer = []
 
             if str(track_index) in sel_track and self.rpp_ary[index].split()[0] == "<ITEM":  # 該当トラックのITEMチャンクに入ったら
                 itemdict = {}
@@ -214,6 +218,16 @@ class Rpp:
 
                 self.objDict["pos"].append(float(itemdict["POSITION"][0]) - self.start_pos)
                 self.objDict["length"].append(float(itemdict["LENGTH"][0]))
+                add_layer = 1
+                for i, end_point in enumerate(layer):
+                    if end_point - self.objDict["pos"][-1] < 0.001 and layer:
+                        if min_second <= self.objDict["length"][-1]:
+                            layer[i] = self.objDict["pos"][-1] + self.objDict["length"][-1]
+                        add_layer = 0
+                        break
+                if add_layer:
+                    layer.append(self.objDict["pos"][-1] + self.objDict["length"][-1])
+
                 if auto_src:  # 素材自動検出モードの処理
                     self.objDict["loop"].append(int(itemdict["LOOP"][0]))
                     self.objDict["soffs"].append(float(itemdict["SOFFS"][0])) if "SOFFS" in itemdict \
@@ -283,7 +297,7 @@ class Rpp:
         if not auto_src or not end["exist_mode2"]: del end["exist_mode2"]
         if not auto_src or not end["exist_stretch_marker"]: del end["exist_stretch_marker"]
 
-        return file_path, end
+        return file_path, min_layers, end
 
 
 def is_audio(path):

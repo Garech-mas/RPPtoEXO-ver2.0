@@ -106,10 +106,11 @@ class YMM4:
             next_obj_frame_pos = objdict["pos"][index + 1] * self.mydict["fps"] + 1 \
                 if index != len(objdict["length"]) - 1 else -1
             obj_frame_length = objdict["length"][index] * self.mydict["fps"]
-            # 一つ前のオブジェクトとフレームがかぶらないようにする処理
+            # フレームがかぶってしまった時に前の
             if sur_round(obj_frame_pos) == bf:
-                obj_frame_pos += 1
-                obj_frame_length -= 1
+                # obj_frame_pos += 1
+                # obj_frame_length -= 1
+                items[-2]['Length'] -= 1  # こうすることで、隙間埋め状態とフレーム差を消すことができる
             # 一つ後のオブジェクトとの間に1フレームの空きがある場合の処理
             if sur_round(obj_frame_pos + obj_frame_length) == sur_round(next_obj_frame_pos) - 1:
                 obj_frame_length += 1

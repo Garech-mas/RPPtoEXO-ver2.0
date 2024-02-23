@@ -47,7 +47,7 @@ class Exo:
         file_fps.append(0.0)
         return file_fps
 
-    def make_exo(self, objdict, file_path, file_fps):
+    def make_exo(self, objdict, min_layers, file_path, file_fps):
         end = {}
         exo_result = "[exedit]\nwidth=" + str(1280) + "\nheight=" + str(720) + "\nrate=" + str(
             self.mydict["fps"]) + "\nscale=1\nlength=99999\naudio_rate=44100\naudio_ch=2"
@@ -70,7 +70,10 @@ class Exo:
         layer = 1  # オブジェクトのあるレイヤー（RPP上で複数トラックある場合は別トラックに配置する）
         bfidx = 0  # item_countの調整用 レイヤー頭のitem_count-bfidxが0になるような値を設定
 
+        opt_layer = []  # 1トラック内で重複が発生した場合の使用レイヤー状況をシミュレート
+        track = 0  # min_layersを参照するためのトラックカウント
         video_frame_count = 0  # 動画の総フレーム数 (再生時間ランダム用)
+        min_layers.append(-1)
         if self.mydict['RandomPlay']:
             videoload = cv2.VideoCapture(str(self.mydict["SrcPath"]))  # 動画を読み込む
             video_frame_count = videoload.get(cv2.CAP_PROP_FRAME_COUNT)  # フレーム数
@@ -79,6 +82,7 @@ class Exo:
             exo_5 = ""
             exo_eff = ""
             filter_count = 0
+            add_layer = 0
 
             if layer > 100:
                 break
@@ -89,17 +93,21 @@ class Exo:
                 if index != len(objdict["length"]) - 1 else -1
             obj_frame_length = objdict["length"][index] * self.mydict["fps"]
             # 一つ前のオブジェクトとフレームがかぶらないようにする処理
-            if sur_round(obj_frame_pos) == bf:
-                obj_frame_pos += 1
-                obj_frame_length -= 1
+            # if sur_round(obj_frame_pos) == bf:
+            #     obj_frame_pos += 1
+            #     obj_frame_length -= 1
+            #     ここで「1個前のオブジェクトのlength(bf)をマイナス１する」処理をしたい。抜本的な書き換えが必要
             # 一つ後のオブジェクトとの間に1フレームの空きがある場合の処理
             if sur_round(obj_frame_pos + obj_frame_length) == sur_round(next_obj_frame_pos) - 1:
                 obj_frame_length += 1
             if obj_frame_pos < bf:
                 bf = 0
-                bfidx = -item_count
-                layer += 1 + self.mydict["SepLayerEvenObj"]
+                # layer += 1 + self.mydict["SepLayerEvenObj"]
                 if obj_frame_pos < 0:
+                    bfidx = -item_count
+                    opt_layer = []
+                    track += 1
+                    layer += min_layers[track]
                     continue
             bf = obj_frame_pos + obj_frame_length - 1
             if self.mydict["NoGap"] == 1:
@@ -110,11 +118,30 @@ class Exo:
             if obj_frame_pos == 0: obj_frame_pos = 1
             bf = sur_round(bf)
 
+            for i, end_point in enumerate(opt_layer):
+                add_layer = i
+                if end_point >= obj_frame_pos:
+                    opt_layer.append(bf)
+                    add_layer = i + 1
+                opt_layer[add_layer] = bf
+                break
+            if add_layer > 0 or not opt_layer:
+                opt_layer.append(bf)
+
+            #
+            # if obj_frame_pos < bf:
+            #     bf = 0
+            #     bfidx = -item_count
+            #     # layer += 1 + self.mydict["SepLayerEvenObj"]
+            #     if obj_frame_pos < 0:
+            #         layer += min_layers * (self.mydict["SepLayerEvenObj"] + 1)
+            #         continue
+
             # 偶数番目オブジェクトをひとつ下のレイヤに配置する
             if self.mydict["SepLayerEvenObj"] == 1 and (bfidx + item_count) % 2 == 1:
-                exo_4 = "\nlayer=" + str(layer + 1)  # layer
+                exo_4 = "\nlayer=" + str(layer + add_layer + min_layers[track])  # layer
             else:
-                exo_4 = "\nlayer=" + str(layer)
+                exo_4 = "\nlayer=" + str(layer + add_layer)
 
             # エフェクトを追加している場合の設定
             if len(self.mydict["Effect"]) != 0:
