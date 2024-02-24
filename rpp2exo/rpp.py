@@ -51,6 +51,8 @@ class Rpp:
             if ".rpp" in path.lower():
                 with open(path, mode='r', encoding='UTF-8', errors='replace') as f:
                     self.rpp_ary = f.readlines()
+            elif path == '':
+                self.rpp_ary = []
         except FileNotFoundError as e:
             print(_("★ファイルを開くことができませんでした。: %s") % path)
             raise e
@@ -132,7 +134,7 @@ class Rpp:
             elif isbus[1] == "2":
                 return value, index, int(isbus[2]) + 1
 
-    def main(self, auto_src, sel_track, min_second):  # rpp_aryを読み込んだ結果をobjDictに入れていく
+    def main(self, auto_src, sel_track):  # rpp_aryを読み込んだ結果をobjDictに入れていく
         failed = self.load(self.rpp_path)
         if failed:
             raise PermissionError()
@@ -152,8 +154,6 @@ class Rpp:
         index = 0
         track_index = 0
         track_name = ""
-        layer = []
-        min_layers = []
 
         while index < len(self.rpp_ary):
 
@@ -168,8 +168,6 @@ class Rpp:
                     self.objDict["playrate"].append(0)
                     self.objDict["fileidx"].append(-1)
                     self.objDict["filetype"].append('')
-                    min_layers.append(len(layer))
-                    layer = []
 
             if str(track_index) in sel_track and self.rpp_ary[index].split()[0] == "<ITEM":  # 該当トラックのITEMチャンクに入ったら
                 itemdict = {}
@@ -218,16 +216,6 @@ class Rpp:
 
                 self.objDict["pos"].append(float(itemdict["POSITION"][0]) - self.start_pos)
                 self.objDict["length"].append(float(itemdict["LENGTH"][0]))
-                add_layer = 1
-                for i, end_point in enumerate(layer):
-                    if end_point - self.objDict["pos"][-1] < 0.001 and layer:
-                        if min_second <= self.objDict["length"][-1]:
-                            layer[i] = self.objDict["pos"][-1] + self.objDict["length"][-1]
-                        add_layer = 0
-                        break
-                if add_layer:
-                    layer.append(self.objDict["pos"][-1] + self.objDict["length"][-1])
-
                 if auto_src:  # 素材自動検出モードの処理
                     self.objDict["loop"].append(int(itemdict["LOOP"][0]))
                     self.objDict["soffs"].append(float(itemdict["SOFFS"][0])) if "SOFFS" in itemdict \
@@ -243,8 +231,8 @@ class Rpp:
                         keyy = "SOURCE " + srch + "/FILE"
                         if "SOURCE SECTION/" + keyy in itemdict:
                             path = self.to_absolute(itemdict["SOURCE SECTION/" + keyy][-1])
-                            if is_audio(path):
-                                continue
+                            # if is_audio(path):
+                            #     continue
                             if path not in file_path:
                                 file_path.append(path)
                             self.objDict["fileidx"].append(file_path.index(path))
@@ -252,8 +240,8 @@ class Rpp:
                             srchflg = 1
                         elif keyy in itemdict:
                             path = self.to_absolute(itemdict[keyy][-1])
-                            if is_audio(path):
-                                continue
+                            # if is_audio(path):
+                            #     continue
                             if path not in file_path:
                                 file_path.append(path)
                             self.objDict["fileidx"].append(file_path.index(path))
@@ -276,7 +264,7 @@ class Rpp:
                     sec_count = 1
                     self.objDict["soffs"][-1] = float(itemdict["SOURCE SECTION/STARTPOS"][0])
                     self.objDict["loop"][-1] = 0
-                    while sec_length * sec_count < end_length:  # セクションアイテムをUtl上で複数オブジェクトに分割
+                    while sec_length * sec_count - end_length < -0.001:  # セクションアイテムをUtl上で複数オブジェクトに分割
                         self.objDict["length"][-1] = sec_length
                         self.objDict["pos"].append(self.objDict["pos"][-1] + sec_length)
                         self.objDict["length"].append(-1)
@@ -297,10 +285,4 @@ class Rpp:
         if not auto_src or not end["exist_mode2"]: del end["exist_mode2"]
         if not auto_src or not end["exist_stretch_marker"]: del end["exist_stretch_marker"]
 
-        return file_path, min_layers, end
-
-
-def is_audio(path):
-    audio_extensions = ['.mp3', '.wav', '.flac', '.m4a', '.aac', '.wma', '.ogg']
-    extension = os.path.splitext(path)[1]
-    return extension.lower() in audio_extensions
+        return file_path, end

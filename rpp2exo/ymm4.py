@@ -6,6 +6,8 @@ import random
 import cv2
 from copy import deepcopy
 from tkinter import messagebox
+
+import rpp2exo
 from rpp2exo import sur_round
 
 
@@ -95,30 +97,37 @@ class YMM4:
         layer = 0  # オブジェクトのあるレイヤー（RPP上で複数トラックある場合は別トラックに配置する）
         bfidx = 0  # item_countの調整用 レイヤー頭のitem_count-bfidxが0になるような値を設定
 
+        opt_layer = []  # 1トラック内で重複が発生した場合の使用レイヤー状況をシミュレート
+        opt_layer2 = []
+
         video_seconds = 0  # 動画の総秒数 (再生時間ランダム用)
         if self.mydict['RandomPlay']:
             videoload = cv2.VideoCapture(str(self.mydict["SrcPath"]))  # 動画を読み込む
             video_seconds = videoload.get(cv2.CAP_PROP_FRAME_COUNT) / videoload.get(cv2.CAP_PROP_FPS)  # 秒数
 
         for index in range(1, len(objdict["length"])):
+            add_layer = 0
             # オブジェクト最初のフレームと長さの計算
             obj_frame_pos = objdict["pos"][index] * self.mydict["fps"] + 1
             next_obj_frame_pos = objdict["pos"][index + 1] * self.mydict["fps"] + 1 \
                 if index != len(objdict["length"]) - 1 else -1
             obj_frame_length = objdict["length"][index] * self.mydict["fps"]
-            # フレームがかぶってしまった時に前の
-            if sur_round(obj_frame_pos) == bf:
+            # フレームがかぶってしまった時にオブジェクトを被らせないようにする処理
+            # if sur_round(obj_frame_pos) == bf:
                 # obj_frame_pos += 1
                 # obj_frame_length -= 1
-                items[-2]['Length'] -= 1  # こうすることで、隙間埋め状態とフレーム差を消すことができる
+                # items[-2]['Length'] -= 1  # こうすることで、隙間埋め状態とフレーム差を消すことができる
             # 一つ後のオブジェクトとの間に1フレームの空きがある場合の処理
             if sur_round(obj_frame_pos + obj_frame_length) == sur_round(next_obj_frame_pos) - 1:
                 obj_frame_length += 1
             if obj_frame_pos < bf:
                 bf = 0
-                bfidx = -item_count
-                layer += 1 + self.mydict["SepLayerEvenObj"]
-                if obj_frame_pos < 0:
+                if obj_frame_pos < 0:  # 最後
+                    bfidx = -item_count
+                    # track += 1
+                    layer += len(opt_layer + opt_layer2)
+                    opt_layer = []
+                    opt_layer2 = []
                     continue
             bf = obj_frame_pos + obj_frame_length - 1
             if self.mydict["NoGap"] == 1:
@@ -126,8 +135,34 @@ class YMM4:
                     bf = next_obj_frame_pos - 1
 
             obj_frame_pos = sur_round(obj_frame_pos)
-            # if obj_frame_pos == 0: obj_frame_pos = 1
             bf = sur_round(bf)
+
+            if self.mydict["SepLayerEvenObj"] == 1 and (bfidx + item_count) % 2 == 1:  # 偶数番目obj用のobj_layerに処理
+                for i, end_point in enumerate(opt_layer2):
+                    add_layer = i
+                    if end_point >= obj_frame_pos:  # オブジェクトが被ったときはループ継続
+                        if i == len(opt_layer2) - 1:  # 最終ループのときはレイヤー追加
+                            opt_layer2.append(bf)
+                            add_layer += 1
+                            break
+                    else:  # オブジェクトが被ってないので、bfを上書きしてループを抜ける
+                        opt_layer2[add_layer] = bf
+                        break
+                if not opt_layer2:  # 初回のレイヤー追加
+                    opt_layer2.append(bf)
+            else:
+                for i, end_point in enumerate(opt_layer):
+                    add_layer = i
+                    if end_point >= obj_frame_pos:
+                        if i == len(opt_layer) - 1:
+                            opt_layer.append(bf)
+                            add_layer += 1
+                            break
+                    else:
+                        opt_layer[add_layer] = bf
+                        break
+                if not opt_layer:  # 初回のレイヤー追加
+                    opt_layer.append(bf)
 
             # 先にダミーのitemを追加した後、必要な部分を置き換えていく
 
@@ -147,10 +182,13 @@ class YMM4:
             items[-1]['Length'] = int(bf - obj_frame_pos + 1)
 
             # 偶数番目オブジェクトをひとつ下のレイヤに配置する
-            if self.mydict["SepLayerEvenObj"] == 1 and (bfidx + item_count) % 2 == 1:
-                items[-1]['Layer'] = layer + 1
+            if self.mydict["SepLayerEvenObj"] == 1:
+                if (bfidx + item_count) % 2 == 0:
+                    items[-1]['Layer'] = layer + add_layer * 2  # layer
+                else:
+                    items[-1]['Layer'] = layer + add_layer * 2 + 1  # layer
             else:
-                items[-1]['Layer'] = layer
+                items[-1]['Layer'] = int(layer + add_layer)
 
             # オブジェクトの反転の設定
             if self.mydict["ObjFlipType"] == 0:  # 反転なし
@@ -213,6 +251,9 @@ class YMM4:
                 items[-1]['$type'] = "YukkuriMovieMaker.Project.Items.TachieItem, YukkuriMovieMaker"
 
             item_count += 1
+
+        if item_count == 0:
+            raise rpp2exo.ItemNotFoundError
 
         # 保存する名前のテンプレートがあるかを検索、あれば上書き確認
         save_template = os.path.basename(self.mydict["EXOPath"])[:-4]

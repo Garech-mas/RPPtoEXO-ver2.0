@@ -42,7 +42,7 @@ class Midi:
 
         return inst_names
 
-    def main(self, sel_track, min_second):
+    def main(self, sel_track):
         failed = self.load(self.midi_path)
         if failed:
             raise PermissionError()
@@ -50,28 +50,17 @@ class Midi:
             "pos": [-1.0],
             "length": [-1.0],
         }
-        min_layers = []
+
         for i, instrument in enumerate(self.midi.instruments, start=1):
             if str(i) not in sel_track:
                 continue
             # トラックが切り替わる位置に-1を入れる
-            self.objDict["pos"].append(-1)
-            self.objDict["length"].append(-1)
+            if self.objDict["pos"][-1] != -1:  # トラックが切り替わる位置に-1を入れる
+                self.objDict["pos"].append(-1)
+                self.objDict["length"].append(-1)
 
-            layer = []
             for note in instrument.notes:
                 self.objDict['pos'].append(note.start)
                 self.objDict['length'].append(note.end - note.start)
 
-                add_layer = 1
-                for j, end_point in enumerate(layer):
-                    if end_point <= self.objDict["pos"][-1] and layer:
-                        if min_second <= self.objDict["length"][-1]:
-                            layer[j] = self.objDict["pos"][-1] + self.objDict["length"][-1]
-                        add_layer = 0
-                        break
-                if add_layer:
-                    layer.append(self.objDict["pos"][-1] + self.objDict["length"][-1])
-            min_layers.append(len(layer))
-
-        return min_layers, {}
+        return {}

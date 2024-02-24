@@ -92,24 +92,24 @@ def main():
         # RPPファイル用処理
         if mydict["RPPPath"].lower().endswith(".rpp"):
             set_class_pos(rpp_cl)
-            file_path, min_layers, end1 = rpp_cl.main(mydict["OutputType"] == 0, mydict["Track"], 1 / mydict["fps"])
+            file_path, end1 = rpp_cl.main(mydict["OutputType"] == 0, mydict["Track"])
             objdict = rpp_cl.objDict
         # 選択時間の設定：MIDIファイル
         elif mydict["RPPPath"].lower().endswith(".mid") or mydict["RPPPath"].lower().endswith(".midi"):
             set_class_pos(midi_cl)
-            min_layers, end1 = midi_cl.main(mydict["Track"], 1 / mydict["fps"])
+            end1 = midi_cl.main(mydict["Track"])
             objdict = midi_cl.objDict
 
         if mydict["UseYMM4"]:
             btn_exec["text"] = _("実行中") + " (3/3)"
-            end3 = ymm4_cl.run(objdict, file_path, min_layers)
+            end3 = ymm4_cl.run(objdict, file_path)
         else:
             exo_cl = Exo(mydict)
             btn_exec["text"] = _("実行中") + " (2/3)"
             file_fps = exo_cl.fetch_fps(file_path)
 
             btn_exec["text"] = _("実行中") + " (3/3)"
-            end3 = exo_cl.make_exo(objdict, min_layers, file_path, file_fps)
+            end3 = exo_cl.make_exo(objdict, file_path, file_fps)
         end = end1 | end3
 
     except PermissionError as e:
@@ -285,7 +285,7 @@ def slct_rpp():  # 参照ボタン
     if filepath != '':
         svr_rpp_input.set(filepath)
         write_cfg(filepath, "RPPDir", "Directory")
-        set_rppinfo()
+        set_rppinfo(reload=1)
 
 
 def slct_source():  # 素材選択
@@ -327,19 +327,18 @@ def set_rppinfo(reload=0):  # RPP内の各トラックの情報を表示する
     tvw_slct_track.change_state("all", 'tristate')
     tvw_slct_track.yview(0)
 
-    if ivr_slct_time.get():
-        change_time_cb()
     if filepath.lower().endswith(".rpp"):
-        rbt_trgt_auto['state'] = chk_slct_time['state'] = 'enable'
+        rbt_trgt_auto['state'] = 'enable'
         try:
             rpp_cl.load(filepath)
         except (PermissionError, FileNotFoundError):
             return True
         tree = rpp_cl.load_track()
+        change_time_cb()
         insert_treedict(tree, "", 0)
     elif filepath.lower().endswith(".mid") or filepath.lower().endswith(".midi"):
-        rbt_trgt_auto['state'] = chk_slct_time['state'] = 'disable'
-        ivr_slct_time.set(0)
+        rbt_trgt_auto['state'] = 'disable'
+        rpp_cl.load('')
         change_time_cb()
         if ivr_trgt_mode.get() == 0:
             ivr_trgt_mode.set(1)
@@ -851,7 +850,7 @@ def mode_command():  # 「追加対象」変更時の状態切り替え
 
 
 def change_time_cb():  # 「時間選択」変更時の状態切り替え
-    if ivr_slct_time.get():
+    if ivr_slct_time.get() == 1:
         cmb_time_preset['state'] = 'readonly'
         cmb_time1['state'] = 'enable'
         cmb_time2['state'] = 'enable'

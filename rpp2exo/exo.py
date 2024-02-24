@@ -35,11 +35,15 @@ class Exo:
         file_fps = []
         # 各動画ファイルを読み込み、必要な情報を格納する
         for index in range(len(file_path)):
+            fps = 0.0
             if self.mydict["OutputType"] != 0:
                 break
-            path = file_path[index]
-            cap = cv2.VideoCapture(path.replace('\\', '/'))
-            fps = float(cap.get(cv2.CAP_PROP_FPS))
+            if is_audio(file_path[index]):
+                fps = self.mydict['fps']
+            else:
+                path = file_path[index]
+                cap = cv2.VideoCapture(path.replace('\\', '/'))
+                fps = float(cap.get(cv2.CAP_PROP_FPS))
             if fps == 0.0:
                 print(_("★警告: 動画として読み込めませんでした。動画ファイルの場合、再生位置が正常に反映されません。\n対象ファイル: %s") % path)
             cap.release()
@@ -47,7 +51,7 @@ class Exo:
         file_fps.append(0.0)
         return file_fps
 
-    def make_exo(self, objdict, min_layers, file_path, file_fps):
+    def make_exo(self, objdict, file_path, file_fps):
         end = {}
         exo_result = "[exedit]\nwidth=" + str(1280) + "\nheight=" + str(720) + "\nrate=" + str(
             self.mydict["fps"]) + "\nscale=1\nlength=99999\naudio_rate=44100\naudio_ch=2"
@@ -66,14 +70,14 @@ class Exo:
 
         exo_eff = ""  # エフェクト設定用、先に宣言だけしておく。item_countを必要とするから後のループ内で処理
         exo_script = ""  # スクリプト制御用
+        bpos = 0  # アイテム一つ前の開始フレーム
         bf = 0.0  # アイテム一つ前の最終フレーム  ==Endframe
         layer = 1  # オブジェクトのあるレイヤー（RPP上で複数トラックある場合は別トラックに配置する）
         bfidx = 0  # item_countの調整用 レイヤー頭のitem_count-bfidxが0になるような値を設定
 
         opt_layer = []  # 1トラック内で重複が発生した場合の使用レイヤー状況をシミュレート
-        track = 0  # min_layersを参照するためのトラックカウント
+        opt_layer2 = []
         video_frame_count = 0  # 動画の総フレーム数 (再生時間ランダム用)
-        min_layers.append(-1)
         if self.mydict['RandomPlay']:
             videoload = cv2.VideoCapture(str(self.mydict["SrcPath"]))  # 動画を読み込む
             video_frame_count = videoload.get(cv2.CAP_PROP_FRAME_COUNT)  # フレーム数
@@ -102,12 +106,12 @@ class Exo:
                 obj_frame_length += 1
             if obj_frame_pos < bf:
                 bf = 0
-                # layer += 1 + self.mydict["SepLayerEvenObj"]
-                if obj_frame_pos < 0:
+                if obj_frame_pos < 0:  # 最後
                     bfidx = -item_count
+                    # track += 1
+                    layer += len(opt_layer + opt_layer2)
                     opt_layer = []
-                    track += 1
-                    layer += min_layers[track]
+                    opt_layer2 = []
                     continue
             bf = obj_frame_pos + obj_frame_length - 1
             if self.mydict["NoGap"] == 1:
@@ -116,30 +120,47 @@ class Exo:
 
             obj_frame_pos = sur_round(obj_frame_pos)
             if obj_frame_pos == 0: obj_frame_pos = 1
+
+            # bfidxを調整 (同一開始フレームのオブジェクトを同じ反転状況にする)
+            if obj_frame_pos == bpos:
+                bfidx -= 1
+
             bf = sur_round(bf)
+            bpos = obj_frame_pos
 
-            for i, end_point in enumerate(opt_layer):
-                add_layer = i
-                if end_point >= obj_frame_pos:
+            if self.mydict["SepLayerEvenObj"] == 1 and (bfidx + item_count) % 2 == 1:  # 偶数番目obj用のobj_layerに処理
+                for i, end_point in enumerate(opt_layer2):
+                    add_layer = i
+                    if end_point >= obj_frame_pos:  # オブジェクトが被ったときはループ継続
+                        if i == len(opt_layer2) - 1:  # 最終ループのときはレイヤー追加
+                            opt_layer2.append(bf)
+                            add_layer += 1
+                            break
+                    else:  # オブジェクトが被ってないので、bfを上書きしてループを抜ける
+                        opt_layer2[add_layer] = bf
+                        break
+                if not opt_layer2:  # 初回のレイヤー追加
+                    opt_layer2.append(bf)
+            else:
+                for i, end_point in enumerate(opt_layer):
+                    add_layer = i
+                    if end_point >= obj_frame_pos:
+                        if i == len(opt_layer) - 1:
+                            opt_layer.append(bf)
+                            add_layer += 1
+                            break
+                    else:
+                        opt_layer[add_layer] = bf
+                        break
+                if not opt_layer:  # 初回のレイヤー追加
                     opt_layer.append(bf)
-                    add_layer = i + 1
-                opt_layer[add_layer] = bf
-                break
-            if add_layer > 0 or not opt_layer:
-                opt_layer.append(bf)
-
-            #
-            # if obj_frame_pos < bf:
-            #     bf = 0
-            #     bfidx = -item_count
-            #     # layer += 1 + self.mydict["SepLayerEvenObj"]
-            #     if obj_frame_pos < 0:
-            #         layer += min_layers * (self.mydict["SepLayerEvenObj"] + 1)
-            #         continue
 
             # 偶数番目オブジェクトをひとつ下のレイヤに配置する
-            if self.mydict["SepLayerEvenObj"] == 1 and (bfidx + item_count) % 2 == 1:
-                exo_4 = "\nlayer=" + str(layer + add_layer + min_layers[track])  # layer
+            if self.mydict["SepLayerEvenObj"] == 1:
+                if (bfidx + item_count) % 2 == 0:
+                    exo_4 = "\nlayer=" + str(layer + add_layer * 2)  # layer
+                else:
+                    exo_4 = "\nlayer=" + str(layer + add_layer * 2 + 1)  # layer
             else:
                 exo_4 = "\nlayer=" + str(layer + add_layer)
 
@@ -204,13 +225,13 @@ class Exo:
                 exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + self.add_reversal(ud=1)
                 filter_count += 1
             elif self.mydict["ObjFlipType"] == 3:  # 時計回り反転
-                if (bfidx + item_count) % 4 == 3 if self.mydict['IsCCW'] else 1:
+                if (bfidx + item_count) % 4 == (3 if self.mydict['IsCCW'] else 1):
                     exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + self.add_reversal(lr=1)
                     filter_count += 1
                 elif (bfidx + item_count) % 4 == 2:
                     exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + self.add_reversal(ud=1, lr=1)
                     filter_count += 1
-                elif (bfidx + item_count) % 4 == 1 if self.mydict['IsCCW'] else 3:
+                elif (bfidx + item_count) % 4 == (1 if self.mydict['IsCCW'] else 3):
                     exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + self.add_reversal(ud=1)
                     filter_count += 1
 
@@ -339,3 +360,9 @@ def encode_txt(text):  # textを拡張編集のテキストエンコード形式
 def sur_round(i):  # iを正確に四捨五入する
     result = Decimal(str(i)).quantize(Decimal('0'), rounding=ROUND_HALF_UP)
     return float(result)
+
+
+def is_audio(path):
+    audio_extensions = ['.mp3', '.wav', '.flac', '.m4a', '.aac', '.wma', '.ogg']
+    extension = os.path.splitext(path)[1]
+    return extension.lower() in audio_extensions
