@@ -991,6 +991,15 @@ if __name__ == '__main__':
     # root
     root = TkinterDnD.Tk()
     root.title('RPPtoEXO v' + R2E_VERSION)
+
+    def temp_path(relative_path):
+        try:
+            base_path = sys._MEIPASS
+        except AttributeError:
+            base_path = os.path.abspath(".")
+        return os.path.join(base_path, relative_path)
+
+    root.iconbitmap(default=temp_path('RPPtoEXO.ico'))
     root.columnconfigure(1, weight=1)
     root.resizable(False, False)
 
