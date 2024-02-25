@@ -27,7 +27,7 @@ import rpp2exo
 from rpp2exo import Rpp, Exo, YMM4, Midi
 from rpp2exo.dict import *
 
-R2E_VERSION = '2.07'
+R2E_VERSION = '2.07.1'
 
 rpp_cl = Rpp("")
 

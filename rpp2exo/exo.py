@@ -118,14 +118,14 @@ class Exo:
                 if obj_frame_pos < sur_round(next_obj_frame_pos) - 1:
                     bf = next_obj_frame_pos - 1
 
-            obj_frame_pos = sur_round(obj_frame_pos)
+            obj_frame_pos = int(sur_round(obj_frame_pos))
             if obj_frame_pos == 0: obj_frame_pos = 1
 
             # bfidxを調整 (同一開始フレームのオブジェクトを同じ反転状況にする)
             if obj_frame_pos == bpos:
                 bfidx -= 1
 
-            bf = sur_round(bf)
+            bf = int(sur_round(bf))
             bpos = obj_frame_pos
 
             if self.mydict["SepLayerEvenObj"] == 1 and (bfidx + item_count) % 2 == 1:  # 偶数番目obj用のobj_layerに処理
