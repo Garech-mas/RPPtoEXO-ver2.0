@@ -17,7 +17,7 @@ class ItemNotFoundError(Exception):  # 出力対象アイテム数0エラー
 
 class Exo:
     def __init__(self, mydict):
-        self.fps, self.scale = deciToFrac(mydict['fps'])
+        self.fps, self.scale = mydict['fps'], 1
         self.res_x = 1920  # 解像度X
         self.res_y = 1080
         self.mydict = mydict
@@ -367,28 +367,3 @@ def is_audio(path):
     audio_extensions = ['.mp3', '.wav', '.flac', '.m4a', '.aac', '.wma', '.ogg']
     extension = os.path.splitext(path)[1]
     return extension.lower() in audio_extensions
-
-
-# 小数値を分数に変換する関数。 引用: https://n-horita.blogspot.com/2010/09/python_26.html
-def Euclidean(m, n):
-    if m < n:
-        m, n = n, m
-    if n == 0:
-        return m
-    elif m % n == 0:
-        return n
-    else:
-        return Euclidean(n, m % n)
-
-
-def deciToFrac(deci):
-    i = 0
-    while deci % 1 != 0:
-        deci = deci * 10
-        i += 1
-
-    numer, denomi = int(deci), int(10 ** i)
-
-    gcd = Euclidean(numer, denomi)
-
-    return numer / gcd, denomi / gcd
