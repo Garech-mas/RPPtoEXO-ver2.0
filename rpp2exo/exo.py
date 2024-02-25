@@ -44,9 +44,9 @@ class Exo:
                 path = file_path[index]
                 cap = cv2.VideoCapture(path.replace('\\', '/'))
                 fps = float(cap.get(cv2.CAP_PROP_FPS))
+                cap.release()
             if fps == 0.0:
                 print(_("★警告: 動画として読み込めませんでした。動画ファイルの場合、再生位置が正常に反映されません。\n対象ファイル: %s") % path)
-            cap.release()
             file_fps.append(fps)
         file_fps.append(0.0)
         return file_fps
@@ -118,14 +118,14 @@ class Exo:
                 if obj_frame_pos < sur_round(next_obj_frame_pos) - 1:
                     bf = next_obj_frame_pos - 1
 
-            obj_frame_pos = sur_round(obj_frame_pos)
+            obj_frame_pos = int(sur_round(obj_frame_pos))
             if obj_frame_pos == 0: obj_frame_pos = 1
 
             # bfidxを調整 (同一開始フレームのオブジェクトを同じ反転状況にする)
             if obj_frame_pos == bpos:
                 bfidx -= 1
 
-            bf = sur_round(bf)
+            bf = int(sur_round(bf))
             bpos = obj_frame_pos
 
             if self.mydict["SepLayerEvenObj"] == 1 and (bfidx + item_count) % 2 == 1:  # 偶数番目obj用のobj_layerに処理

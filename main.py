@@ -1,6 +1,6 @@
 #####################################################################################
-#               RPP to EXO ver 2.07                                                 #
-#                                                                       2024/02/21  #
+#               RPP to EXO ver 2.07.1                                               #
+#                                                                       2024/02/25  #
 #       Original Written by Maimai (@Maimai22015/YTPMV.info)                        #
 #       Forked by Garech (@Garec_)                                                  #
 #                                                                                   #
@@ -27,7 +27,7 @@ import rpp2exo
 from rpp2exo import Rpp, Exo, YMM4, Midi
 from rpp2exo.dict import *
 
-R2E_VERSION = '2.07'
+R2E_VERSION = '2.07.1'
 
 rpp_cl = Rpp("")
 
@@ -81,8 +81,6 @@ def main():
     try:
         end1 = objdict = {}
         file_path = file_fps = []
-        min_layers = []
-        exo_cl = Exo(mydict)
         chk = 0
         while chk != 1 and mydict['UseYMM4']:
             chk = check_ymm4()
@@ -1041,12 +1039,18 @@ if __name__ == '__main__':
 
     # ゆっくりMovieMaker4 使用時の書き換え処理
     if mydict['UseYMM4']:
-        ymm4_cl.load()
-        XDict = rpp2exo.dict.XDict['ymm4']
-        BlendDict = rpp2exo.dict.BlendDict['ymm4']
-        root.title('RPPtoYMM4 (RPPtoEXO) v' + R2E_VERSION)
-        ivr_byohen_exists = IntVar()
-        menu_setting.add_command(label='YMM4の読込み場所を変更', command=change_ymm4_path)
+        try:
+            ymm4_cl.load()
+            XDict = rpp2exo.dict.XDict['ymm4']
+            BlendDict = rpp2exo.dict.BlendDict['ymm4']
+            root.title('RPPtoYMM4 (RPPtoEXO) v' + R2E_VERSION)
+            ivr_byohen_exists = IntVar()
+            menu_setting.add_command(label='YMM4の読込み場所を変更', command=change_ymm4_path)
+        except FileNotFoundError:
+            filepath = ''
+            ivr_use_ymm4.set(0)
+            mydict['UseYMM4'] = 0
+            write_cfg(0, "use_ymm4", "Param")
 
     # 言語設定メニュー
     menu_lang = Menu(mbar, tearoff=0)
