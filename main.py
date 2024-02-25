@@ -81,8 +81,6 @@ def main():
     try:
         end1 = objdict = {}
         file_path = file_fps = []
-        min_layers = []
-        exo_cl = Exo(mydict)
         chk = 0
         while chk != 1 and mydict['UseYMM4']:
             chk = check_ymm4()

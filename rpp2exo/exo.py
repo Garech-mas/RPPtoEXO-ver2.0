@@ -4,6 +4,7 @@ import cv2
 import gettext
 import os
 from decimal import Decimal, ROUND_HALF_UP
+from fractions import Fraction
 from rpp2exo.dict import ExDict
 
 
@@ -17,7 +18,8 @@ class ItemNotFoundError(Exception):  # 出力対象アイテム数0エラー
 
 class Exo:
     def __init__(self, mydict):
-        self.fps = mydict["fps"]
+        self.fps = Fraction(mydict["fps"]).limit_denominator().numerator
+        self.scale = Fraction(mydict["fps"]).limit_denominator().denominator
         self.res_x = 1920  # 解像度X
         self.res_y = 1080
         self.mydict = mydict
@@ -53,8 +55,10 @@ class Exo:
 
     def make_exo(self, objdict, file_path, file_fps):
         end = {}
-        exo_result = "[exedit]\nwidth=" + str(1280) + "\nheight=" + str(720) + "\nrate=" + str(
-            self.mydict["fps"]) + "\nscale=1\nlength=99999\naudio_rate=44100\naudio_ch=2"
+        exo_result = "[exedit]\nwidth=" + str(1280) + "\nheight=" + str(720) + \
+                     "\nrate=" + str(Fraction(self.mydict["fps"]).limit_denominator().numerator) + \
+                     "\nscale=" + str(Fraction(self.mydict["fps"]).limit_denominator().denominator) + \
+                     "\nlength=99999\naudio_rate=44100\naudio_ch=2"
         item_count = 0
         exo_1 = "\n["  # item_count
         exo_2 = "]\nstart="  # StartFrame
@@ -118,14 +122,14 @@ class Exo:
                 if obj_frame_pos < sur_round(next_obj_frame_pos) - 1:
                     bf = next_obj_frame_pos - 1
 
-            obj_frame_pos = sur_round(obj_frame_pos)
+            obj_frame_pos = int(sur_round(obj_frame_pos))
             if obj_frame_pos == 0: obj_frame_pos = 1
 
             # bfidxを調整 (同一開始フレームのオブジェクトを同じ反転状況にする)
             if obj_frame_pos == bpos:
                 bfidx -= 1
 
-            bf = sur_round(bf)
+            bf = int(sur_round(bf))
             bpos = obj_frame_pos
 
             if self.mydict["SepLayerEvenObj"] == 1 and (bfidx + item_count) % 2 == 1:  # 偶数番目obj用のobj_layerに処理
