@@ -4,7 +4,6 @@ import cv2
 import gettext
 import os
 from decimal import Decimal, ROUND_HALF_UP
-from fractions import Fraction
 from rpp2exo.dict import ExDict
 
 
@@ -18,8 +17,7 @@ class ItemNotFoundError(Exception):  # 出力対象アイテム数0エラー
 
 class Exo:
     def __init__(self, mydict):
-        self.fps = Fraction(mydict["fps"]).limit_denominator().numerator
-        self.scale = Fraction(mydict["fps"]).limit_denominator().denominator
+        self.fps, self.scale = deciToFrac(mydict['fps'])
         self.res_x = 1920  # 解像度X
         self.res_y = 1080
         self.mydict = mydict
@@ -56,8 +54,7 @@ class Exo:
     def make_exo(self, objdict, file_path, file_fps):
         end = {}
         exo_result = "[exedit]\nwidth=" + str(1280) + "\nheight=" + str(720) + \
-                     "\nrate=" + str(Fraction(self.mydict["fps"]).limit_denominator().numerator) + \
-                     "\nscale=" + str(Fraction(self.mydict["fps"]).limit_denominator().denominator) + \
+                     "\nrate=" + str(int(self.fps)) + "\nscale=" + str(int(self.scale)) + \
                      "\nlength=99999\naudio_rate=44100\naudio_ch=2"
         item_count = 0
         exo_1 = "\n["  # item_count
@@ -370,3 +367,28 @@ def is_audio(path):
     audio_extensions = ['.mp3', '.wav', '.flac', '.m4a', '.aac', '.wma', '.ogg']
     extension = os.path.splitext(path)[1]
     return extension.lower() in audio_extensions
+
+
+# 小数値を分数に変換する関数。 引用: https://n-horita.blogspot.com/2010/09/python_26.html
+def Euclidean(m, n):
+    if m < n:
+        m, n = n, m
+    if n == 0:
+        return m
+    elif m % n == 0:
+        return n
+    else:
+        return Euclidean(n, m % n)
+
+
+def deciToFrac(deci):
+    i = 0
+    while deci % 1 != 0:
+        deci = deci * 10
+        i += 1
+
+    numer, denomi = int(deci), int(10 ** i)
+
+    gcd = Euclidean(numer, denomi)
+
+    return numer / gcd, denomi / gcd
