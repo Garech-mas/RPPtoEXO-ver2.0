@@ -44,9 +44,9 @@ class Exo:
                 path = file_path[index]
                 cap = cv2.VideoCapture(path.replace('\\', '/'))
                 fps = float(cap.get(cv2.CAP_PROP_FPS))
-                cap.release()
             if fps == 0.0:
                 print(_("★警告: 動画として読み込めませんでした。動画ファイルの場合、再生位置が正常に反映されません。\n対象ファイル: %s") % path)
+            cap.release()
             file_fps.append(fps)
         file_fps.append(0.0)
         return file_fps
