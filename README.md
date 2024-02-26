@@ -12,6 +12,13 @@ REAPERのプロジェクトファイル・MIDIファイルから自動で音合�
 
 それ以外の環境の場合、正しく動作しない設定項目があります。
 
+## ダウンロード
+**https://github.com/Garech-mas/RPPtoEXO-ver2.0/releases/latest**
+
+上記のリンクにアクセスした後、RPPtoEXO-v2.**.zip からEXE版をダウンロードできます。
+
+Pythonをインストール済みの方は、その下の Source Code (zip) からPY版をダウンロードできます。
+
 ## 起動方法
 EXE版の場合、exeをダブルクリックして実行してください。
 
