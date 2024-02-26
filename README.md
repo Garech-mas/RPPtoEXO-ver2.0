@@ -36,3 +36,6 @@ https://scrapbox.io/Garech/RPPtoEXO_v2.0
 
 Original made by maimai22015
 https://ytpmv.info/RPPtoEXO/
+
+
+Latest version is →　https://github.com/Garech-mas/RPPtoEXO-ver2.0
