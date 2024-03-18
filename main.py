@@ -1,6 +1,6 @@
 #####################################################################################
-#               RPP to EXO ver 2.07.1                                               #
-#                                                                       2024/02/25  #
+#               RPP to EXO ver 2.07.2                                               #
+#                                                                       2024/03/18  #
 #       Original Written by Maimai (@Maimai22015/YTPMV.info)                        #
 #       Forked by Garech (@Garec_)                                                  #
 #                                                                                   #
@@ -27,7 +27,7 @@ import rpp2exo
 from rpp2exo import Rpp, Exo, YMM4, Midi
 from rpp2exo.dict import *
 
-R2E_VERSION = '2.07.1'
+R2E_VERSION = '2.07.2'
 
 rpp_cl = Rpp("")
 
@@ -132,39 +132,41 @@ def main():
     except rpp2exo.ymm4.TemplateNotFoundError:
         messagebox.showerror(_("エラー"), _("エイリアスに指定されているテンプレートは存在しませんでした。"))
     except Exception as e:
+        e_type, e_object, e_traceback = sys.exc_info()
         messagebox.showerror(_("エラー"), _("予期せぬエラーが発生しました。不正なRPPファイルの可能性があります。\n"
                                          "最新バージョンのREAPERをインストールし、RPPファイルを再保存して再試行してください。\n"
-                                         "それでも症状が改善しない場合、コンソールのエラー内容を制作者まで報告ください。"))
-        raise e
+                                         ) + str(e) + ";" + e_traceback.tb_frame.f_code.co_filename + ": " + e_traceback.tb_lineno)
     else:
+        warn_msgs = []
         if "exist_mode2" in end:
-            print(_("★警告: RPP内にセクション・逆再生付きのアイテムが存在したため、該当アイテムが正常に生成できませんでした。"))
+            warn_msgs.append(_("★警告: RPP内にセクション・逆再生付きのアイテムが存在したため、該当アイテムが正常に生成できませんでした。") + "\n")
             for i, detail in enumerate(end["exist_mode2"]):
-                print("    " + detail)
+                warn_msgs[-1] += "    " + detail + "\n"
                 if i == 4:
-                    print("    " + _("その他 %s個") % str(len(end["exist_mode2"]) - 5))
+                    warn_msgs[-1] += "    " + _("その他 %s個") % str(len(end["exist_mode2"]) - 5)
                     break
 
         if "exist_stretch_marker" in end:
-            print(_("★警告: RPP内に伸縮マーカーが設定されているアイテムが存在したため、該当アイテムが正常に生成できませんでした。"))
+            warn_msgs.append(_("★警告: RPP内に伸縮マーカーが設定されているアイテムが存在したため、該当アイテムが正常に生成できませんでした。") + "\n")
             for i, detail in enumerate(end["exist_stretch_marker"]):
-                print("    " + detail)
+                warn_msgs[-1] += "    " + detail + "\n"
                 if i == 4:
-                    print("    " + _("その他 %s個") % str(len(end["exist_stretch_marker"]) - 5))
+                    warn_msgs[-1] += "    " + _("その他 %s個") % str(len(end["exist_stretch_marker"]) - 5)
                     break
 
         if "layer_over_100" in end:
-            print(_("★警告: 出力処理時にEXOのレイヤー数が100を超えたため、正常に生成できませんでした。"))
+            warn_msgs.append(_("★警告: 出力処理時にEXOのレイヤー数が100を超えたため、正常に生成できませんでした。"))
 
         if 'keyframe_exists' in end:
-            print("★警告: エイリアスファイルに中間点が存在したため、正常に生成できませんでした。")
+            warn_msgs.append("★警告: エイリアスファイルに中間点が存在したため、正常に生成できませんでした。")
 
         if 'byoga_henkan_not_exists' in end:
-            print("★警告: YMM4では上下反転機能が実装されていないため、上下反転の設定は反映されません。\n"
-                  "    描画変換プラグインを導入し、テンプレートを再生成することで読み込むことができます。")
+            warn_msgs.append("★警告: YMM4では上下反転機能が実装されていないため、上下反転の設定は反映されません。\n"
+                             "    描画変換プラグインを導入し、テンプレートを再生成することで読み込むことができます。")
 
         if not mydict['PatchExists'] and mydict['HasPatchError']:
             print(_("★警告: AviUtl 拡張編集のバグにより、オブジェクトの設定は正常に反映されません。"))
+            warn_msgs.append(_("★警告: AviUtl 拡張編集のバグにより、オブジェクトの設定は正常に反映されません。"))
             end = end | {1: 1}
 
         ret_aul = False
@@ -173,14 +175,18 @@ def main():
             if end == {}:
                 ret_aul = messagebox.askyesno(_("正常終了"), _("正常に生成されました。\n保存先のフォルダを開きますか？"))
             else:
+                for msg in warn_msgs:
+                    messagebox.showwarning(_("警告"), msg)
                 ret_aul = messagebox.askyesno(_("警告"),
-                                          _("一部アイテムが正常に生成できませんでした。詳細はコンソールをご覧ください。\n保存先のフォルダを開きますか？"), icon="warning")
+                                          _("一部アイテムが正常に生成できませんでした。\n保存先のフォルダを開きますか？"), icon="warning")
         else:
             if end == {}:
                 ret_ymm4 = messagebox.askyesno(_("正常終了"), _("正常に生成されました。\nゆっくりMovieMaker4を開きますか？"))
             else:
+                for msg in warn_msgs:
+                    messagebox.showwarning(_("警告"), msg)
                 ret_ymm4 = messagebox.askyesno(_("警告"),
-                                          _("一部アイテムが正常に生成できませんでした。詳細はコンソールをご覧ください。\nゆっくりMovieMaker4を開きますか？"), icon="warning")
+                                          _("一部アイテムが正常に生成できませんでした。\nゆっくりMovieMaker4を開きますか？"), icon="warning")
 
         if ret_aul:
             path = os.path.dirname(mydict["EXOPath"]).replace('/', '\\')

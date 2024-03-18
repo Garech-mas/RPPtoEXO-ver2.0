@@ -275,7 +275,7 @@ class YMM4:
                 tempidx = len(self.setting['Templates']) - 1
 
         # テンプレートを保存
-        self.setting['Templates'][tempidx]['Items'] = items
+        self.setting['Templates'][tempidx]['Items'] = deepcopy(items)
         with open(self.json_path, mode='w', encoding='utf_8_sig') as f:
             f.write(json.dumps(self.setting, ensure_ascii=False, indent=2))
 
