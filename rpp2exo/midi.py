@@ -37,8 +37,6 @@ class Midi:
             while name in inst_names:
                 name += ' '
             inst_names[name] = {}
-            # print("Instrument:", inst.program, inst.name, len(inst.notes),
-            #       len(inst.pitch_bends), len(inst.control_changes))
 
         return inst_names
 

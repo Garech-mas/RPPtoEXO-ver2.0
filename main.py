@@ -1,6 +1,6 @@
 #####################################################################################
-#               RPP to EXO ver 2.07.2                                               #
-#                                                                       2024/03/18  #
+#               RPP to EXO ver 2.07.3                                               #
+#                                                                       2024/04/02  #
 #       Original Written by Maimai (@Maimai22015/YTPMV.info)                        #
 #       Forked by Garech (@Garec_)                                                  #
 #                                                                                   #
@@ -9,6 +9,8 @@
 
 import configparser
 import gettext
+import re
+import shutil
 import subprocess
 import sys
 import threading
@@ -27,13 +29,26 @@ import rpp2exo
 from rpp2exo import Rpp, Exo, YMM4, Midi
 from rpp2exo.dict import *
 
-R2E_VERSION = '2.07.2'
+R2E_VERSION = '2.07.3'
 
 rpp_cl = Rpp("")
 
 ymm4_cl = YMM4(mydict)
 midi_cl = Midi("")
 
+def ignore_sjis(path, chars=0):
+    text = ''
+    ext = os.path.splitext(path)[1]
+    for c in path:
+        try:
+            c.encode('shift-jis')
+            text += c
+            chars += 1
+            if chars >= 259 - len(ext):
+                pass
+        except UnicodeEncodeError:
+            pass
+    return text
 
 def patched_error(msg):
     mydict['HasPatchError'] = 1
@@ -82,6 +97,7 @@ def main():
         end1 = objdict = {}
         file_path = file_fps = []
         min_layers = []
+        file_copied = False
         exo_cl = Exo(mydict)
         chk = 0
         while chk != 1 and mydict['UseYMM4']:
@@ -104,6 +120,25 @@ def main():
             btn_exec["text"] = _("実行中") + " (3/3)"
             end3 = ymm4_cl.run(objdict, file_path)
         else:
+            # 素材ファイルがSJIS非対応だった場合の処理
+            if mydict["SrcPath"] != ignore_sjis(mydict["SrcPath"]):
+                os.makedirs(mydict["EXOPath"][:-4], exist_ok=True)
+                save_path = ignore_sjis(mydict["EXOPath"][:-4] + '\\' + os.path.basename(mydict["SrcPath"]))
+                shutil.copy(mydict["SrcPath"], save_path)
+                file_copied = True
+
+            for i, file in enumerate(file_path):
+                sjis_file = ignore_sjis(file)
+                if file != sjis_file and not rpp2exo.exo.is_audio(file):
+                    os.makedirs(mydict["EXOPath"][:-4], exist_ok=True)
+                    save_path = ignore_sjis(mydict["EXOPath"][:-4] + '\\' + os.path.basename(file))
+                    try:
+                        shutil.copy(file, save_path)
+                        file_path[i] = save_path
+                        file_copied = True
+                    except (PermissionError, FileNotFoundError):
+                        file_path[i] = sjis_file
+
             exo_cl = Exo(mydict)
             btn_exec["text"] = _("実行中") + " (2/3)"
             file_fps = exo_cl.fetch_fps(file_path)
@@ -131,11 +166,14 @@ def main():
                                          "出力対象トラック、時間選択の設定を見直してください。"))
     except rpp2exo.ymm4.TemplateNotFoundError:
         messagebox.showerror(_("エラー"), _("エイリアスに指定されているテンプレートは存在しませんでした。"))
+    except KeyboardInterrupt:
+        messagebox.showinfo(_("エラー"), _("生成がキャンセルされました。"))
     except Exception as e:
         e_type, e_object, e_traceback = sys.exc_info()
         messagebox.showerror(_("エラー"), _("予期せぬエラーが発生しました。不正なRPPファイルの可能性があります。\n"
                                          "最新バージョンのREAPERをインストールし、RPPファイルを再保存して再試行してください。\n"
-                                         ) + str(e) + ";" + e_traceback.tb_frame.f_code.co_filename + ": " + e_traceback.tb_lineno)
+                                         ) + str(e) + ";\n" + e_traceback.tb_frame.f_code.co_filename + ": " + str(e_traceback.tb_lineno))
+        raise e
     else:
         warn_msgs = []
         if "exist_mode2" in end:
@@ -158,16 +196,20 @@ def main():
             warn_msgs.append(_("★警告: 出力処理時にEXOのレイヤー数が100を超えたため、正常に生成できませんでした。"))
 
         if 'keyframe_exists' in end:
-            warn_msgs.append("★警告: エイリアスファイルに中間点が存在したため、正常に生成できませんでした。")
+            warn_msgs.append(_("★警告: エイリアスファイルに中間点が存在したため、正常に生成できませんでした。"))
 
         if 'byoga_henkan_not_exists' in end:
-            warn_msgs.append("★警告: YMM4では上下反転機能が実装されていないため、上下反転の設定は反映されません。\n"
-                             "    描画変換プラグインを導入し、テンプレートを再生成することで読み込むことができます。")
+            warn_msgs.append(_("★警告: YMM4では上下反転機能が実装されていないため、上下反転の設定は反映されません。\n"
+                             "    描画変換プラグインを導入し、テンプレートを再生成することで読み込むことができます。"))
 
         if not mydict['PatchExists'] and mydict['HasPatchError']:
             print(_("★警告: AviUtl 拡張編集のバグにより、オブジェクトの設定は正常に反映されません。"))
             warn_msgs.append(_("★警告: AviUtl 拡張編集のバグにより、オブジェクトの設定は正常に反映されません。"))
             end = end | {1: 1}
+
+        if file_copied:
+            messagebox.showinfo(_('確認'), _("AviUtlで読み込めないファイルが含まれていたため、EXOを保存したフォルダに一部の動画ファイルをコピーしました。"))
+
 
         ret_aul = False
         ret_ymm4 = False
@@ -207,7 +249,7 @@ def check_ymm4():
     for proc in psutil.process_iter():
         try:
             if proc.exe() == mydict["YMM4Path"].replace('/', '\\'):
-                ret = messagebox.askretrycancel('警告', 'YMM4が実行されている間はRPPtoYMM4の処理をすることができません。\n', icon="warning")
+                ret = messagebox.askretrycancel(_('警告'), _('YMM4が実行されている間はRPPtoYMM4の処理をすることができません。\n'), icon="warning")
                 if not ret:
                     return -1  # 処理を終了する
                 else:
@@ -646,6 +688,48 @@ def run():
     mydict["SepLayerEvenObj"] = ivr_sep_even.get()
     mydict["NoGap"] = ivr_no_gap.get()
     mydict["RandomPlay"] = ivr_randplay.get()
+
+    if mydict["RandomPlay"]:
+        if mydict["OutputType"] == 1 and not os.path.isfile(mydict["SrcPath"]):
+            messagebox.showinfo(_("エラー"), _("動画の素材パスを入力してください。"))
+            return 0
+        if mydict["OutputType"] == 4 and svr_randplay_en.get() == '':
+            messagebox.showinfo(_("エラー"), _("再生位置ランダムの終点の値を入力してください。"))
+
+        if mydict['UseYMM4']:
+            if is_float(svr_randplay_st.get()):
+                svr_randplay_st.set(rpp2exo.ymm4.format_seconds(float(svr_randplay_st.get())))
+            elif svr_randplay_st.get() == '':
+                svr_randplay_st.set(rpp2exo.ymm4.format_seconds(0))
+            if is_float(svr_randplay_en.get()):
+                svr_randplay_en.set(rpp2exo.ymm4.format_seconds(float(svr_randplay_en.get())))
+
+            if not is_float(svr_randplay_st.get()) and not re.match(r'^\d{2}:\d{2}:\d{2}(\.\d+)?$', svr_randplay_st.get()):
+                messagebox.showinfo(_("エラー"), _("%s : %s の値が正しく入力されていません。") % (_('再生位置ランダム'), _('始点')))
+                return 0
+            if not is_float(svr_randplay_en.get()) and not re.match(r'^\d{2}:\d{2}:\d{2}(\.\d+)?$', svr_randplay_en.get()):
+                if not(mydict["OutputType"] == 1 and svr_randplay_en.get() == ''):
+                    messagebox.showinfo(_("エラー"), _("%s : %s の値が正しく入力されていません。") % (_('再生位置ランダム'), _('終点')))
+                    return 0
+        else:
+            if svr_randplay_st.get() == '':
+                svr_randplay_st.set('1')
+            if not re.match(r'^[0-9]+$', svr_randplay_st.get()):
+                messagebox.showinfo(_("エラー"), _("%s : %s の値が正しく入力されていません。") % (_('再生位置ランダム'), _('始点')))
+                return 0
+            if not re.match(r'^[0-9]+$', svr_randplay_en.get()):
+                if not(mydict["OutputType"] == 1 and svr_randplay_en.get() == ''):
+                    messagebox.showinfo(_("エラー"), _("%s : %s の値が正しく入力されていません。") % (_('再生位置ランダム'), _('終点')))
+                    return 0
+            if svr_randplay_st.get() == '':
+                svr_randplay_st.set('1')
+
+        mydict["RandomStart"] = svr_randplay_st.get()
+        mydict["RandomEnd"] = svr_randplay_en.get()
+        if mydict["RandomStart"] > mydict["RandomEnd"] and mydict["RandomEnd"]:
+            mydict["RandomStart"], mydict["RandomEnd"] = mydict["RandomEnd"], mydict["RandomStart"]
+
+
     mydict["clipping"] = ivr_clipping.get()
     mydict["IsExSet"] = ivr_adv_draw.get()
     mydict["SceneIdx"] = int(svr_scene_idx.get() or 0)
@@ -656,7 +740,14 @@ def run():
     mydict["Param"] = []
 
     def set_mparam(i, mv=1, tp=1):
-        if not is_float(mEntryS[i].get()) and not mydict['UseYMM4']:
+        if mydict['UseYMM4'] and i == 13:
+            if is_float(mEntryS[i].get()):
+                mEntryS[i].set(rpp2exo.ymm4.format_seconds(float(mEntryS[i].get())))
+            if not re.match(r'^\d{2}:\d{2}:\d{2}(\.\d+)?$', mEntryS[i].get()):
+                messagebox.showinfo(_("エラー"), _("%s : %s の値が正しく入力されていません。") % (
+                mLabel[0].get(), mLabel[i + 1].get()))
+                raise ValueError
+        elif not is_float(mEntryS[i].get()):
             messagebox.showinfo(_("エラー"), _("%s : %s の値が正しく入力されていません。") % (mLabel[0].get(), mLabel[i+1].get()))
             raise ValueError
         if mv and -1 < float(mEntryS[i].get()) < 0:
@@ -706,6 +797,9 @@ def run():
             return 0
         elif mydict["EXOPath"] == "":
             messagebox.showinfo(_("エラー"), _("EXOの保存先パスを入力してください。"))
+            return 0
+        elif mydict["EXOPath"] != ignore_sjis(mydict["EXOPath"]):
+            messagebox.showinfo(_("エラー"), _("EXOの保存先パスにAviUtlでの使用不可能文字が混入しているか、保存先パスが長すぎます。パスを変更してください。"))
             return 0
         elif mydict["fps"] == "" or mydict["fps"] <= 0:
             messagebox.showinfo(_("エラー"), _("正しいFPSの値を入力してください。"))
@@ -830,14 +924,16 @@ def mode_command():  # 「追加対象」変更時の状態切り替え
         chk_adv_draw['state'] = 'enable'
         toggle_media_label(0)
 
-    if ivr_trgt_mode.get() == 1:  # アルファチャンネルを読み込む・再生位置ランダム
-        chk_import_alpha['state'] = chk_randplay['state'] = 'enable'
+    if ivr_trgt_mode.get() == 1:  # アルファチャンネルを読み込む
+        chk_import_alpha['state'] = 'enable'
     else:
-        chk_import_alpha['state'] = chk_randplay['state'] = 'disable'
+        chk_import_alpha['state'] = 'disable'
 
-    if ivr_trgt_mode.get() == 1 or ivr_trgt_mode.get() == 4:  # ループ再生・再生速度・再生位置
-        chk_loop['state'] = 'enable'
 
+    if ivr_trgt_mode.get() == 1 or ivr_trgt_mode.get() == 4:  # ループ再生・再生速度・再生位置・再生位置ランダム
+        chk_loop['state'] = chk_randplay['state'] = 'enable'
+        if ivr_randplay.get() == 1:
+            ent_randplay_st['state'] = ent_randplay_en['state'] = 'enable'
         # 拡張描画の設定項目を描画
         for i in range(13, 15):
             mLabel2[i + 1].grid()
@@ -846,6 +942,8 @@ def mode_command():  # 「追加対象」変更時の状態切り替え
             mEntryEE[i].grid()
             mEntryConfE[i].grid()
     else:
+        chk_loop['state'] = 'disable'
+        chk_randplay['state'] = ent_randplay_st['state'] = ent_randplay_en['state'] = 'disable'
         # 拡張描画の設定項目を消す
         for i in range(13, 15):
             mLabel2[i + 1].grid_remove()
@@ -886,15 +984,21 @@ def set_time(self):  # タイム選択ComboBoxのリストをリセットする
         cmb_time2.set(slct[slct.rfind('~') + 1:-1])
 
 
-def set_time1(self):  # 上側のタイム選択ComboBox適用
+def set_time1():  # 上側のタイム選択ComboBox適用
     x = svr_time1.get()
     cmb_time1.set(x[x.rfind(':') + 2:])
 
 
-def set_time2(self):  # 下側のタイム選択ComboBox適用
+def set_time2():  # 下側のタイム選択ComboBox適用
     x = svr_time2.get()
     cmb_time2.set(x[x.rfind(':') + 2:])
 
+
+def change_randplay():
+    if ivr_randplay.get() == 1:
+        ent_randplay_st['state'] = ent_randplay_en['state'] = 'enable'
+    else:
+        ent_randplay_st['state'] = ent_randplay_en['state'] = 'disable'
 
 # ファイルD&D時に使う関数
 def drop_file(target, event):
@@ -1025,12 +1129,12 @@ if __name__ == '__main__':
     ivr_is_ccw = IntVar()
     ivr_is_ccw.set(mydict['IsCCW'])
     menu_is_ccw = Menu(mbar, tearoff=0)
-    menu_setting.add_cascade(label='左右上下反転時の回転方向', menu=menu_is_ccw)
-    menu_is_ccw.add_radiobutton(label='時計回り', value=0, variable=ivr_is_ccw, command=lambda: [
+    menu_setting.add_cascade(label=_('左右上下反転時の回転方向'), menu=menu_is_ccw)
+    menu_is_ccw.add_radiobutton(label=_('時計回り'), value=0, variable=ivr_is_ccw, command=lambda: [
                                      write_cfg(0, "is_ccw", "Param"),
                                      mydict.update(IsCCW=0)
                                   ])
-    menu_is_ccw.add_radiobutton(label='反時計回り', value=1, variable=ivr_is_ccw, command=lambda: [
+    menu_is_ccw.add_radiobutton(label=_('反時計回り'), value=1, variable=ivr_is_ccw, command=lambda: [
                                      write_cfg(1, "is_ccw", "Param"),
                                      mydict.update(IsCCW=1)
                                   ])
@@ -1053,7 +1157,7 @@ if __name__ == '__main__':
             BlendDict = rpp2exo.dict.BlendDict['ymm4']
             root.title('RPPtoYMM4 (RPPtoEXO) v' + R2E_VERSION)
             ivr_byohen_exists = IntVar()
-            menu_setting.add_command(label='YMM4の読込み場所を変更', command=change_ymm4_path)
+            menu_setting.add_command(label=_('YMM4の読込み場所を変更'), command=change_ymm4_path)
         except FileNotFoundError:
             filepath = ''
             ivr_use_ymm4.set(0)
@@ -1129,7 +1233,7 @@ if __name__ == '__main__':
     frame_exo = ttk.Frame(frame_left, padding=5)
     frame_exo.grid(row=1, column=0)
     lbl_exo_input = ttk.Label(frame_exo, text='* EXO : ') if not mydict["UseYMM4"] else ttk.Label(
-        frame_exo, text='* 保存ﾃﾝﾌﾟﾚｰﾄ名 : ')
+        frame_exo, text=_('* 保存ﾃﾝﾌﾟﾚｰﾄ名 : '))
     lbl_exo_input.grid(row=1, column=0)
     svr_exo_input = StringVar()
     ent_exo_input = ttk.Entry(frame_exo, textvariable=svr_exo_input, width=50)
@@ -1243,7 +1347,7 @@ if __name__ == '__main__':
         rbt_trgt_scene.grid(row=0, column=5)
         ent_scene_idx.grid(row=0, column=6)
     else:
-        rbt_trgt_scene = ttk.Radiobutton(frame_trgt, value=4, variable=ivr_trgt_mode, text=_('立ち絵'),
+        rbt_trgt_scene = ttk.Radiobutton(frame_trgt, value=5, variable=ivr_trgt_mode, text=_('立ち絵'),
                                          command=mode_command)
         rbt_trgt_scene.grid(row=0, column=5)
         svr_scene_idx.set('1')
@@ -1251,15 +1355,24 @@ if __name__ == '__main__':
     lbl_src_input = ttk.Label(frame_trgt, text=_('素材 : '))
     lbl_src_input.grid(row=1, column=0, sticky=E)
     svr_src_input = StringVar()
-    ent_src_input = ttk.Entry(frame_trgt, textvariable=svr_src_input, width=46)
+    ent_src_input = ttk.Entry(frame_trgt, textvariable=svr_src_input, width=41)
     ent_src_input.grid(row=1, column=1, columnspan=5, sticky=W)
     ent_src_input.drop_target_register(DND_FILES)
     ent_src_input.dnd_bind("<<Drop>>", partial(drop_file, svr_src_input))
     btn_src_browse = ttk.Button(frame_trgt, text=_('参照…'), command=slct_source)
     btn_src_browse.grid(row=1, column=5, columnspan=2, sticky=E)
     ivr_randplay = IntVar()
-    chk_randplay = ttk.Checkbutton(frame_trgt, padding=5, text=_('再生位置ランダム'), onvalue=1, offvalue=0, variable=ivr_randplay)
+    chk_randplay = ttk.Checkbutton(frame_trgt, padding=5, text=_('再生位置ランダム : '), onvalue=1, offvalue=0, variable=ivr_randplay, command=change_randplay)
     chk_randplay.grid(row=2, column=0, columnspan=3, sticky=W)
+    svr_randplay_st = StringVar()
+    svr_randplay_st.set('1' if not mydict['UseYMM4'] else '00:00:00')
+    ent_randplay_st = ttk.Entry(frame_trgt, textvariable=svr_randplay_st, width=7, state='disable')
+    ent_randplay_st.grid(row=2, column=1, padx=(50, 0), columnspan=2, sticky=W)
+    lbl_randplay = ttk.Label(frame_trgt, text='~')
+    lbl_randplay.grid(row=2, column=2, padx=24, columnspan=2, sticky=W)
+    svr_randplay_en = StringVar()
+    ent_randplay_en = ttk.Entry(frame_trgt, textvariable=svr_randplay_en, width=7, state='disable')
+    ent_randplay_en.grid(row=2, column=2, padx=(35, 0), columnspan=2, sticky=W)
 
     ivr_clipping = IntVar()
     chk_clipping = ttk.Checkbutton(frame_trgt, padding=5, text=ExDict['上のオブジェクトでクリッピング'],
@@ -1326,8 +1439,8 @@ if __name__ == '__main__':
     if mydict['UseYMM4']:
         mEntryS[4].set('100.0')
         mEntryS[13].set('00:00:00')
-        mLabel[5].set('不透明度')
-        mLabel[6].set('回転角')
+        mLabel[5].set(_('不透明度'))
+        mLabel[6].set(_('回転角'))
         mEntryXCb[13]['state'] = 'disable'
         mEntryXCb[14]['state'] = 'disable'
 

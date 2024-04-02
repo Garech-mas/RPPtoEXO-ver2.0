@@ -1,5 +1,7 @@
 import binascii
 import random
+from tkinter import messagebox
+
 import cv2
 import gettext
 import os
@@ -81,10 +83,9 @@ class Exo:
 
         opt_layer = []  # 1トラック内で重複が発生した場合の使用レイヤー状況をシミュレート
         opt_layer2 = []
-        video_frame_count = 0  # 動画の総フレーム数 (再生時間ランダム用)
-        if self.mydict['RandomPlay']:
+        if self.mydict['RandomPlay'] and not self.mydict['RandomEnd']:
             videoload = cv2.VideoCapture(str(self.mydict["SrcPath"]))  # 動画を読み込む
-            video_frame_count = videoload.get(cv2.CAP_PROP_FRAME_COUNT)  # フレーム数
+            self.mydict['RandomEnd'] = videoload.get(cv2.CAP_PROP_FRAME_COUNT)  # フレーム数
 
         for index in range(1, len(objdict["length"])):
             exo_5 = ""
@@ -197,6 +198,7 @@ class Exo:
                                 if condition == '':
                                     continue
                                 else:
+                                    end['keyframe_exists'] = True
                                     break
                             if (exa[idx + 1][6:] == self.t('標準描画') + '\n' or
                                     exa[idx + 1][6:] == self.t('拡張描画') + '\n'):
@@ -275,7 +277,7 @@ class Exo:
                         "\nfile=" + file
             elif self.mydict["OutputType"] == 1:  # 動画オブジェクト
                 if self.mydict["RandomPlay"]:   # 再生位置ランダム
-                    self.mydict["SrcPosition"] = random.randint(1, int(video_frame_count))
+                    self.mydict["SrcPosition"] = random.randint(int(self.mydict['RandomStart']), int(self.mydict['RandomEnd']))
                 exo_5 = ".0]\n_name=" + self.t("動画ファイル") + \
                         "\n" + self.t("再生位置") + "=" + str(self.mydict["SrcPosition"]) + \
                         "\n" + self.t("再生速度") + "=" + str(self.mydict["SrcRate"]) + \
@@ -287,6 +289,8 @@ class Exo:
                 exo_5 = ".0]\n_name=" + self.t("画像ファイル") + \
                         "\nfile=" + str(self.mydict["SrcPath"])
             elif self.mydict["OutputType"] == 4:  # シーンオブジェクト
+                if self.mydict["RandomPlay"]:   # 再生位置ランダム
+                    self.mydict["SrcPosition"] = random.randint(int(self.mydict['RandomStart']), int(self.mydict['RandomEnd']))
                 exo_5 = ".0]\n_name=" + self.t("シーン") + \
                         "\n" + self.t("再生位置") + "=" + str(self.mydict["SrcPosition"]) + \
                         "\n" + self.t("再生速度") + "=" + str(self.mydict["SrcRate"]) + \
@@ -316,6 +320,16 @@ class Exo:
             raise ItemNotFoundError
 
         try:
+            if os.path.isfile(self.mydict["EXOPath"]):
+                ret = messagebox.askyesnocancel(_("確認"), _("%s は既に存在します。上書きしますか？") % os.path.basename(self.mydict["EXOPath"]),
+                                          icon="info")
+                if ret is None:
+                    raise KeyboardInterrupt
+                elif not ret:  # 括弧数字でナンバリングする
+                    number = 1
+                    while os.path.isfile(self.mydict["EXOPath"][:-4] + f' ({number}).exo'):
+                        number += 1
+                    self.mydict["EXOPath"] = self.mydict["EXOPath"][:-4] + f' ({number}).exo'
             with open(self.mydict["EXOPath"], mode='w', encoding='shift_jis') as f:
                 line = ""
                 # 一文字ずつファイルに書き込んでいく (詳細エラー表示をできるようにするため)

@@ -1,4 +1,5 @@
 import datetime
+import gettext
 import os
 import json
 import random
@@ -26,11 +27,20 @@ def format_seconds(seconds):
 
 class YMM4:
     def __init__(self, mydict):
+        self.version = '0.0.0.0'
         self.json_path = ''
         self.fps = mydict["fps"]
         self.mydict = mydict
         self.setting = {}
         self.temp_list = []
+        # 翻訳用
+        global _
+        _ = gettext.translation(
+            'text',  # domain: 辞書ファイルの名前
+            localedir=os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)))),  # 辞書ファイル配置ディレクトリ
+            languages=[mydict['DisplayLang']],  # 翻訳に使用する言語
+            fallback=True
+        ).gettext
 
     def load(self):
         # YMM4のバージョン情報を取得
@@ -74,6 +84,7 @@ class YMM4:
         return tempidxes[0] if tempidxes else -1
 
     def run(self, objdict, file_path):
+        self.load()
         ymmparam_dict = [
             [1, 'X'],
             [2, 'Y'],
@@ -100,10 +111,22 @@ class YMM4:
         opt_layer = []  # 1トラック内で重複が発生した場合の使用レイヤー状況をシミュレート
         opt_layer2 = []
 
-        video_seconds = 0  # 動画の総秒数 (再生時間ランダム用)
+        start_frame = 0
+        end_frame = 0  # 動画の総フレーム数 (再生時間ランダム用)
+        video_fps = 1  # 動画のFPS値 (再生時間ランダム用)
         if self.mydict['RandomPlay']:
             videoload = cv2.VideoCapture(str(self.mydict["SrcPath"]))  # 動画を読み込む
-            video_seconds = videoload.get(cv2.CAP_PROP_FRAME_COUNT) / videoload.get(cv2.CAP_PROP_FPS)  # 秒数
+            video_fps = videoload.get(cv2.CAP_PROP_FPS)
+
+            spl = self.mydict["RandomStart"].split(':')
+            start_frame = (int(spl[0]) * 3600 + int(spl[1]) * 60 + float(spl[2])) * video_fps
+            if self.mydict['RandomEnd']:
+                spl = self.mydict["RandomEnd"].split(':')
+                end_frame = (int(spl[0]) * 3600 + int(spl[1]) * 60 + float(spl[2])) * video_fps
+            else:
+                end_frame = videoload.get(cv2.CAP_PROP_FRAME_COUNT)  # フレーム数
+
+
 
         for index in range(1, len(objdict["length"])):
             add_layer = 0
@@ -112,11 +135,6 @@ class YMM4:
             next_obj_frame_pos = objdict["pos"][index + 1] * self.mydict["fps"] + 1 \
                 if index != len(objdict["length"]) - 1 else -1
             obj_frame_length = objdict["length"][index] * self.mydict["fps"]
-            # フレームがかぶってしまった時にオブジェクトを被らせないようにする処理
-            # if sur_round(obj_frame_pos) == bf:
-                # obj_frame_pos += 1
-                # obj_frame_length -= 1
-                # items[-2]['Length'] -= 1  # こうすることで、隙間埋め状態とフレーム差を消すことができる
             # 一つ後のオブジェクトとの間に1フレームの空きがある場合の処理
             if sur_round(obj_frame_pos + obj_frame_length) == sur_round(next_obj_frame_pos) - 1:
                 obj_frame_length += 1
@@ -236,7 +254,7 @@ class YMM4:
                 items[-1]['FilePath'] = file
             elif self.mydict["OutputType"] == 1:  # 動画オブジェクト
                 if self.mydict["RandomPlay"]:   # 再生位置ランダム
-                    self.mydict["SrcPosition"] = format_seconds(random.uniform(0, video_seconds))
+                    self.mydict["SrcPosition"] = format_seconds(random.uniform(start_frame, end_frame) * video_fps)
                 items[-1]['FilePath'] = str(self.mydict["SrcPath"])
                 items[-1]['ContentOffset'] = self.mydict["SrcPosition"]
                 items[-1]['PlaybackRate'] = self.mydict["SrcRate"]
@@ -247,7 +265,7 @@ class YMM4:
             elif self.mydict["OutputType"] == 3:  # フィルタオブジェクト
                 items[-1]['$type'] = "YukkuriMovieMaker.Project.Items.EffectItem, YukkuriMovieMaker"
                 del items[-1]['Zoom']
-            elif self.mydict["OutputType"] == 4:  # 立ち絵オブジェクト
+            elif self.mydict["OutputType"] == 5:  # 立ち絵オブジェクト
                 items[-1]['$type'] = "YukkuriMovieMaker.Project.Items.TachieItem, YukkuriMovieMaker"
 
             item_count += 1
@@ -264,8 +282,10 @@ class YMM4:
             self.setting['Templates'][-1]['Path'][0] = save_template
             tempidx = len(self.setting['Templates']) - 1
         else:  # テンプレートが存在していれば上書き確認する
-            ret = messagebox.askyesno("確認", f"テンプレート「{save_template}」は既に存在します。上書きしますか？", icon="info")
-            if not ret:  # 括弧数字でナンバリングする
+            ret = messagebox.askyesnocancel(_("確認"), _("テンプレート「%s」は既に存在します。上書きしますか？") % save_template, icon="info")
+            if ret is None:
+                raise KeyboardInterrupt
+            elif not ret:  # 括弧数字でナンバリングする
                 number = 1
                 while self.find_template(save_template + f' ({number})') != -1:
                     number += 1
