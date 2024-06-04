@@ -3,6 +3,8 @@ import gettext
 import os
 import json
 import random
+import tempfile
+import zipfile
 
 import cv2
 from copy import deepcopy
@@ -32,7 +34,7 @@ class YMM4:
         self.fps = mydict["fps"]
         self.mydict = mydict
         self.setting = {}
-        self.temp_list = []
+        self.temp_list = ['',]
         # 翻訳用
         global _
         _ = gettext.translation(
@@ -73,15 +75,10 @@ class YMM4:
 
     def find_template(self, name):
         """指定した文字列の名前のテンプレートを探し、その添え字を返す。無い場合は-1を返す。"""
-        tempidxes = []
         for index, obj in enumerate(self.setting['Templates']):
             if obj['Name'] == name:  # パスまで完全一致した場合はその添え字を返す
                 return index
-            if obj['Path'][-1].endswith(name):  # パス違いで名前が一緒の場合はその添え字をリストに保存する
-                tempidxes.append(index)
-
-        # 名前が一致したテンプレートの1番目を選択して返す
-        return tempidxes[0] if tempidxes else -1
+        return -1
 
     def run(self, objdict, file_path):
         self.load()
@@ -126,7 +123,16 @@ class YMM4:
             else:
                 end_frame = videoload.get(cv2.CAP_PROP_FRAME_COUNT)  # フレーム数
 
-
+        # エイリアステンプレート読み込み
+        if self.mydict["EffPath"] != "":
+            # ymmtファイルの読込み
+            with zipfile.ZipFile(self.mydict["EffPath"]) as myzip:
+                with myzip.open('catalog.json') as myfile:
+                    als_catalog = json.loads(myfile.read())
+                    als_item = als_catalog['ItemTemplates'][0]['Items'][0]
+                    # 中間点が設定されているとYMM4上でバグが発生するので警告
+                    if als_item['KeyFrames']['Count'] != 0:
+                        end['keyframe_exists'] = True
 
         for index in range(1, len(objdict["length"])):
             add_layer = 0
@@ -185,14 +191,8 @@ class YMM4:
             # 先にダミーのitemを追加した後、必要な部分を置き換えていく
 
             # エイリアステンプレート読み込み
-            if os.path.basename(self.mydict["EffPath"]) != "":
-                aliasidx = self.find_template(os.path.basename(self.mydict["EffPath"]))
-                if aliasidx < 0:
-                    raise TemplateNotFoundError
-                items.append(self.setting['Templates'][aliasidx]['Items'][0].copy())
-                # 中間点が設定されているとYMM4上でバグが発生するので警告
-                if items[-1]['KeyFrames']['Count'] != 0:
-                    end['keyframe_exists'] = True
+            if self.mydict["EffPath"] != "":
+                items.append(deepcopy(als_item))
             else:
                 items.append(deepcopy(self.default_item))
 
@@ -274,45 +274,52 @@ class YMM4:
             raise rpp2exo.ItemNotFoundError
 
         # 保存する名前のテンプレートがあるかを検索、あれば上書き確認
+        catalog = deepcopy(self.default_ymmt)
+
         save_template = os.path.basename(self.mydict["EXOPath"])[:-4]
         tempidx = self.find_template(save_template)
-        if tempidx < 0:  # テンプレートが存在しなければ新規に作る
-            self.setting['Templates'].append(self.default_temp)
-            self.setting['Templates'][-1]['Name'] = save_template
-            self.setting['Templates'][-1]['Path'][0] = save_template
-            tempidx = len(self.setting['Templates']) - 1
-        else:  # テンプレートが存在していれば上書き確認する
-            ret = messagebox.askyesnocancel(_("確認"), _("テンプレート「%s」は既に存在します。上書きしますか？") % save_template, icon="info")
+        if tempidx >= 0:
+            ret = messagebox.askyesnocancel(_("確認"),
+                                            _("テンプレート「%s」は既に存在します。ショートカットキー設定を引き継ぎますか？") % save_template,
+                                            icon="info")
             if ret is None:
                 raise KeyboardInterrupt
-            elif not ret:  # 括弧数字でナンバリングする
-                number = 1
-                while self.find_template(save_template + f' ({number})') != -1:
-                    number += 1
-                self.setting['Templates'].append(deepcopy(self.default_temp))
-                self.setting['Templates'][-1]['Name'] = save_template + f' ({number})'
-                self.setting['Templates'][-1]['Path'][0] = save_template + f' ({number})'
-                tempidx = len(self.setting['Templates']) - 1
+            elif ret:
+                catalog['ItemTemplates'][0]['Group'] = self.setting['Templates'][tempidx]['Group']
+                catalog['ItemTemplates'][0]['KeyGesture'] = self.setting['Templates'][tempidx]['KeyGesture']
+
+        # catalog['FilePath'] = self.mydict["EXOPath"].replace('/', '\\')
+        catalog['ItemTemplates'][0]['Name'] = save_template
+        catalog['ItemTemplates'][0]['Path'] = save_template.split('/')
+        catalog['ItemTemplates'][0]['Items'] = items
 
         # テンプレートを保存
-        self.setting['Templates'][tempidx]['Items'] = deepcopy(items)
-        with open(self.json_path, mode='w', encoding='utf_8_sig') as f:
-            f.write(json.dumps(self.setting, ensure_ascii=False, indent=2))
+        print('一時フォルダ：' + str(tempfile.gettempdir()))
+        with open(os.path.join(tempfile.gettempdir(), 'catalog.json'), mode='w', encoding='utf_8_sig') as f:
+            f.write(json.dumps(catalog, ensure_ascii=False, indent=2))
+
+        with zipfile.ZipFile(os.path.join(tempfile.gettempdir(), 'RPPtoYMMT_temp.ymmt'), 'w', zipfile.ZIP_DEFLATED) as ymmt:
+            ymmt.write(os.path.join(tempfile.gettempdir(), 'catalog.json'), arcname='catalog.json')
 
         return end
 
-    default_temp = {
-        "Name": "RPPtoEXO",
-        "Path": [
-            "RPPtoEXO"
-        ],
-        "Group": "None",
-        "KeyGesture": {
-            "Key": 0,
-            "Modifiers": 2
-        },
-        "Items": []
-    }
+    default_ymmt = {
+        "FilePath": "C:\\Generated_By_RPPtoEXO.ymmt",
+        "ItemTemplates": [
+                {
+                    "Name": "RPPtoEXO",
+                    "Path": [
+                        "RPPtoEXO"
+                        ],
+                    "Group": "None",
+                    "KeyGesture": {
+                        "Key": 0,
+                        "Modifiers": 2
+                        },
+                    "Items": []
+                }
+            ]
+        }
 
     default_item = {
         "$type": "YukkuriMovieMaker.Project.Items.VideoItem, YukkuriMovieMaker",

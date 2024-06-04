@@ -1,6 +1,6 @@
 #####################################################################################
-#               RPP to EXO ver 2.07.3                                               #
-#                                                                       2024/04/02  #
+#               RPP to EXO ver 2.07.4                                               #
+#                                                                       2024/06/04  #
 #       Original Written by Maimai (@Maimai22015/YTPMV.info)                        #
 #       Forked by Garech (@Garec_)                                                  #
 #                                                                                   #
@@ -13,6 +13,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import threading
 import warnings
 import webbrowser
@@ -21,15 +22,14 @@ from tkinter import *
 from tkinter import filedialog
 from tkinter import messagebox
 from tkinter import ttk, Menu
-
-import psutil
+import pygetwindow
 from ttkwidgets import CheckboxTreeview
 from tkinterdnd2 import *
 import rpp2exo
 from rpp2exo import Rpp, Exo, YMM4, Midi
 from rpp2exo.dict import *
 
-R2E_VERSION = '2.07.3'
+R2E_VERSION = '2.07.4'
 
 rpp_cl = Rpp("")
 
@@ -95,15 +95,8 @@ def main():
 
     try:
         end1 = objdict = {}
-        file_path = file_fps = []
-        min_layers = []
+        file_path = []
         file_copied = False
-        exo_cl = Exo(mydict)
-        chk = 0
-        while chk != 1 and mydict['UseYMM4']:
-            chk = check_ymm4()
-            if chk < 0:
-                return
 
         # RPPファイル用処理
         if mydict["RPPPath"].lower().endswith(".rpp"):
@@ -167,7 +160,7 @@ def main():
     except rpp2exo.ymm4.TemplateNotFoundError:
         messagebox.showerror(_("エラー"), _("エイリアスに指定されているテンプレートは存在しませんでした。"))
     except KeyboardInterrupt:
-        messagebox.showinfo(_("エラー"), _("生成がキャンセルされました。"))
+        messagebox.showwarning(_("エラー"), _("生成がキャンセルされました。"))
     except Exception as e:
         e_type, e_object, e_traceback = sys.exc_info()
         messagebox.showerror(_("エラー"), _("予期せぬエラーが発生しました。不正なRPPファイルの可能性があります。\n"
@@ -223,20 +216,21 @@ def main():
                                           _("一部アイテムが正常に生成できませんでした。\n保存先のフォルダを開きますか？"), icon="warning")
         else:
             if end == {}:
-                ret_ymm4 = messagebox.askyesno(_("正常終了"), _("正常に生成されました。\nゆっくりMovieMaker4を開きますか？"))
+                messagebox.showinfo(_("正常終了"), _("正常に生成されました。\nゆっくりMovieMaker4を開きます。"))
             else:
                 for msg in warn_msgs:
                     messagebox.showwarning(_("警告"), msg)
-                ret_ymm4 = messagebox.askyesno(_("警告"),
-                                          _("一部アイテムが正常に生成できませんでした。\nゆっくりMovieMaker4を開きますか？"), icon="warning")
+                messagebox.showwarning(_("警告"), _("一部アイテムが正常に生成できませんでした。\nゆっくりMovieMaker4を開きます。"))
+            ret_ymm4 = True
 
         if ret_aul:
             path = os.path.dirname(mydict["EXOPath"]).replace('/', '\\')
             if path == "":
                 path = os.getcwd()
-            subprocess.Popen(['explorer', path], shell=True)
+            os.startfile(path, operation='open')
         elif ret_ymm4:
-            subprocess.Popen(mydict['YMM4Path'])
+            subprocess.Popen([mydict['YMM4Path'], os.path.join(tempfile.gettempdir(), 'RPPtoYMMT_temp.ymmt')])
+            fore_ymm4()
 
     finally:
         print('--------------------------------------------------------------------------')
@@ -245,18 +239,13 @@ def main():
         btn_exec["text"] = _("実行")
 
 
-def check_ymm4():
-    for proc in psutil.process_iter():
-        try:
-            if proc.exe() == mydict["YMM4Path"].replace('/', '\\'):
-                ret = messagebox.askretrycancel(_('警告'), _('YMM4が実行されている間はRPPtoYMM4の処理をすることができません。\n'), icon="warning")
-                if not ret:
-                    return -1  # 処理を終了する
-                else:
-                    return 0  # 再試行する
-        except psutil.AccessDenied:
-            pass
-    return 1  # YMM4未検知
+def fore_ymm4():
+    try:
+        window = pygetwindow.getWindowsWithTitle("ゆっくりMovieMaker v" + ymm4_cl.version)[0]
+        if window:
+            window.activate()
+    except IndexError:
+        pass
 
 
 def read_cfg():
@@ -346,7 +335,10 @@ def slct_source():  # 素材選択
 
 
 def slct_filter_cfg_file():  # 効果設定ファイル読み込み
-    filetype = [(_("AviUtl エイリアス/効果ファイル"), "*.exa;*.exc;*.exo;*.txt"), (_("すべてのファイル"), "*.*")]
+    if not mydict['UseYMM4']:
+        filetype = [(_("AviUtl エイリアス/効果ファイル"), "*.exa;*.exc;*.exo;*.txt"), (_("すべてのファイル"), "*.*")]
+    else:
+        filetype = [(_("ゆっくりMovieMaker4 エイリアスファイル"), "*.ymmt;"), (_("すべてのファイル"), "*.*")]
     filepath = filedialog.askopenfilename(
         filetypes=filetype, initialdir=mydict["AlsLastDir"], title=_("参照するエイリアス/効果ファイルの選択"))
     if filepath != '':
@@ -357,10 +349,8 @@ def slct_filter_cfg_file():  # 効果設定ファイル読み込み
 def save_exo():  # EXO保存ボタン
     filetype = [(_("AviUtlオブジェクトファイル"), "*.exo")]
     filepath = filedialog.asksaveasfilename(
-        initialdir=mydict["EXOLastDir"], title=_("EXOファイル保存場所の選択"), filetypes=filetype)
+        initialdir=mydict["EXOLastDir"], title=_("EXOファイル保存場所の選択"), filetypes=filetype, defaultextension='exo')
     if filepath != '':
-        if not filepath.endswith(".exo"):
-            filepath += ".exo"
         svr_exo_input.set(filepath)
         write_cfg(filepath, "EXODir", "Directory")
 
@@ -1076,6 +1066,15 @@ def about_rpp2exo():
                         '\nOriginal (~v1.08) made by maimai22015\n   Twitter: @Maimai22016'
                         '\nLatest Version (v2.0~) made by Garech\n   Twitter: @Garec_')
 
+def click_close():
+    try:
+        if os.path.isfile(os.path.join(tempfile.gettempdir(), 'RPPtoYMMT_temp.ymmt')):
+            os.remove(os.path.join(tempfile.gettempdir(), 'RPPtoYMMT_temp.ymmt'))
+        if os.path.isfile(os.path.join(tempfile.gettempdir(), 'catalog.json')):
+            os.remove(os.path.join(tempfile.gettempdir(), 'catalog.json'))
+    finally:
+        root.destroy()
+
 
 if __name__ == '__main__':
     read_cfg()
@@ -1112,6 +1111,7 @@ if __name__ == '__main__':
     root.iconbitmap(default=temp_path('RPPtoEXO.ico'))
     root.columnconfigure(1, weight=1)
     root.resizable(False, False)
+    root.protocol("WM_DELETE_WINDOW", click_close)
 
     # メニューバー作成
     mbar = Menu(root, tearoff=0)
@@ -1298,18 +1298,12 @@ if __name__ == '__main__':
     lbl_alias_input = ttk.Label(frame_alias, text=_('エイリアス : '))
     lbl_alias_input.grid(row=0, column=0, sticky=W)
     svr_alias_input = StringVar()
-    if not mydict['UseYMM4']:
-        btn_alias_browse = ttk.Button(frame_alias, text=_('参照…'), command=slct_filter_cfg_file)
-        btn_alias_browse.grid(row=0, column=2)
-        ent_alias_input = ttk.Entry(frame_alias, textvariable=svr_alias_input, width=40)
-        ent_alias_input.grid(row=0, column=1)
-        ent_alias_input.drop_target_register(DND_FILES)
-        ent_alias_input.dnd_bind("<<Drop>>", partial(drop_file, svr_alias_input))
-    else:
-        cmb_ymm4_saveas = ttk.Combobox(frame_alias, textvariable=svr_alias_input, values=ymm4_cl.temp_list, width=50, state='readonly')
-        cmb_ymm4_saveas.grid(row=0, column=1)
-        btn_rpp_reload = ttk.Button(frame_alias, text='↻', command=ymm4_cl.load, width=2)
-        btn_rpp_reload.grid(row=0, column=2)
+    btn_alias_browse = ttk.Button(frame_alias, text=_('参照…'), command=slct_filter_cfg_file)
+    btn_alias_browse.grid(row=0, column=3)
+    ent_alias_input = ttk.Entry(frame_alias, textvariable=svr_alias_input, width=40)
+    ent_alias_input.grid(row=0, column=1)
+    ent_alias_input.drop_target_register(DND_FILES)
+    ent_alias_input.dnd_bind("<<Drop>>", partial(drop_file, svr_alias_input))
 
     # frame_script スクリプト制御
     frame_script = ttk.Frame(frame_left, padding=10)
