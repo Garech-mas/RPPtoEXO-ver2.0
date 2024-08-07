@@ -1,7 +1,9 @@
 psutil~=5.9.8
 ttkwidgets~=0.13.0
 tkinterdnd2~=0.3.0
-opencv-python~=4.9.0.80
+opencv-python~=4.10.0.82
 setuptools~=69.1.1
 pretty-midi~=0.2.10
 PyGetWindow~=0.0.9
+pyperclip~=1.8.2
+requests~=2.32.3

@@ -1,3 +1,4 @@
+import inspect
 import os
 import re
 import gettext
@@ -131,7 +132,7 @@ class Rpp:
                 value[name], index, skip = self.make_treedict(index)
                 if skip < 0:
                     return value, index, skip + 1
-            elif isbus[1] == "2":
+            elif isbus[1] == "2" and inspect.stack()[1].function != self.make_treedict:
                 return value, index, int(isbus[2]) + 1
 
     def main(self, auto_src, sel_track):  # rpp_aryを読み込んだ結果をobjDictに入れていく
@@ -194,6 +195,12 @@ class Rpp:
                             # MP3ファイルの場合、FILE行末尾に謎の' 1'が付いてしまうので除去
                             if spl[0][-2:] == ' 1':
                                 spl[0] = spl[0][:-2]
+                        # RESOURCEFN (空アイテムの画像パス)にも上記と同じ処理を行う
+                        if key.endswith('RESOURCEFN'):
+                            spl = [self.rpp_ary[index][self.rpp_ary[index].find('RESOURCEFN') + 11:-1].replace('"', '')]
+                        if key.startswith('NOTES/|'):  # 空アイテム(テキスト)を一つにまとめる
+                            key = 'NOTES'
+                            spl = [itemdict.get('NOTES', [''])[0] + self.rpp_ary[index][self.rpp_ary[index].find('|') + 1:]]
                         if can_assign:  # アイテム情報の上書きが可能なら
                             itemdict[key] = spl
                         if key == 'TAKE':
@@ -231,8 +238,6 @@ class Rpp:
                         keyy = "SOURCE " + srch + "/FILE"
                         if "SOURCE SECTION/" + keyy in itemdict:
                             path = self.to_absolute(itemdict["SOURCE SECTION/" + keyy][-1])
-                            # if is_audio(path):
-                            #     continue
                             if path not in file_path:
                                 file_path.append(path)
                             self.objDict["fileidx"].append(file_path.index(path))
@@ -240,16 +245,25 @@ class Rpp:
                             srchflg = 1
                         elif keyy in itemdict:
                             path = self.to_absolute(itemdict[keyy][-1])
-                            # if is_audio(path):
-                            #     continue
                             if path not in file_path:
                                 file_path.append(path)
                             self.objDict["fileidx"].append(file_path.index(path))
                             self.objDict["filetype"].append(srch_type[srch])
                             srchflg = 1
                     if not srchflg:
-                        self.objDict["fileidx"].append(-1)
-                        self.objDict["filetype"].append("OTHER")
+                        if 'NOTES' in itemdict:  # 空アイテム(テキスト)の処理
+                            self.objDict["fileidx"].append(-1)
+                            self.objDict["filetype"].append("TEXT:" + itemdict["NOTES"][0])
+                        elif 'RESOURCEFN' in itemdict:  # 空アイテム(画像)の処理
+                            path = self.to_absolute(itemdict["RESOURCEFN"][-1])
+                            if path not in file_path:
+                                file_path.append(path)
+                            self.objDict["fileidx"].append(file_path.index(path))
+                            self.objDict["filetype"].append("IMAGE")
+                        else:
+                            self.objDict["fileidx"].append(-1)
+                            self.objDict["filetype"].append("OTHER")
+
 
                 # ループ＋セクションアイテムだったら
                 if itemdict["LOOP"][0] == '1' and ("SOURCE SECTION/LENGTH" in itemdict and

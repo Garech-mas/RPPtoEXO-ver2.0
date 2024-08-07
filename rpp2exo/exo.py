@@ -1,6 +1,5 @@
 import binascii
 import random
-from tkinter import messagebox
 
 import cv2
 import gettext
@@ -57,10 +56,10 @@ class Exo:
 
     def make_exo(self, objdict, file_path, file_fps):
         end = {}
-        exo_result = "[exedit]\nwidth=" + str(1280) + "\nheight=" + str(720) + \
+        exo_result = ["[exedit]\nwidth=" + str(1280) + "\nheight=" + str(720) + \
                      "\nrate=" + str(Fraction(self.mydict["fps"]).limit_denominator().numerator) + \
                      "\nscale=" + str(Fraction(self.mydict["fps"]).limit_denominator().denominator) + \
-                     "\nlength=99999\naudio_rate=44100\naudio_ch=2"
+                     "\nlength=99999\naudio_rate=44100\naudio_ch=2"]
         item_count = 0
         exo_1 = "\n["  # item_count
         exo_2 = "]\nstart="  # StartFrame
@@ -249,7 +248,7 @@ class Exo:
             # EXA読み込み部でexo_5部分が読み込まれていた場合、EXAファイルの中身のオブジェクトをそのまま反映する (この先の処理は無視)
             if exo_5 != '':
                 exo_7 = "." + str(1 + filter_count) + exo_7_
-                exo_result = (exo_result + exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) +
+                exo_result.append(exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) +
                               exo_4 + exo_4_2 + str(item_count) + exo_5 + exo_eff + exo_script + exo_6 +
                               str(item_count) + exo_7)
                 item_count = item_count + 1
@@ -257,24 +256,38 @@ class Exo:
 
             # オブジェクトの種類等の設定
             if self.mydict["OutputType"] == 0:
-                if objdict["filetype"][index] == "VIDEO":
+                if objdict["filetype"][index] in ["VIDEO", "IMAGE"]:
                     file = file_path[objdict["fileidx"][index]]
                 else:
                     file = ""
-                is_alpha = 0
-                if file[file.find('.'):] == ".avi":  # AVIファイルの場合だけ、透過AVIの可能性があるためアルファチャンネル有
-                    is_alpha = 1
 
-                play_pos = int(objdict["soffs"][index] * file_fps[objdict["fileidx"][index]] + 1)
-                play_rate = int(objdict["playrate"][index] * 1000) / 10.0
+                # 空アイテム (テキスト) の場合の処理
+                if objdict["filetype"][index].startswith('TEXT'):
+                    exo_5 = ".0]\n_name=テキスト\nサイズ=34\n表示速度=0.0\n文字毎に個別オブジェクト=0\n移動座標上に表示する=0\n" + \
+                            "自動スクロール=0\nB=0\nI=0\ntype=0\nautoadjust=0\nsoft=1\nmonospace=0\nalign=0\nspacing_x=0\n" + \
+                            "spacing_y=0\nprecision=1\ncolor=ffffff\ncolor2=000000\nfont=MS UI Gothic\ntext=" + \
+                            encode_txt(objdict["filetype"][index][5:])
 
-                exo_5 = ".0]\n_name=" + self.t("動画ファイル") + \
-                        "\n" + self.t("再生位置") + "=" + str(play_pos) + \
-                        "\n" + self.t("再生速度") + "=" + str(play_rate) + \
-                        "\n" + self.t("ループ再生") + "=" + \
-                        (str(objdict["loop"][index]) if self.mydict["IsLoop"] else '0') + \
-                        "\n" + self.t("アルファチャンネルを読み込む") + "=" + str(is_alpha) + \
-                        "\nfile=" + file
+                # 空アイテム (画像) の場合の処理
+                elif objdict["filetype"][index].startswith('IMAGE'):
+                    exo_5 = ".0]\n_name=" + self.t("画像ファイル") + \
+                            "\nfile=" + file
+
+                else:
+                    is_alpha = 0
+                    if file[file.find('.'):] == ".avi":  # AVIファイルの場合だけ、透過AVIの可能性があるためアルファチャンネル有
+                        is_alpha = 1
+
+                    play_pos = int(objdict["soffs"][index] * file_fps[objdict["fileidx"][index]] + 1)
+                    play_rate = int(objdict["playrate"][index] * 1000) / 10.0
+
+                    exo_5 = ".0]\n_name=" + self.t("動画ファイル") + \
+                            "\n" + self.t("再生位置") + "=" + str(play_pos) + \
+                            "\n" + self.t("再生速度") + "=" + str(play_rate) + \
+                            "\n" + self.t("ループ再生") + "=" + \
+                            (str(objdict["loop"][index]) if self.mydict["IsLoop"] else '0') + \
+                            "\n" + self.t("アルファチャンネルを読み込む") + "=" + str(is_alpha) + \
+                            "\nfile=" + file
             elif self.mydict["OutputType"] == 1:  # 動画オブジェクト
                 if self.mydict["RandomPlay"]:   # 再生位置ランダム
                     self.mydict["SrcPosition"] = random.randint(int(self.mydict['RandomStart']), int(self.mydict['RandomEnd']))
@@ -303,7 +316,7 @@ class Exo:
                 for txt in self.mydict['Param']:
                     exo_7 += '\n' + txt
 
-                exo_result = (exo_result + exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) +
+                exo_result.append(exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) +
                               exo_4 + exo_4_2 + str(item_count) + exo_5 + exo_eff + exo_script + exo_6 +
                               str(item_count) + exo_7)
             # フィルタ効果
@@ -311,7 +324,7 @@ class Exo:
                 exo_4_2 = "\ngroup=1\noverlay=1"
                 # 何も効果がかかっていないとエラー吐くので（多分）とりあえず座標0,0,0を掛けておく
                 exo_5 = "\n[" + str(item_count) + ".0]\n_name=" + self.t("座標") + "\nX=0.0\nY=0.0\nZ=0.0"
-                exo_result = (exo_result + exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) +
+                exo_result.append(exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) +
                               exo_4 + exo_4_2 + exo_5 + exo_eff + exo_script)
 
             item_count += 1
@@ -320,20 +333,11 @@ class Exo:
             raise ItemNotFoundError
 
         try:
-            if os.path.isfile(self.mydict["EXOPath"]):
-                ret = messagebox.askyesnocancel(_("確認"), _("%s は既に存在します。上書きしますか？") % os.path.basename(self.mydict["EXOPath"]),
-                                          icon="info")
-                if ret is None:
-                    raise KeyboardInterrupt
-                elif not ret:  # 括弧数字でナンバリングする
-                    number = 1
-                    while os.path.isfile(self.mydict["EXOPath"][:-4] + f' ({number}).exo'):
-                        number += 1
-                    self.mydict["EXOPath"] = self.mydict["EXOPath"][:-4] + f' ({number}).exo'
             with open(self.mydict["EXOPath"], mode='w', encoding='shift_jis') as f:
                 line = ""
                 # 一文字ずつファイルに書き込んでいく (詳細エラー表示をできるようにするため)
-                for t in exo_result:
+                exo_result_text = ''.join(exo_result)
+                for t in exo_result_text:
                     f.write(t)
                     line += t
                     if t == '\n':

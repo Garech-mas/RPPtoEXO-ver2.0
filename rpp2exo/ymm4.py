@@ -193,6 +193,8 @@ class YMM4:
             # エイリアステンプレート読み込み
             if self.mydict["EffPath"] != "":
                 items.append(deepcopy(als_item))
+            elif self.mydict["OutputType"] == 0 and objdict["filetype"][index].startswith('TEXT'):
+                items.append(deepcopy(self.default_text_item))
             else:
                 items.append(deepcopy(self.default_item))
 
@@ -244,14 +246,25 @@ class YMM4:
 
             # オブジェクトの種類等の設定
             if self.mydict["OutputType"] == 0:
-                if objdict["filetype"][index] == "VIDEO":
+                if objdict["filetype"][index] in ["VIDEO", "IMAGE"]:
                     file = file_path[objdict["fileidx"][index]]
                 else:
                     file = ""
-                items[-1]['ContentOffset'] = format_seconds(objdict["soffs"][index])
-                items[-1]['PlaybackRate'] = int(objdict["playrate"][index] * 1000) / 10.0
-                items[-1]['IsLooped'] = bool(objdict["loop"][index]) if self.mydict["IsLoop"] else False
-                items[-1]['FilePath'] = file
+
+                # 空アイテム (テキスト) の場合の処理
+                if objdict["filetype"][index].startswith('TEXT'):
+                    items[-1]['Text'] = objdict["filetype"][index][5:]
+
+                # 空アイテム (画像) の場合の処理
+                elif objdict["filetype"][index].startswith('IMAGE'):
+                    items[-1]['$type'] = "YukkuriMovieMaker.Project.Items.ImageItem, YukkuriMovieMaker"
+                    items[-1]['FilePath'] = file
+
+                else:
+                    items[-1]['ContentOffset'] = format_seconds(objdict["soffs"][index])
+                    items[-1]['PlaybackRate'] = int(objdict["playrate"][index] * 1000) / 10.0
+                    items[-1]['IsLooped'] = bool(objdict["loop"][index]) if self.mydict["IsLoop"] else False
+                    items[-1]['FilePath'] = file
             elif self.mydict["OutputType"] == 1:  # 動画オブジェクト
                 if self.mydict["RandomPlay"]:   # 再生位置ランダム
                     self.mydict["SrcPosition"] = format_seconds(random.uniform(start_frame, end_frame) * video_fps)
@@ -276,19 +289,12 @@ class YMM4:
         # 保存する名前のテンプレートがあるかを検索、あれば上書き確認
         catalog = deepcopy(self.default_ymmt)
 
-        save_template = os.path.basename(self.mydict["EXOPath"])[:-4]
+        save_template = self.mydict['TemplateName']
         tempidx = self.find_template(save_template)
         if tempidx >= 0:
-            ret = messagebox.askyesnocancel(_("確認"),
-                                            _("テンプレート「%s」は既に存在します。ショートカットキー設定を引き継ぎますか？") % save_template,
-                                            icon="info")
-            if ret is None:
-                raise KeyboardInterrupt
-            elif ret:
-                catalog['ItemTemplates'][0]['Group'] = self.setting['Templates'][tempidx]['Group']
-                catalog['ItemTemplates'][0]['KeyGesture'] = self.setting['Templates'][tempidx]['KeyGesture']
+            catalog['ItemTemplates'][0]['Group'] = self.setting['Templates'][tempidx]['Group']
+            catalog['ItemTemplates'][0]['KeyGesture'] = self.setting['Templates'][tempidx]['KeyGesture']
 
-        # catalog['FilePath'] = self.mydict["EXOPath"].replace('/', '\\')
         catalog['ItemTemplates'][0]['Name'] = save_template
         catalog['ItemTemplates'][0]['Path'] = save_template.split('/')
         catalog['ItemTemplates'][0]['Items'] = items
@@ -449,3 +455,131 @@ class YMM4:
         "IsLocked": False,
         "IsHidden": False
     }
+
+    default_text_item = {
+        "$type": "YukkuriMovieMaker.Project.Items.TextItem, YukkuriMovieMaker",
+        "Text": "文字列文字列てすとてすと",
+        "Decorations": [],
+        "Font": "メイリオ",
+        "FontSize": {
+            "Values": [
+                {
+                    "Value": 34.0
+                    }
+                ],
+            "Span": 0.0,
+            "AnimationType": "なし"
+            },
+        "LineHeight2": {
+            "Values": [
+                {
+                    "Value": 100.0
+                    }
+                ],
+            "Span": 0.0,
+            "AnimationType": "なし"
+            },
+        "LetterSpacing2": {
+            "Values": [
+                {
+                    "Value": 0.0
+                    }
+                ],
+            "Span": 0.0,
+            "AnimationType": "なし"
+            },
+        "DisplayInterval": 0.0,
+        "WordWrap": "NoWrap",
+        "MaxWidth": {
+            "Values": [
+                {
+                    "Value": 1920.0
+                    }
+                ],
+            "Span": 0.0,
+            "AnimationType": "なし"
+            },
+        "BasePoint": "LeftTop",
+        "FontColor": "#FFFFFFFF",
+        "Style": "Normal",
+        "StyleColor": "#FF000000",
+        "Bold": False,
+        "Italic": False,
+        "IsTrimEndSpace": False,
+        "IsDevidedPerCharacter": False,
+        "X": {
+            "Values": [
+                {
+                    "Value": 0.0
+                    }
+                ],
+            "Span": 0.0,
+            "AnimationType": "なし"
+            },
+        "Y": {
+            "Values": [
+                {
+                    "Value": 0.0
+                    }
+                ],
+            "Span": 0.0,
+            "AnimationType": "なし"
+            },
+        "Z": {
+            "Values": [
+                {
+                    "Value": 0.0
+                    }
+                ],
+            "Span": 0.0,
+            "AnimationType": "なし"
+            },
+        "Opacity": {
+            "Values": [
+                {
+                    "Value": 100.0
+                    }
+                ],
+            "Span": 0.0,
+            "AnimationType": "なし"
+            },
+        "Zoom": {
+            "Values": [
+                {
+                    "Value": 100.0
+                    }
+                ],
+            "Span": 0.0,
+            "AnimationType": "なし"
+            },
+        "Rotation": {
+            "Values": [
+                {
+                    "Value": 0.0
+                    }
+                ],
+            "Span": 0.0,
+            "AnimationType": "なし"
+            },
+        "FadeIn": 0.0,
+        "FadeOut": 0.0,
+        "Blend": "Normal",
+        "IsInverted": False,
+        "IsClippingWithObjectAbove": False,
+        "IsAlwaysOnTop": False,
+        "IsZOrderEnabled": False,
+        "VideoEffects": [],
+        "Group": 0,
+        "Frame": 0,
+        "Layer": 0,
+        "KeyFrames": {
+            "Frames": [],
+            "Count": 0
+            },
+        "Length": 75,
+        "PlaybackRate": 100.0,
+        "ContentOffset": "00:00:00",
+        "Remark": "",
+        "IsLocked": False,
+        "IsHidden": False
+        }

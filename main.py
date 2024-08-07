@@ -1,6 +1,6 @@
 #####################################################################################
-#               RPP to EXO ver 2.07.4                                               #
-#                                                                       2024/06/04  #
+#               RPP to EXO ver 2.08                                                 #
+#                                                                       2024/08/05  #
 #       Original Written by Maimai (@Maimai22015/YTPMV.info)                        #
 #       Forked by Garech (@Garec_)                                                  #
 #                                                                                   #
@@ -19,17 +19,19 @@ import warnings
 import webbrowser
 from functools import partial
 from tkinter import *
-from tkinter import filedialog
+from tkinter import filedialog, simpledialog
 from tkinter import messagebox
 from tkinter import ttk, Menu
 import pygetwindow
 from ttkwidgets import CheckboxTreeview
 from tkinterdnd2 import *
 import rpp2exo
-from rpp2exo import Rpp, Exo, YMM4, Midi
+from rpp2exo import Rpp, Exo, YMM4, Midi, file_setup
 from rpp2exo.dict import *
 
-R2E_VERSION = '2.07.4'
+R2E_VERSION = '2.08'
+R2E_TITLE = 'RPPtoEXO v' + R2E_VERSION
+
 
 rpp_cl = Rpp("")
 
@@ -49,6 +51,15 @@ def ignore_sjis(path, chars=0):
         except UnicodeEncodeError:
             pass
     return text
+
+
+def temp_path(relative_path):
+    if os.path.abspath(sys.argv[0]).endswith('.py'):
+        base_path = os.path.abspath('.')
+    else:
+        base_path = os.path.dirname(sys.executable)
+    return os.path.join(base_path, relative_path)
+
 
 def patched_error(msg):
     mydict['HasPatchError'] = 1
@@ -115,16 +126,16 @@ def main():
         else:
             # 素材ファイルがSJIS非対応だった場合の処理
             if mydict["SrcPath"] != ignore_sjis(mydict["SrcPath"]):
-                os.makedirs(mydict["EXOPath"][:-4], exist_ok=True)
-                save_path = ignore_sjis(mydict["EXOPath"][:-4] + '\\' + os.path.basename(mydict["SrcPath"]))
+                os.makedirs(mydict["RPPPath"][:-4], exist_ok=True)
+                save_path = ignore_sjis(mydict["RPPPath"][:-4] + '\\' + os.path.basename(mydict["SrcPath"]))
                 shutil.copy(mydict["SrcPath"], save_path)
                 file_copied = True
 
             for i, file in enumerate(file_path):
                 sjis_file = ignore_sjis(file)
                 if file != sjis_file and not rpp2exo.exo.is_audio(file):
-                    os.makedirs(mydict["EXOPath"][:-4], exist_ok=True)
-                    save_path = ignore_sjis(mydict["EXOPath"][:-4] + '\\' + os.path.basename(file))
+                    os.makedirs(mydict["RPPPath"][:-4], exist_ok=True)
+                    save_path = ignore_sjis(mydict["RPPPath"][:-4] + '\\' + os.path.basename(file))
                     try:
                         shutil.copy(file, save_path)
                         file_path[i] = save_path
@@ -201,34 +212,29 @@ def main():
             end = end | {1: 1}
 
         if file_copied:
-            messagebox.showinfo(_('確認'), _("AviUtlで読み込めないファイルが含まれていたため、EXOを保存したフォルダに一部の動画ファイルをコピーしました。"))
+            messagebox.showinfo(_('確認'), _("AviUtlで読み込めないファイルが含まれていたため、RPPを保存したフォルダに一部の動画ファイルをコピーしました。"))
 
 
         ret_aul = False
         ret_ymm4 = False
-        if not mydict['UseYMM4']:
+        if mydict['UseYMM4']:
             if end == {}:
-                ret_aul = messagebox.askyesno(_("正常終了"), _("正常に生成されました。\n保存先のフォルダを開きますか？"))
+                messagebox.askokcancel(_("正常終了"), _("正常に生成されました。\n%sを開きます。") % _('ゆっくりMovieMaker4'), icon="info")
             else:
+                for msg in warn_msgs:
+                    messagebox.showwarning(_("警告"), msg)
+                messagebox.showwarning(_("警告"), _("一部アイテムが正常に生成できませんでした。\n%sを開きます。") % _('ゆっくりMovieMaker4'))
+            ret_ymm4 = True
+
+        else:
+            if end != {}:
                 for msg in warn_msgs:
                     messagebox.showwarning(_("警告"), msg)
                 ret_aul = messagebox.askyesno(_("警告"),
-                                          _("一部アイテムが正常に生成できませんでした。\n保存先のフォルダを開きますか？"), icon="warning")
-        else:
-            if end == {}:
-                messagebox.showinfo(_("正常終了"), _("正常に生成されました。\nゆっくりMovieMaker4を開きます。"))
-            else:
-                for msg in warn_msgs:
-                    messagebox.showwarning(_("警告"), msg)
-                messagebox.showwarning(_("警告"), _("一部アイテムが正常に生成できませんでした。\nゆっくりMovieMaker4を開きます。"))
-            ret_ymm4 = True
+                                          _("一部アイテムが正常に生成できませんでした。"), icon="warning")
+            show_dropwindow()
 
-        if ret_aul:
-            path = os.path.dirname(mydict["EXOPath"]).replace('/', '\\')
-            if path == "":
-                path = os.getcwd()
-            os.startfile(path, operation='open')
-        elif ret_ymm4:
+        if ret_ymm4:
             subprocess.Popen([mydict['YMM4Path'], os.path.join(tempfile.gettempdir(), 'RPPtoYMMT_temp.ymmt')])
             fore_ymm4()
 
@@ -237,6 +243,42 @@ def main():
         btn_exec['state'] = 'normal'
         root['cursor'] = 'arrow'
         btn_exec["text"] = _("実行")
+
+
+def show_dropwindow():
+    window = pygetwindow.getWindowsWithTitle("拡張編集")
+    if window and window[0]:
+        window[0].activate()
+
+    # drop_root
+    drop_root = TkinterDnD.Tk()
+    drop_root.title(R2E_TITLE)
+
+    drop_root.iconbitmap(default=temp_path('RPPtoEXO.ico'))
+    drop_root.columnconfigure(1, weight=1)
+    drop_root.resizable(False, False)
+    drop_root.attributes("-topmost", True)
+
+    lbl_drag_help = ttk.Label(drop_root, text=_('このウィンドウからAviUtlに直接ドラッグ&ドロップしてください。\n※ 挿入したいレイヤーの0秒地点にドラッグ&ドロップするようにしてください。'))
+    lbl_drag_help.place(x=20,y=70)
+
+    width = lbl_drag_help.winfo_reqwidth() + 40
+    height = lbl_drag_help.winfo_reqheight() + 140
+    drop_root.geometry(f"{width}x{height}")
+    def drag_init(event):
+        data = (os.path.join(tempfile.gettempdir(), 'RPPtoEXO_temp.exo'), )
+        return (ASK, COPY), (DND_FILES, DND_TEXT), data
+
+    def drag_window_close():
+        drop_root.destroy()
+
+    drop_root.protocol("WM_DELETE_WINDOW", drag_window_close)
+    drop_root.drag_source_register(1, DND_FILES)
+    drop_root.dnd_bind('<<DragInitCmd>>', drag_init)
+    lbl_drag_help.drag_source_register(1, DND_FILES)
+    lbl_drag_help.dnd_bind('<<DragInitCmd>>', drag_init)
+
+    drop_root.mainloop()
 
 
 def fore_ymm4():
@@ -265,6 +307,7 @@ def read_cfg():
             ('0', 'patch_exists', 'Param'),  # patch.aulが存在するか 0/1
             ('0', 'use_ymm4', 'Param'),   # YMM4を使うかどうか 0/1
             ('', 'ymm4path', 'Param'),    # YMM4の実行ファイルパス
+            ('RPPtoEXO', 'templ_name', 'Param'),  # YMM4のテンプレート保存名
             ('ja', 'display', 'Language'),  # 表示言語
             ('ja', 'exedit', 'Language'),  # 拡張編集の言語
         ]:
@@ -287,13 +330,14 @@ def read_cfg():
             mydict["PatchExists"] = int(config_ini.get("Param", "patch_exists"))
             mydict["UseYMM4"] = int(config_ini.get("Param", "use_ymm4"))
             mydict["YMM4Path"] = config_ini.get("Param", "ymm4path")
+            mydict["TemplateName"] = config_ini.get("Param", "templ_name")
             mydict["DisplayLang"] = config_ini.get("Language", "display")
             mydict["ExEditLang"] = config_ini.get("Language", "exedit")
 
     except Exception as e:
-        messagebox.showerror('RPPtoEXO v' + R2E_VERSION, '壊れたconfig.iniを修復するため、全設定がリセットされます。')
+        messagebox.showerror(R2E_TITLE, '壊れたconfig.iniを修復するため、全設定がリセットされます。')
         os.remove('config.ini')
-        subprocess.call([sys.executable] + sys.argv)
+        subprocess.call([os.path.abspath(sys.argv[0])] + sys.argv)
         sys.exit()
 
     return 0
@@ -309,50 +353,6 @@ def write_cfg(value, setting_type, section):  # 設定保存
         config_ini.set(section, setting_type, str(value))
         with open('config.ini', 'w', encoding='utf-8') as file:
             config_ini.write(file)
-
-
-def slct_rpp():  # 参照ボタン
-    filetype = [
-        (_("対応ファイル"), "*.rpp;*.mid;*.midi"),
-        (_("REAPERプロジェクトファイル"), "*.rpp"),
-        (_("MIDIファイル"), "*.mid;*.midi"),
-    ]
-    filepath = filedialog.askopenfilename(
-        filetypes=filetype, initialdir=mydict["RPPLastDir"], title=_("RPP・MIDIファイルを選択"))
-    if filepath != '':
-        svr_rpp_input.set(filepath)
-        write_cfg(filepath, "RPPDir", "Directory")
-        set_rppinfo(reload=1)
-
-
-def slct_source():  # 素材選択
-    filetype = [(_("動画ファイル"), "*")] if ivr_trgt_mode.get() == 1 else [(_("画像ファイル"), "*")]
-    filepath = filedialog.askopenfilename(
-        filetypes=filetype, initialdir=mydict["SrcLastDir"], title=_("参照する素材ファイルの選択"))
-    if filepath != '':
-        svr_src_input.set(filepath)
-        write_cfg(filepath, "SrcDir", "Directory")
-
-
-def slct_filter_cfg_file():  # 効果設定ファイル読み込み
-    if not mydict['UseYMM4']:
-        filetype = [(_("AviUtl エイリアス/効果ファイル"), "*.exa;*.exc;*.exo;*.txt"), (_("すべてのファイル"), "*.*")]
-    else:
-        filetype = [(_("ゆっくりMovieMaker4 エイリアスファイル"), "*.ymmt;"), (_("すべてのファイル"), "*.*")]
-    filepath = filedialog.askopenfilename(
-        filetypes=filetype, initialdir=mydict["AlsLastDir"], title=_("参照するエイリアス/効果ファイルの選択"))
-    if filepath != '':
-        svr_alias_input.set(filepath)
-        write_cfg(filepath, "AlsDir", "Directory")
-
-
-def save_exo():  # EXO保存ボタン
-    filetype = [(_("AviUtlオブジェクトファイル"), "*.exo")]
-    filepath = filedialog.asksaveasfilename(
-        initialdir=mydict["EXOLastDir"], title=_("EXOファイル保存場所の選択"), filetypes=filetype, defaultextension='exo')
-    if filepath != '':
-        svr_exo_input.set(filepath)
-        write_cfg(filepath, "EXODir", "Directory")
 
 
 def set_rppinfo(reload=0):  # RPP内の各トラックの情報を表示する
@@ -660,10 +660,7 @@ def toggle_media_label(flg):
 
 def run():
     mydict["RPPPath"] = svr_rpp_input.get().replace('"', '')
-    if svr_exo_input.get().replace('"', '').lower().endswith(".exo") or svr_exo_input.get().replace('"', '') == "":
-        mydict["EXOPath"] = to_absolute(svr_exo_input.get().replace('"', ''))
-    else:
-        mydict["EXOPath"] = to_absolute(svr_exo_input.get().replace('"', '') + ".exo")
+    mydict["EXOPath"] = os.path.join(tempfile.gettempdir(), 'RPPtoEXO_temp.exo')
     mydict["OutputType"] = ivr_trgt_mode.get()
     mydict["SrcPath"] = to_absolute(svr_src_input.get().replace('"', '')).replace('/', '\\')
     mydict["EffPath"] = to_absolute(svr_alias_input.get().replace('"', ''))
@@ -942,111 +939,6 @@ def mode_command():  # 「追加対象」変更時の状態切り替え
             mEntryXCb[i].grid_remove()
             mEntryConfE[i].grid_remove()
 
-
-def change_time_cb():  # 「時間選択」変更時の状態切り替え
-    if ivr_slct_time.get() == 1:
-        cmb_time_preset['state'] = 'readonly'
-        cmb_time1['state'] = 'enable'
-        cmb_time2['state'] = 'enable'
-        time_ps_list, marker_list = rpp_cl.load_marker_list()
-
-        if len(time_ps_list) >= 2:
-            svr_time_preset.set(time_ps_list[1])
-        else:
-            svr_time_preset.set('-')
-        cmb_time_preset['values'] = time_ps_list
-        cmb_time1['values'] = marker_list
-        cmb_time2['values'] = marker_list
-        set_time(None)
-    else:
-        cmb_time_preset['state'] = 'disable'
-        cmb_time1['state'] = 'disable'
-        cmb_time2['state'] = 'disable'
-
-
-def set_time(self):  # タイム選択ComboBoxのリストをリセットする
-    if svr_time_preset.get() == '-':
-        cmb_time1.set('0.0')
-        cmb_time2.set('99999.0')
-    else:
-        slct = svr_time_preset.get()
-        cmb_time1.set(slct[slct.rfind('(') + 1:slct.rfind('~')])
-        cmb_time2.set(slct[slct.rfind('~') + 1:-1])
-
-
-def set_time1():  # 上側のタイム選択ComboBox適用
-    x = svr_time1.get()
-    cmb_time1.set(x[x.rfind(':') + 2:])
-
-
-def set_time2():  # 下側のタイム選択ComboBox適用
-    x = svr_time2.get()
-    cmb_time2.set(x[x.rfind(':') + 2:])
-
-
-def change_randplay():
-    if ivr_randplay.get() == 1:
-        ent_randplay_st['state'] = ent_randplay_en['state'] = 'enable'
-    else:
-        ent_randplay_st['state'] = ent_randplay_en['state'] = 'disable'
-
-# ファイルD&D時に使う関数
-def drop_file(target, event):
-    paths = root.tk.splitlist(event.data)
-    target.set(paths[0].replace('\\', '/'))
-
-
-# メニューバー用
-def close_r2e():
-    sys.exit()
-
-
-# 表示言語切り替え
-def change_lang_r2e():
-    if mydict['DisplayLang'] == svr_lang_r2e.get():
-        return
-    write_cfg(svr_lang_r2e.get(), 'display', 'Language')
-    confirm_restart()
-
-
-# 拡張編集言語切り替え
-def change_lang_aul():
-    if mydict['ExEditLang'] == svr_lang_aul.get():
-        return
-    write_cfg(svr_lang_aul.get(), 'exedit', 'Language')
-    confirm_restart()
-
-
-# YMM4パス切り替え
-def change_ymm4_path():
-    filetype = [(_("ゆっくりMovieMaker4実行ファイル"), "YukkuriMovieMaker.exe")]
-    filepath = filedialog.askopenfilename(
-        filetypes=filetype, initialdir=os.path.dirname(mydict["YMM4Path"]),
-        title=_("ゆっくりMovieMaker4の実行ファイルを選択"))
-    if filepath != '':
-        mydict['YMM4Path'] = filepath
-        ymm4_cl.load()
-        write_cfg(filepath, "ymm4Path", "Param")
-    return filepath != ''
-
-
-# YMM4使用切り替え
-def change_ymm4():
-    if ivr_use_ymm4.get() == mydict['UseYMM4']:
-        return
-    if ivr_use_ymm4.get() == 1:
-        if change_ymm4_path():
-            write_cfg(int(ivr_use_ymm4.get()), "use_ymm4", "Param")
-            confirm_restart()
-            return
-        else:
-            ivr_use_ymm4.set(mydict['UseYMM4'])
-            return
-
-    write_cfg(int(ivr_use_ymm4.get()), "use_ymm4", "Param")
-    confirm_restart()
-
-
 # 再起動通知
 def confirm_restart():
     ret = messagebox.askyesno(_("注意"), _("設定を反映するにはソフトを再起動する必要があります。再起動しますか？"),
@@ -1054,32 +946,17 @@ def confirm_restart():
     if ret:
         root.quit()
         root.destroy()
-        subprocess.call([sys.executable] + sys.argv)
-
-
-def open_website(site):
-    webbrowser.open(site)
-
-
-def about_rpp2exo():
-    messagebox.showinfo('RPPtoEXO v' + R2E_VERSION, 'RPPtoEXO ver' + R2E_VERSION +
-                        '\nOriginal (~v1.08) made by maimai22015\n   Twitter: @Maimai22016'
-                        '\nLatest Version (v2.0~) made by Garech\n   Twitter: @Garec_')
-
-def click_close():
-    try:
-        if os.path.isfile(os.path.join(tempfile.gettempdir(), 'RPPtoYMMT_temp.ymmt')):
-            os.remove(os.path.join(tempfile.gettempdir(), 'RPPtoYMMT_temp.ymmt'))
-        if os.path.isfile(os.path.join(tempfile.gettempdir(), 'catalog.json')):
-            os.remove(os.path.join(tempfile.gettempdir(), 'catalog.json'))
-    finally:
-        root.destroy()
+        subprocess.call([os.path.abspath(sys.argv[0])] + sys.argv)
 
 
 if __name__ == '__main__':
     read_cfg()
     rpp_cl.__init__('', mydict['DisplayLang'])
     midi_cl.__init__('', mydict['DisplayLang'])
+
+    print(os.path.abspath(sys.argv[0]) + '_old')
+    if os.path.exists(os.path.abspath(sys.argv[0]) + '_old'):
+        os.remove(os.path.abspath(sys.argv[0]) + '_old')
 
     # 翻訳用クラスの設定
     _ = gettext.translation(
@@ -1099,18 +976,22 @@ if __name__ == '__main__':
 
     # root
     root = TkinterDnD.Tk()
-    root.title('RPPtoEXO v' + R2E_VERSION)
-
-    def temp_path(relative_path):
-        try:
-            base_path = sys._MEIPASS
-        except AttributeError:
-            base_path = os.path.abspath(".")
-        return os.path.join(base_path, relative_path)
+    root.title(R2E_TITLE)
 
     root.iconbitmap(default=temp_path('RPPtoEXO.ico'))
     root.columnconfigure(1, weight=1)
     root.resizable(False, False)
+
+    def click_close():
+        try:
+            if os.path.isfile(os.path.join(tempfile.gettempdir(), 'RPPtoEXO_temp.exo')):
+                os.remove(os.path.join(tempfile.gettempdir(), 'RPPtoEXO_temp.exo'))
+            if os.path.isfile(os.path.join(tempfile.gettempdir(), 'RPPtoYMMT_temp.ymmt')):
+                os.remove(os.path.join(tempfile.gettempdir(), 'RPPtoYMMT_temp.ymmt'))
+            if os.path.isfile(os.path.join(tempfile.gettempdir(), 'catalog.json')):
+                os.remove(os.path.join(tempfile.gettempdir(), 'catalog.json'))
+        finally:
+            root.destroy()
     root.protocol("WM_DELETE_WINDOW", click_close)
 
     # メニューバー作成
@@ -1120,8 +1001,21 @@ if __name__ == '__main__':
     # ファイルメニュー
     menu_file = Menu(mbar, tearoff=0)
     mbar.add_cascade(label=_('ファイル'), menu=menu_file)
+
+    def slct_rpp():  # 参照ボタン
+        filetype = [
+            (_("対応ファイル"), "*.rpp;*.mid;*.midi"),
+            (_("REAPERプロジェクトファイル"), "*.rpp"),
+            (_("MIDIファイル"), "*.mid;*.midi"),
+            ]
+        filepath = filedialog.askopenfilename(
+            filetypes=filetype, initialdir=mydict["RPPLastDir"], title=_("RPP・MIDIファイルを選択"))
+        if filepath != '':
+            svr_rpp_input.set(filepath)
+            write_cfg(filepath, "RPPDir", "Directory")
+            set_rppinfo(reload=1)
     menu_file.add_command(label=_('RPPを開く...'), command=slct_rpp)
-    menu_file.add_command(label=_('終了'), command=close_r2e)
+    menu_file.add_command(label=_('終了'), command=click_close)
 
     # 生成設定メニュー
     menu_setting = Menu(mbar, tearoff=0)
@@ -1147,6 +1041,31 @@ if __name__ == '__main__':
                                   ])
     ivr_use_ymm4 = IntVar()
     ivr_use_ymm4.set(mydict['UseYMM4'])
+
+    def change_ymm4_path():
+        filetype = [(_("ゆっくりMovieMaker4実行ファイル"), "YukkuriMovieMaker.exe")]
+        filepath = filedialog.askopenfilename(
+            filetypes=filetype, initialdir=os.path.dirname(mydict["YMM4Path"]),
+            title=_("ゆっくりMovieMaker4の実行ファイルを選択"))
+        if filepath != '':
+            mydict['YMM4Path'] = filepath
+            ymm4_cl.load()
+            write_cfg(filepath, "ymm4Path", "Param")
+        return filepath != ''
+
+    # YMM4使用切り替え
+    def change_ymm4():
+        if ivr_use_ymm4.get() == mydict['UseYMM4']:
+            return
+        if ivr_use_ymm4.get() == 1:
+            if change_ymm4_path():
+                write_cfg(int(ivr_use_ymm4.get()), "use_ymm4", "Param")
+                confirm_restart()
+            else:
+                ivr_use_ymm4.set(mydict['UseYMM4'])
+            return
+        write_cfg(int(ivr_use_ymm4.get()), "use_ymm4", "Param")
+        confirm_restart()
     menu_setting.add_checkbutton(label=_('ゆっくりMovieMaker4モードで使う'), variable=ivr_use_ymm4, command=change_ymm4)
 
     # ゆっくりMovieMaker4 使用時の書き換え処理
@@ -1155,9 +1074,23 @@ if __name__ == '__main__':
             ymm4_cl.load()
             XDict = rpp2exo.dict.XDict['ymm4']
             BlendDict = rpp2exo.dict.BlendDict['ymm4']
-            root.title('RPPtoYMM4 (RPPtoEXO) v' + R2E_VERSION)
+            R2E_TITLE = 'RPPtoYMM4 (RPPtoEXO) v' + R2E_VERSION
+            root.title(R2E_TITLE)
             ivr_byohen_exists = IntVar()
             menu_setting.add_command(label=_('YMM4の読込み場所を変更'), command=change_ymm4_path)
+
+            def change_template_name():
+                while True:
+                    temp_name = simpledialog.askstring(R2E_TITLE, _("保存テンプレート名を入力してください"), initialvalue=mydict['TemplateName'])
+                    if temp_name is None:
+                        break
+                    elif temp_name != '' and not temp_name.isspace():
+                        mydict['TemplateName'] = temp_name
+                        break
+                    else:
+                        mydict['TemplateName'] = 'RPPtoEXO'
+                write_cfg(mydict['TemplateName'], "templ_name", "Param")
+            menu_setting.add_command(label=_('保存テンプレート名を変更'), command=change_template_name)
         except FileNotFoundError:
             filepath = ''
             ivr_use_ymm4.set(0)
@@ -1172,6 +1105,13 @@ if __name__ == '__main__':
     menu_lang.add_cascade(label=_('表示言語'), menu=menu_lang_r2e)
     svr_lang_r2e = StringVar()
     svr_lang_r2e.set(mydict['DisplayLang'])
+
+    def change_lang_r2e():
+        if mydict['DisplayLang'] == svr_lang_r2e.get():
+            return
+        write_cfg(svr_lang_r2e.get(), 'display', 'Language')
+        confirm_restart()
+
     menu_lang_r2e.add_radiobutton(label='日本語', value='ja', variable=svr_lang_r2e, command=change_lang_r2e)
     menu_lang_r2e.add_radiobutton(label='English', value='en', variable=svr_lang_r2e, command=change_lang_r2e)
 
@@ -1179,6 +1119,12 @@ if __name__ == '__main__':
     menu_lang.add_cascade(label=_('拡張編集の言語'), menu=menu_lang_aul)
     svr_lang_aul = StringVar()
     svr_lang_aul.set(mydict['ExEditLang'])
+
+    def change_lang_aul():
+        if mydict['ExEditLang'] == svr_lang_aul.get():
+            return
+        write_cfg(svr_lang_aul.get(), 'exedit', 'Language')
+        confirm_restart()
     menu_lang_aul.add_radiobutton(label='日本語', value='ja', variable=svr_lang_aul, command=change_lang_aul)
     menu_lang_aul.add_radiobutton(label='English', value='en', variable=svr_lang_aul, command=change_lang_aul)
 
@@ -1187,12 +1133,38 @@ if __name__ == '__main__':
     mbar.add_cascade(label=_('ヘルプ'), menu=menu_help)
 
     menu_help.add_command(label=_('使い方(Scrapbox)'),
-                          command=lambda: open_website(
-                              _('https://scrapbox.io/Garech/RPPtoEXO%E3%81%AE%E7%94%BB%E9%9D%A2%E3%81%AE%E8%AA%AC%E6%98%8E_(v2.6~)')))
-    menu_help.add_command(label=_('最新バージョンを確認(GitHub)'),
-                          command=lambda: open_website('https://github.com/Garech-mas/RPPtoEXO-ver2.0/releases/latest'))
+                          command=lambda: webbrowser.open(
+                              _('https://scrapbox.io/Garech/RPPtoEXO%E3%81%AE%E7%94%BB%E9%9D%A2%E3%81%AE%E8%AA%AC%E6%98%8E_(v2.08~)')))
+
+    def update_check():
+        try:
+            result = file_setup.rpp2exo_version_check(R2E_VERSION)
+            if result == 1:
+                ret = messagebox.askyesno(R2E_TITLE,
+                                          _('最新バージョンが見つかりました。ダウンロードしますか？'))
+                if ret:
+                    file_setup.rpp2exo_update()
+                    messagebox.showinfo(R2E_TITLE, _('最新バージョンのインストールが完了しました。'))
+                    confirm_restart()
+
+            elif result == 0:
+                messagebox.showinfo(R2E_TITLE, _('お使いのRPPtoEXOは最新です。'))
+            elif result == -1:
+                ret = messagebox.askyesno(R2E_TITLE,
+                                          _('最新バージョンが見つかりました。PY版は自動インストール非対応のため、ご自身で置き換える必要があります。\nGitHubのリンクを開きますか？'))
+                if ret:
+                    webbrowser.open('https://github.com/Garech-mas/RPPtoEXO-ver2.0/releases/latest')
+
+        except Exception as e:
+            messagebox.showerror(_('エラー'), _('エラーが発生しました: %s') % f'{str(e)}\n{e.args}')
+    menu_help.add_command(label=_('最新バージョンを確認(GitHub)'), command=update_check)
     menu_help.add_command(label=_('制作者の連絡先(Twitter)'),
-                          command=lambda: open_website('https://twitter.com/Garec_'))
+                          command=lambda: webbrowser.open('https://twitter.com/Garec_'))
+
+    def about_rpp2exo():
+        messagebox.showinfo(R2E_TITLE, 'RPPtoEXO ver' + R2E_VERSION +
+                            '\nOriginal (~v1.08) made by maimai22015\n   Twitter: @Maimai22016'
+                            '\nLatest Version (v2.0~) made by Garech\n   Twitter: @Garec_')
     menu_help.add_command(label=_('このソフトについて'), command=about_rpp2exo)
 
     # フレーム・キャンバス設定
@@ -1204,7 +1176,7 @@ if __name__ == '__main__':
     canvas = Canvas(root, width=200, height=200, highlightthickness=0)
     vsb_canvas = ttk.Scrollbar(canvas, orient=VERTICAL, command=canvas.yview)
 
-    canvas.grid(row=0, column=2, sticky=N, ipadx=200, ipady=230 if mydict['UseYMM4'] else 310)
+    canvas.grid(row=0, column=2, sticky=N, ipadx=200, ipady=210 if mydict['UseYMM4'] else 290)
     canvas.configure(yscrollcommand=vsb_canvas.set)
     frame_right = ttk.Frame(canvas)
     vsb_canvas.pack(side=RIGHT, fill=Y)
@@ -1223,26 +1195,15 @@ if __name__ == '__main__':
                               validatecommand=root.register(set_rppinfo))
     ent_rpp_input.grid(row=0, column=1)
     ent_rpp_input.drop_target_register(DND_FILES)
+
+    def drop_file(target, event):
+        paths = root.tk.splitlist(event.data)
+        target.set(paths[0].replace('\\', '/'))
     ent_rpp_input.dnd_bind("<<Drop>>", partial(drop_file, svr_rpp_input))
     btn_rpp_reload = ttk.Button(frame_rpp, text='↻', command=lambda: set_rppinfo(1), width=2)
     btn_rpp_reload.grid(row=0, column=2)
     btn_rpp_browse = ttk.Button(frame_rpp, text=_('参照…'), command=slct_rpp)
     btn_rpp_browse.grid(row=0, column=3)
-
-    # frame_exo EXO指定
-    frame_exo = ttk.Frame(frame_left, padding=5)
-    frame_exo.grid(row=1, column=0)
-    lbl_exo_input = ttk.Label(frame_exo, text='* EXO : ') if not mydict["UseYMM4"] else ttk.Label(
-        frame_exo, text=_('* 保存ﾃﾝﾌﾟﾚｰﾄ名 : '))
-    lbl_exo_input.grid(row=1, column=0)
-    svr_exo_input = StringVar()
-    ent_exo_input = ttk.Entry(frame_exo, textvariable=svr_exo_input, width=50)
-    ent_exo_input.grid(row=1, column=1)
-    if not mydict["UseYMM4"]:
-        ent_exo_input.drop_target_register(DND_FILES)
-        ent_exo_input.dnd_bind("<<Drop>>", partial(drop_file, svr_exo_input))
-        btn_exo_saveas = ttk.Button(frame_exo, text=_('保存先…'), command=save_exo)
-        btn_exo_saveas.grid(row=1, column=3)
 
     # frame_r2e ソフト独自設定 / 時間選択 / トラック選択
     frame_r2e = ttk.Frame(frame_left, padding=10)
@@ -1264,21 +1225,58 @@ if __name__ == '__main__':
     chk_sep_even.grid(row=4, column=0, sticky=W)
 
     ivr_slct_time = IntVar()
+
+    def change_time_cb():  # 「時間選択」変更時の状態切り替え
+        if ivr_slct_time.get() == 1:
+            cmb_time_preset['state'] = 'readonly'
+            cmb_time1['state'] = 'enable'
+            cmb_time2['state'] = 'enable'
+            time_ps_list, marker_list = rpp_cl.load_marker_list()
+
+            if len(time_ps_list) >= 2:
+                svr_time_preset.set(time_ps_list[1])
+            else:
+                svr_time_preset.set('-')
+            cmb_time_preset['values'] = time_ps_list
+            cmb_time1['values'] = marker_list
+            cmb_time2['values'] = marker_list
+            set_time(None)
+        else:
+            cmb_time_preset['state'] = 'disable'
+            cmb_time1['state'] = 'disable'
+            cmb_time2['state'] = 'disable'
     chk_slct_time = ttk.Checkbutton(frame_r2e, padding=5, text=_('時間選択 (秒)'), onvalue=1, offvalue=0,
                                     variable=ivr_slct_time, command=change_time_cb)
     chk_slct_time.grid(row=5, column=0, sticky=W)
     svr_time_preset = StringVar()
     svr_time_preset.set('')
     cmb_time_preset = ttk.Combobox(frame_r2e, textvariable=svr_time_preset, width=10, state='disable')
+
+    def set_time(self):  # タイム選択ComboBoxのリストをリセットする
+        if svr_time_preset.get() == '-':
+            cmb_time1.set('0.0')
+            cmb_time2.set('99999.0')
+        else:
+            slct = svr_time_preset.get()
+            cmb_time1.set(slct[slct.rfind('(') + 1:slct.rfind('~')])
+            cmb_time2.set(slct[slct.rfind('~') + 1:-1])
     cmb_time_preset.bind('<<ComboboxSelected>>', set_time)
     cmb_time_preset.grid(row=6, column=0, padx=5, pady=3, sticky=W + E)
 
     svr_time1 = StringVar()
     cmb_time1 = ttk.Combobox(frame_r2e, textvariable=svr_time1, width=10, state='disable')
+
+    def set_time1(event=None):  # 上側のタイム選択ComboBox適用
+        x = svr_time1.get()
+        cmb_time1.set(x[x.rfind(':') + 2:])
     cmb_time1.bind('<<ComboboxSelected>>', set_time1)
     cmb_time1.grid(row=7, column=0, padx=5, pady=3, sticky=W + E)
     svr_time2 = StringVar()
     cmb_time2 = ttk.Combobox(frame_r2e, textvariable=svr_time2, width=10, state='disable')
+
+    def set_time2(event=None):  # 下側のタイム選択ComboBox適用
+        x = svr_time2.get()
+        cmb_time2.set(x[x.rfind(':') + 2:])
     cmb_time2.bind('<<ComboboxSelected>>', set_time2)
     cmb_time2.grid(row=8, column=0, padx=5, pady=(3, 110), sticky=W + E)
 
@@ -1298,6 +1296,18 @@ if __name__ == '__main__':
     lbl_alias_input = ttk.Label(frame_alias, text=_('エイリアス : '))
     lbl_alias_input.grid(row=0, column=0, sticky=W)
     svr_alias_input = StringVar()
+
+    def slct_filter_cfg_file():  # 効果設定ファイル読み込み
+        if not mydict['UseYMM4']:
+            filetype = [(_("AviUtl エイリアス/効果ファイル"), "*.exa;*.exc;*.exo;*.txt"),
+                        (_("すべてのファイル"), "*.*")]
+        else:
+            filetype = [(_("ゆっくりMovieMaker4 エイリアスファイル"), "*.ymmt;"), (_("すべてのファイル"), "*.*")]
+        filepath = filedialog.askopenfilename(
+            filetypes=filetype, initialdir=mydict["AlsLastDir"], title=_("参照するエイリアス/効果ファイルの選択"))
+        if filepath != '':
+            svr_alias_input.set(filepath)
+            write_cfg(filepath, "AlsDir", "Directory")
     btn_alias_browse = ttk.Button(frame_alias, text=_('参照…'), command=slct_filter_cfg_file)
     btn_alias_browse.grid(row=0, column=3)
     ent_alias_input = ttk.Entry(frame_alias, textvariable=svr_alias_input, width=40)
@@ -1353,9 +1363,23 @@ if __name__ == '__main__':
     ent_src_input.grid(row=1, column=1, columnspan=5, sticky=W)
     ent_src_input.drop_target_register(DND_FILES)
     ent_src_input.dnd_bind("<<Drop>>", partial(drop_file, svr_src_input))
+
+    def slct_source():  # 素材選択
+        filetype = [(_("動画ファイル"), "*")] if ivr_trgt_mode.get() == 1 else [(_("画像ファイル"), "*")]
+        filepath = filedialog.askopenfilename(
+            filetypes=filetype, initialdir=mydict["SrcLastDir"], title=_("参照する素材ファイルの選択"))
+        if filepath != '':
+            svr_src_input.set(filepath)
+            write_cfg(filepath, "SrcDir", "Directory")
     btn_src_browse = ttk.Button(frame_trgt, text=_('参照…'), command=slct_source)
     btn_src_browse.grid(row=1, column=5, columnspan=2, sticky=E)
     ivr_randplay = IntVar()
+
+    def change_randplay():
+        if ivr_randplay.get() == 1:
+            ent_randplay_st['state'] = ent_randplay_en['state'] = 'enable'
+        else:
+            ent_randplay_st['state'] = ent_randplay_en['state'] = 'disable'
     chk_randplay = ttk.Checkbutton(frame_trgt, padding=5, text=_('再生位置ランダム : '), onvalue=1, offvalue=0, variable=ivr_randplay, command=change_randplay)
     chk_randplay.grid(row=2, column=0, columnspan=3, sticky=W)
     svr_randplay_st = StringVar()

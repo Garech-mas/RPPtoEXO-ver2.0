@@ -382,6 +382,7 @@ mydict = {
     "HasPatchError": 0,  # 拡張編集由来のバグが起きたかどうか
     "UseYMM4": 0,  # ゆっくりMovieMaker4出力にするかどうか
     "YMM4Path": "",  # YMM4の実態があるパスを選択 (テンプレート適用のため)
+    "TemplateName": "RPPtoEXO",  # テンプレートの保存名
     "ByogaHenkanExists": 0,  # 描画変換プラグインが導入済みか
     "HasYMM4FlipError": 0,  # YMM4上下反転の警告が出たかどうか
 
