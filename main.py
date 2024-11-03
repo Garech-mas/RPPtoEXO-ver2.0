@@ -769,7 +769,6 @@ def run():
             mydict['Param'].append('_name=' + ExDict['拡張描画'])
             for i in [0, 1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14]:
                 show_mv, show_tp = set_mparam(i, show_mv, show_tp)
-            mydict['Param'].append(ExDict['裏面を表示しない'] + '=0')
         else:
             mydict['Param'].append('_name=' + ExDict['標準描画'])
             for i in [0, 1, 2, 3, 4, 5, 13, 14]:
