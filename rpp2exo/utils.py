@@ -16,6 +16,8 @@ if os.path.abspath(sys.argv[0]).endswith('.py'):
 else:
     TEMP_PATH = os.path.dirname(sys.executable)
 
+CONFIG_PATH = os.path.join(os.path.dirname(sys.argv[0]), "config.ini")
+
 
 class LoadFilterFileError(Exception):  # EXA読み込みエラー
     pass
@@ -62,12 +64,10 @@ def format_seconds(seconds):
     return "{:02d}:{:02d}:{:02d}.{:06d}".format(hours, minutes, seconds, microseconds)
 
 def read_cfg():
-    config_ini_path = os.path.join(os.path.dirname(sys.argv[0]), "config.ini")
-
     try:
         # 設定ファイルの読み込み
         config_ini = configparser.ConfigParser()
-        config_ini.read(config_ini_path, encoding='utf-8')
+        config_ini.read(CONFIG_PATH, encoding='utf-8')
 
         # 欠損値を補完
         for default, option, section in [
@@ -92,11 +92,11 @@ def read_cfg():
                 config_ini[section][option] = default
 
         # Configファイルの初回作成時処理
-        if not os.path.exists(config_ini_path):
+        if not os.path.exists(CONFIG_PATH):
             config_ini['Param']['use_roundup'] = '1'
 
         # Configファイルの書き込み
-        with open(config_ini_path, 'w', encoding='utf-8') as file:
+        with open(CONFIG_PATH, 'w', encoding='utf-8') as file:
             config_ini.write(file)
 
             # パラメータの読み込み
@@ -128,24 +128,23 @@ def read_cfg():
         restart_software()
 
 def write_cfg(value, setting_type, section):  # 設定保存
-    config_ini_path = "config.ini"
-    if os.path.exists(config_ini_path):
+
+    if os.path.exists(CONFIG_PATH):
         config_ini = configparser.ConfigParser()
-        config_ini.read(config_ini_path, encoding='utf-8')
+        config_ini.read(CONFIG_PATH, encoding='utf-8')
         if section == "Directory":
             value = os.path.dirname(value)
         config_ini.set(section, setting_type, str(value))
-        with open('config.ini', 'w', encoding='utf-8') as file:
+        with open(CONFIG_PATH, 'w', encoding='utf-8') as file:
             config_ini.write(file)
 
 def restart_software(root=None):
     if root:
         root.quit()
         root.destroy()
-
     if os.path.abspath(sys.argv[0]).endswith('.py'):
         subprocess.call([sys.executable] + sys.argv)
     else:
-        subprocess.call([os.path.abspath(sys.argv[0])] + sys.argv)
+        subprocess.Popen([os.path.abspath(sys.argv[0])] + sys.argv[1:])
     sys.exit()
 
