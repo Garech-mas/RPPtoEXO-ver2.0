@@ -1,7 +1,5 @@
-import gettext
-import os
 import pretty_midi
-
+from rpp2exo import utils
 
 class Midi:
     def __init__(self, path, display_lang=''):  # コンストラクタ 初期化
@@ -12,15 +10,11 @@ class Midi:
         self.objDict = {
             "pos": [-1.0],
             "length": [-1.0],
+            "pitch": [-99.9],
         }
         # 翻訳用
         global _
-        _ = gettext.translation(
-            'text',  # domain: 辞書ファイルの名前
-            localedir=os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)))),  # 辞書ファイル配置ディレクトリ
-            languages=[display_lang],  # 翻訳に使用する言語
-            fallback=True
-        ).gettext
+        _ = utils.get_locale(display_lang)
 
     def load(self, path):
         self.midi_path = path
@@ -47,6 +41,7 @@ class Midi:
         self.objDict = {
             "pos": [-1.0],
             "length": [-1.0],
+            "pitch": [-99.9],
         }
 
         for i, instrument in enumerate(self.midi.instruments, start=1):
@@ -56,9 +51,11 @@ class Midi:
             if self.objDict["pos"][-1] != -1:  # トラックが切り替わる位置に-1を入れる
                 self.objDict["pos"].append(-1)
                 self.objDict["length"].append(-1)
+                self.objDict["pitch"].append(-99.9)
 
             for note in instrument.notes:
                 self.objDict['pos'].append(note.start)
                 self.objDict['length'].append(note.end - note.start)
+                self.objDict['pitch'].append(note.pitch)
 
         return {}

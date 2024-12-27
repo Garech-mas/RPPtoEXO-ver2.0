@@ -1,30 +1,13 @@
-import datetime
-import gettext
 import os
 import json
+import math
 import random
 import tempfile
 import zipfile
-
-import cv2
 from copy import deepcopy
-from tkinter import messagebox
-
-import rpp2exo
-from rpp2exo import sur_round
-
-
-class TemplateNotFoundError(Exception):  # テンプレート読み込みエラー
-    pass
-
-
-def format_seconds(seconds):
-    # 秒(REAPER管理)から、hh:mm:ss.ms(YMM4管理)に直す
-    delta = datetime.timedelta(seconds=seconds)
-    hours, remainder = divmod(delta.seconds, 3600)
-    minutes, seconds = divmod(remainder, 60)
-    microseconds = delta.microseconds
-    return "{:02d}:{:02d}:{:02d}.{:06d}".format(hours, minutes, seconds, microseconds)
+from decimal import Decimal, ROUND_HALF_UP
+import cv2
+from rpp2exo import utils
 
 
 class YMM4:
@@ -37,12 +20,7 @@ class YMM4:
         self.temp_list = ['',]
         # 翻訳用
         global _
-        _ = gettext.translation(
-            'text',  # domain: 辞書ファイルの名前
-            localedir=os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)))),  # 辞書ファイル配置ディレクトリ
-            languages=[mydict['DisplayLang']],  # 翻訳に使用する言語
-            fallback=True
-        ).gettext
+        _ = utils.get_locale(mydict['DisplayLang'])
 
     def load(self):
         # YMM4のバージョン情報を取得
@@ -101,9 +79,11 @@ class YMM4:
 
         items = []
         item_count = 0
+        bpos = 0  # アイテム一つ前の開始フレーム
         bf = 0.0  # アイテム一つ前の最終フレーム  ==Endframe
         layer = 0  # オブジェクトのあるレイヤー（RPP上で複数トラックある場合は別トラックに配置する）
         bfidx = 0  # item_countの調整用 レイヤー頭のitem_count-bfidxが0になるような値を設定
+        altidx = 0  # 同一音程判定の調整用
 
         opt_layer = []  # 1トラック内で重複が発生した場合の使用レイヤー状況をシミュレート
         opt_layer2 = []
@@ -142,7 +122,7 @@ class YMM4:
                 if index != len(objdict["length"]) - 1 else -1
             obj_frame_length = objdict["length"][index] * self.mydict["fps"]
             # 一つ後のオブジェクトとの間に1フレームの空きがある場合の処理
-            if sur_round(obj_frame_pos + obj_frame_length) == sur_round(next_obj_frame_pos) - 1:
+            if self.sur_round(obj_frame_pos + obj_frame_length) == self.sur_round(next_obj_frame_pos) - 1:
                 obj_frame_length += 1
             if obj_frame_pos < bf:
                 bf = 0
@@ -155,11 +135,26 @@ class YMM4:
                     continue
             bf = obj_frame_pos + obj_frame_length - 1
             if self.mydict["NoGap"] == 1:
-                if obj_frame_pos < sur_round(next_obj_frame_pos) - 1:
+                if obj_frame_pos < self.sur_round(next_obj_frame_pos) - 1:
                     bf = next_obj_frame_pos - 1
 
-            obj_frame_pos = sur_round(obj_frame_pos)
-            bf = sur_round(bf)
+            # bfidxを調整 (同一開始フレームのオブジェクトを同じ反転状況にする)
+            is_pitch_repeated = objdict['pitch'][index - 1] == objdict['pitch'][index]
+            if obj_frame_pos == bpos:
+                bfidx -= 1
+            # 同音程が連続した時、同じ反転状況にする
+            elif self.mydict['AltFlipType'] > 0 and is_pitch_repeated:
+                bfidx -= 1
+
+            # 同音程が連続した時、逆方向反転する
+            if self.mydict['AltFlipType'] == 2 and is_pitch_repeated:
+                altidx += 1
+            elif self.mydict["ObjFlipType"] != 3:
+                altidx = 0
+
+            obj_frame_pos = self.sur_round(obj_frame_pos)
+            bf = int(self.sur_round(bf))
+            bpos = obj_frame_pos
 
             if self.mydict["SepLayerEvenObj"] == 1 and (bfidx + item_count) % 2 == 1:  # 偶数番目obj用のobj_layerに処理
                 for i, end_point in enumerate(opt_layer2):
@@ -213,19 +208,21 @@ class YMM4:
             # オブジェクトの反転の設定
             if self.mydict["ObjFlipType"] == 0:  # 反転なし
                 pass
-            elif self.mydict["ObjFlipType"] == 1 and (bfidx + item_count) % 2 == 1:  # 左右反転
+            elif self.mydict["ObjFlipType"] == 1 and (bfidx + item_count) % 2 == 1 and altidx % 2 == 0 or \
+                 self.mydict["ObjFlipType"] == 2 and (bfidx + item_count) % 2 == 0 and altidx % 2 == 1:  # 左右反転
                 items[-1]['IsInverted'] = True
-            elif self.mydict["ObjFlipType"] == 2 and (bfidx + item_count) % 2 == 1:  # 上下反転
+            elif self.mydict["ObjFlipType"] == 2 and (bfidx + item_count) % 2 == 1 and altidx % 2 == 0 or \
+                 self.mydict["ObjFlipType"] == 1 and (bfidx + item_count) % 2 == 0 and altidx % 2 == 1:  # 上下反転
                 items[-1]['VideoEffects'].append(up_down_flip_effect)
                 if not self.check_byoga_henkan():
                     end['byoga_henkan_not_exists'] = True
             elif self.mydict["ObjFlipType"] == 3:  # 時計回り反転
-                if (bfidx + item_count) % 4 == 1:
+                if (bfidx + item_count - altidx) % 4 == 1:
                     items[-1]['IsInverted'] = True
-                elif (bfidx + item_count) % 4 == 2:
+                elif (bfidx + item_count - altidx) % 4 == 2:
                     items[-1]['IsInverted'] = True
                     items[-1]['VideoEffects'].append(up_down_flip_effect)
-                elif (bfidx + item_count) % 4 == 3:
+                elif (bfidx + item_count - altidx) % 4 == 3:
                     items[-1]['VideoEffects'].append(up_down_flip_effect)
 
             # エイリアステンプレートを読み込んでいる場合は、テンプレートの中身のオブジェクトをそのまま反映する (この先の処理は無視)
@@ -261,13 +258,13 @@ class YMM4:
                     items[-1]['FilePath'] = file
 
                 else:
-                    items[-1]['ContentOffset'] = format_seconds(objdict["soffs"][index])
+                    items[-1]['ContentOffset'] = utils.format_seconds(objdict["soffs"][index])
                     items[-1]['PlaybackRate'] = int(objdict["playrate"][index] * 1000) / 10.0
                     items[-1]['IsLooped'] = bool(objdict["loop"][index]) if self.mydict["IsLoop"] else False
                     items[-1]['FilePath'] = file
             elif self.mydict["OutputType"] == 1:  # 動画オブジェクト
                 if self.mydict["RandomPlay"]:   # 再生位置ランダム
-                    self.mydict["SrcPosition"] = format_seconds(random.uniform(start_frame, end_frame) * video_fps)
+                    self.mydict["SrcPosition"] = utils.format_seconds(random.uniform(start_frame, end_frame) * video_fps)
                 items[-1]['FilePath'] = str(self.mydict["SrcPath"])
                 items[-1]['ContentOffset'] = self.mydict["SrcPosition"]
                 items[-1]['PlaybackRate'] = self.mydict["SrcRate"]
@@ -284,7 +281,7 @@ class YMM4:
             item_count += 1
 
         if item_count == 0:
-            raise rpp2exo.ItemNotFoundError
+            raise utils.ItemNotFoundError
 
         # 保存する名前のテンプレートがあるかを検索、あれば上書き確認
         catalog = deepcopy(self.default_ymmt)
@@ -308,6 +305,14 @@ class YMM4:
             ymmt.write(os.path.join(tempfile.gettempdir(), 'catalog.json'), arcname='catalog.json')
 
         return end
+
+    # iを設定内容の通りに丸める
+    def sur_round(self, i):
+        if self.mydict["UseRoundUp"] == 1:  # iを切り上げする
+            return math.ceil(i)
+        else:  # iを正確に四捨五入する
+            result = Decimal(str(i)).quantize(Decimal('0'), rounding=ROUND_HALF_UP)
+            return float(result)
 
     default_ymmt = {
         "FilePath": "C:\\Generated_By_RPPtoEXO.ymmt",

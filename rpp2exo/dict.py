@@ -304,6 +304,7 @@ ExDict = {
         "ループ再生": "ループ再生",
         "アルファチャンネルを読み込む": "アルファチャンネルを読み込む",
         "裏面を表示しない": "裏面を表示しない",
+        "拡張編集": "拡張編集",
     },
     "en": {
         "標準描画": "Standard drawing",
@@ -331,7 +332,7 @@ ExDict = {
         "反転": "Reversal",
         "反転_ITEM": ["Flip vertical", "Flip horizontal", "Invert luminance", "Hue inversion", "Transparency inversion"],
         "スクリプト制御": "Script control",
-
+        "拡張編集": "Advanced Editing",
     }
 }
 
@@ -363,8 +364,11 @@ mydict = {
 
     # 独自設定
     "ObjFlipType": 0,  # 0=反転なし  1=左右反転  2=上下反転  3=時計回り反転
+    "AddSamePitchOption": 0,  # 反転オプションを表示するか
+    "AltFlipType": 0,  # 0=通常通り反転  1=同音程なら反転しない  2=同音程なら逆反転 (時計回りと併用不可)
     "SepLayerEvenObj": 0,  # 偶数オブジェクトを別レイヤ―に配置するか
     "NoGap": 0,  # オブジェクト間の隙間を埋めるか
+    "UseRoundUp": 0,  # 0=四捨五入(RPPtoEXO基準)、1=切り上げ(AviUtlグリッド基準)
     "RandomPlay": 0,  # 動画の再生位置を個別にランダムにするかどうか
     "RandomStart": 0,
     "RandomEnd": 0,

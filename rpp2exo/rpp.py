@@ -1,7 +1,7 @@
-import inspect
+import configparser
 import os
 import re
-import gettext
+from rpp2exo import utils
 
 srch_type = {"VIDEO": "VIDEO",  # 動画ファイル
              "WAVE": "AUDIO",  # WAV ファイル
@@ -29,18 +29,39 @@ class Rpp:
         }
         # 翻訳用
         global _
-        _ = gettext.translation(
-            'text',  # domain: 辞書ファイルの名前
-            localedir=os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)))),  # 辞書ファイル配置ディレクトリ
-            languages=[display_lang],  # 翻訳に使用する言語
-            fallback=True
-        ).gettext
+        _ = utils.get_locale(display_lang)
+        # 直近パス取得用
+        self.load_recent_path()
 
     def to_absolute(self, src):
         if os.path.isabs(src):
             return src
         else:
             return os.path.dirname(self.rpp_path) .replace('/', '\\') + '\\' + src
+
+    def load_recent_path(self):
+        try:
+            self.rpp_list = []
+            with open(os.path.join(os.getenv('appdata'),'REAPER/REAPER.ini'), 'r', encoding='utf-8', errors='replace') as f:
+                str_reaper_ini = f.read()
+            reaper_ini = configparser.ConfigParser()
+            reaper_ini.read_string(str_reaper_ini)
+
+            # 最大表示数を取得 (orデフォルト値:50)
+            maxrecent = 50
+            if reaper_ini.has_option('reaper', 'maxrecent'):
+                maxrecent = int(reaper_ini.get('reaper', 'maxrecent'))
+
+            for i in range(1, maxrecent + 1):
+                if reaper_ini.has_option('Recent', f'recent{i:02}'):
+                    self.rpp_list.append(reaper_ini.get('Recent', f'recent{i:02}'))
+                else:
+                    break
+
+            # rpp_listを設定 reaper.iniは逆順で管理されているので逆順スライスして、27個(25プロジェクト)までで区切る
+            self.rpp_list = ([_('参照…'), f"<{_('RPP・MIDIファイルを選択')}>"] + self.rpp_list[::-1])[:27]
+        except Exception:
+            self.rpp_list = []
 
     def load_track(self):  # トラック名を読み込む
         tree = self.make_treedict(1)[0]
@@ -104,6 +125,7 @@ class Rpp:
 
     def make_treedict(self, index):  # CheckboxTreeviewで使う用の入れ子辞書を生成する
         value = {}
+        is_first_call = index == 1
         while True:
             index += 1
             name = ''
@@ -132,7 +154,7 @@ class Rpp:
                 value[name], index, skip = self.make_treedict(index)
                 if skip < 0:
                     return value, index, skip + 1
-            elif isbus[1] == "2" and inspect.stack()[1].function != self.make_treedict:
+            elif isbus[1] == "2" and not is_first_call:
                 return value, index, int(isbus[2]) + 1
 
     def main(self, auto_src, sel_track):  # rpp_aryを読み込んだ結果をobjDictに入れていく
@@ -144,6 +166,7 @@ class Rpp:
             "length": [-1.0],
             "loop": [-1],
             "soffs": [-1.0],
+            "pitch": [-99.9],
             "playrate": [-1.0],
             "fileidx": [-1],
             "filetype": ['']
@@ -166,6 +189,7 @@ class Rpp:
                     self.objDict["length"].append(-1)
                     self.objDict["loop"].append(-1)
                     self.objDict["soffs"].append(-1)
+                    self.objDict["pitch"].append(-99.9)
                     self.objDict["playrate"].append(0)
                     self.objDict["fileidx"].append(-1)
                     self.objDict["filetype"].append('')
@@ -223,6 +247,8 @@ class Rpp:
 
                 self.objDict["pos"].append(float(itemdict["POSITION"][0]) - self.start_pos)
                 self.objDict["length"].append(float(itemdict["LENGTH"][0]))
+                self.objDict["pitch"].append(float(itemdict["PLAYRATE"][2])) if "PLAYRATE" in itemdict \
+                    else self.objDict["pitch"].append(-99.9)
                 if auto_src:  # 素材自動検出モードの処理
                     self.objDict["loop"].append(int(itemdict["LOOP"][0]))
                     self.objDict["soffs"].append(float(itemdict["SOFFS"][0])) if "SOFFS" in itemdict \
@@ -243,6 +269,7 @@ class Rpp:
                             self.objDict["fileidx"].append(file_path.index(path))
                             self.objDict["filetype"].append(srch_type[srch])
                             srchflg = 1
+                            break
                         elif keyy in itemdict:
                             path = self.to_absolute(itemdict[keyy][-1])
                             if path not in file_path:
@@ -250,6 +277,7 @@ class Rpp:
                             self.objDict["fileidx"].append(file_path.index(path))
                             self.objDict["filetype"].append(srch_type[srch])
                             srchflg = 1
+                            break
                     if not srchflg:
                         if 'NOTES' in itemdict:  # 空アイテム(テキスト)の処理
                             self.objDict["fileidx"].append(-1)
@@ -282,6 +310,7 @@ class Rpp:
                         self.objDict["length"][-1] = sec_length
                         self.objDict["pos"].append(self.objDict["pos"][-1] + sec_length)
                         self.objDict["length"].append(-1)
+                        self.objDict["pitch"].append(self.objDict["pitch"][-1])
                         self.objDict["loop"].append(0)
                         self.objDict["soffs"].append(self.objDict["soffs"][-1])
                         self.objDict["playrate"].append(self.objDict["playrate"][-1])

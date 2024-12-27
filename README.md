@@ -23,7 +23,7 @@ Pythonをインストール済みの方は、その下の Source Code (zip) か�
 EXE版の場合、exeをダブルクリックして実行してください。
 
 PY版 (Source Code) をダウンロードした場合、Pythonをインストールした状態で、
-```
+```commandline
 pip install -r requirements.txt
 ```
 で依存パッケージをインストールしてから実行してください。
@@ -33,6 +33,15 @@ pip install -r requirements.txt
 ## 使い方・説明
 Scrapboxを見てください。
 https://scrapbox.io/Garech/RPPtoEXO_v2.0
+
+## EXE化
+Nuitkaを使用することを前提としています。以下のコマンドを用いて作成してください。
+
+`--include-data-dir` のパスなど、各環境で変更が必要な場合があります。
+```commandline
+nuitka --no-deployment-flag=self-execution --standalone --onefile --windows-console-mode=disable --follow-imports --enable-plugin=tk-inter --windows-icon-from-ico="RPPtoEXO.ico" --include-data-dir=en/LC_MESSAGES/=en/LC_MESSAGES --include-data-dir=venv/Lib/site-packages/ttkwidgets/assets=ttkwidgets/assets --include-data-file=RPPtoEXO.ico=./RPPtoEXO.ico -o RPPtoEXO.exe main.py
+```
+
 
 Original made by maimai22015
 https://ytpmv.info/RPPtoEXO/

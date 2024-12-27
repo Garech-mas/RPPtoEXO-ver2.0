@@ -1,9 +1,9 @@
+import os
 import shutil
 import sys
+from os import path as op
 
 import requests
-import os
-from os import path as op
 
 
 def download_github(url, path):

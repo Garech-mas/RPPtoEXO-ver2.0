@@ -1,60 +1,74 @@
 import binascii
+import math
 import random
-
-import cv2
-import gettext
 import os
+import shutil
 from decimal import Decimal, ROUND_HALF_UP
 from fractions import Fraction
-from rpp2exo.dict import ExDict
 
+import cv2
 
-class LoadFilterFileError(Exception):  # EXA読み込みエラー
-    pass
-
-
-class ItemNotFoundError(Exception):  # 出力対象アイテム数0エラー
-    pass
+from rpp2exo import utils
 
 
 class Exo:
-    def __init__(self, mydict):
+    def __init__(self, mydict, file_path):
         self.fps = Fraction(mydict["fps"]).limit_denominator().numerator
         self.scale = Fraction(mydict["fps"]).limit_denominator().denominator
         self.res_x = 1920  # 解像度X
         self.res_y = 1080
         self.mydict = mydict
+        self.file_path = file_path
+        self.file_fps = []
         self.exedit_lang = mydict['ExEditLang']
         # 翻訳用
         global _
-        _ = gettext.translation(
-            'text',  # domain: 辞書ファイルの名前
-            localedir=os.path.join(os.path.join(os.path.dirname(os.path.dirname(__file__)))),  # 辞書ファイル配置ディレクトリ
-            languages=[mydict['DisplayLang']],  # 翻訳に使用する言語
-            fallback=True
-        ).gettext
+        _ = utils.get_locale(mydict['DisplayLang'])
 
-    def fetch_fps(self, file_path):
-        file_fps = []
+    def fix_sjis_files(self):
+        end = {'file_copy_failed': []}
+        # 素材ファイルがSJIS非対応だった場合の処理
+        if self.mydict["SrcPath"] != utils.ignore_sjis(self.mydict["SrcPath"]):
+            os.makedirs(utils.ignore_sjis(self.mydict["RPPPath"][:-4]), exist_ok=True)
+            save_path = utils.ignore_sjis(self.mydict["RPPPath"][:-4] + '\\' + os.path.basename(self.mydict["SrcPath"]))
+            shutil.copy(self.mydict["SrcPath"], save_path)
+            end['file_copied'] = True
+
+        for i, file in enumerate(self.file_path):
+            sjis_file = utils.ignore_sjis(file)
+            if file != sjis_file and not is_audio(file):
+                os.makedirs(utils.ignore_sjis(self.mydict["RPPPath"][:-4]), exist_ok=True)
+                save_path = utils.ignore_sjis(self.mydict["RPPPath"][:-4] + '\\' + os.path.basename(file))
+                try:
+                    shutil.copy(file, save_path)
+                    self.file_path[i] = save_path
+                    end['file_copied'] = True
+                except (PermissionError, FileNotFoundError):
+                    end['file_copy_failed'].append(file)
+                    self.file_path[i] = sjis_file
+
+        if not end['file_copy_failed']: del end['file_copy_failed']
+        return end
+
+    def fetch_fps(self):
         # 各動画ファイルを読み込み、必要な情報を格納する
-        for index in range(len(file_path)):
+        for index in range(len(self.file_path)):
             fps = 0.0
             if self.mydict["OutputType"] != 0:
                 break
-            if is_audio(file_path[index]):
+            if is_audio(self.file_path[index]):
                 fps = self.mydict['fps']
             else:
-                path = file_path[index]
+                path = self.file_path[index]
                 cap = cv2.VideoCapture(path.replace('\\', '/'))
                 fps = float(cap.get(cv2.CAP_PROP_FPS))
                 cap.release()
             if fps == 0.0:
                 print(_("★警告: 動画として読み込めませんでした。動画ファイルの場合、再生位置が正常に反映されません。\n対象ファイル: %s") % path)
-            file_fps.append(fps)
-        file_fps.append(0.0)
-        return file_fps
+            self.file_fps.append(fps)
+        self.file_fps.append(0.0)
 
-    def make_exo(self, objdict, file_path, file_fps):
+    def make_exo(self, objdict):
         end = {}
         exo_result = ["[exedit]\nwidth=" + str(1280) + "\nheight=" + str(720) + \
                      "\nrate=" + str(Fraction(self.mydict["fps"]).limit_denominator().numerator) + \
@@ -79,6 +93,7 @@ class Exo:
         bf = 0.0  # アイテム一つ前の最終フレーム  ==Endframe
         layer = 1  # オブジェクトのあるレイヤー（RPP上で複数トラックある場合は別トラックに配置する）
         bfidx = 0  # item_countの調整用 レイヤー頭のitem_count-bfidxが0になるような値を設定
+        altidx = 0  # 同一音程判定の調整用
 
         opt_layer = []  # 1トラック内で重複が発生した場合の使用レイヤー状況をシミュレート
         opt_layer2 = []
@@ -106,7 +121,7 @@ class Exo:
             #     obj_frame_length -= 1
             #     ここで「1個前のオブジェクトのlength(bf)をマイナス１する」処理をしたい。抜本的な書き換えが必要
             # 一つ後のオブジェクトとの間に1フレームの空きがある場合の処理
-            if sur_round(obj_frame_pos + obj_frame_length) == sur_round(next_obj_frame_pos) - 1:
+            if self.sur_round(obj_frame_pos + obj_frame_length) == self.sur_round(next_obj_frame_pos) - 1:
                 obj_frame_length += 1
             if obj_frame_pos < bf:
                 bf = 0
@@ -119,17 +134,27 @@ class Exo:
                     continue
             bf = obj_frame_pos + obj_frame_length - 1
             if self.mydict["NoGap"] == 1:
-                if obj_frame_pos < sur_round(next_obj_frame_pos) - 1:
+                if obj_frame_pos < self.sur_round(next_obj_frame_pos) - 1:
                     bf = next_obj_frame_pos - 1
 
-            obj_frame_pos = int(sur_round(obj_frame_pos))
+            obj_frame_pos = int(self.sur_round(obj_frame_pos))
             if obj_frame_pos == 0: obj_frame_pos = 1
 
             # bfidxを調整 (同一開始フレームのオブジェクトを同じ反転状況にする)
+            is_pitch_repeated = objdict['pitch'][index - 1] == objdict['pitch'][index]
             if obj_frame_pos == bpos:
                 bfidx -= 1
+            # 同音程が連続した時、同じ反転状況にする
+            elif self.mydict['AltFlipType'] > 0 and is_pitch_repeated:
+                bfidx -= 1
 
-            bf = int(sur_round(bf))
+            # 同音程が連続した時、逆方向反転する
+            if self.mydict['AltFlipType'] == 2 and is_pitch_repeated:
+                altidx += 1
+            elif self.mydict["ObjFlipType"] != 3:
+                altidx = 0
+
+            bf = int(self.sur_round(bf))
             bpos = obj_frame_pos
 
             if self.mydict["SepLayerEvenObj"] == 1 and (bfidx + item_count) % 2 == 1:  # 偶数番目obj用のobj_layerに処理
@@ -185,7 +210,7 @@ class Exo:
                 with open(str(self.mydict["EffPath"]), mode='r', encoding='shift_jis', errors='replace') as f:
                     exa = f.readlines()
                     if exa[0][0] != '[' or exa[0][-2] != ']' or exa[0] == '[exedit]\n':
-                        raise LoadFilterFileError
+                        raise utils.LoadFilterFileError
 
                     for idx in range(len(exa)):
                         if exa[idx][-4:] == '.0]\n':  # オブジェクトファイル情報が存在する場合、exo_5を上書き
@@ -220,23 +245,25 @@ class Exo:
                 exo_eff = exo_eff[:-1]
                 exo_7_ = exo_7_[:-1]
 
-            # オブジェクトの反転・スクリプト制御の有無の設定
+            # オブジェクトの反転・スクリプト制御の有無の設定 …色々詰め込んだせいで最悪の実装になってしまった。
             if self.mydict["ObjFlipType"] == 0:  # 反転なし
                 pass
-            elif self.mydict["ObjFlipType"] == 1 and (bfidx + item_count) % 2 == 1:  # 左右反転
+            elif self.mydict["ObjFlipType"] == 1 and (bfidx + item_count) % 2 == 1 and altidx % 2 == 0 or \
+                 self.mydict["ObjFlipType"] == 2 and (bfidx + item_count) % 2 == 0 and altidx % 2 == 1:  # 左右反転
                 exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + self.add_reversal(lr=1)
                 filter_count += 1
-            elif self.mydict["ObjFlipType"] == 2 and (bfidx + item_count) % 2 == 1:  # 上下反転
+            elif self.mydict["ObjFlipType"] == 2 and (bfidx + item_count) % 2 == 1 and altidx % 2 == 0 or \
+                 self.mydict["ObjFlipType"] == 1 and (bfidx + item_count) % 2 == 0 and altidx % 2 == 1:  # 上下反転
                 exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + self.add_reversal(ud=1)
                 filter_count += 1
             elif self.mydict["ObjFlipType"] == 3:  # 時計回り反転
-                if (bfidx + item_count) % 4 == (3 if self.mydict['IsCCW'] else 1):
+                if (bfidx + item_count - altidx) % 4 == (3 if self.mydict['IsCCW'] else 1):
                     exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + self.add_reversal(lr=1)
                     filter_count += 1
-                elif (bfidx + item_count) % 4 == 2:
+                elif (bfidx + item_count - altidx) % 4 == 2:
                     exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + self.add_reversal(ud=1, lr=1)
                     filter_count += 1
-                elif (bfidx + item_count) % 4 == (1 if self.mydict['IsCCW'] else 3):
+                elif (bfidx + item_count - altidx) % 4 == (1 if self.mydict['IsCCW'] else 3):
                     exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + self.add_reversal(ud=1)
                     filter_count += 1
 
@@ -257,7 +284,7 @@ class Exo:
             # オブジェクトの種類等の設定
             if self.mydict["OutputType"] == 0:
                 if objdict["filetype"][index] in ["VIDEO", "IMAGE"]:
-                    file = file_path[objdict["fileidx"][index]]
+                    file = self.file_path[objdict["fileidx"][index]]
                 else:
                     file = ""
 
@@ -278,7 +305,7 @@ class Exo:
                     if file[file.find('.'):] == ".avi":  # AVIファイルの場合だけ、透過AVIの可能性があるためアルファチャンネル有
                         is_alpha = 1
 
-                    play_pos = int(objdict["soffs"][index] * file_fps[objdict["fileidx"][index]] + 1)
+                    play_pos = int(objdict["soffs"][index] * self.file_fps[objdict["fileidx"][index]] + 1)
                     play_rate = int(objdict["playrate"][index] * 1000) / 10.0
 
                     exo_5 = ".0]\n_name=" + self.t("動画ファイル") + \
@@ -330,7 +357,7 @@ class Exo:
             item_count += 1
 
         if item_count == 0:
-            raise ItemNotFoundError
+            raise utils.ItemNotFoundError
 
         try:
             with open(self.mydict["EXOPath"], mode='w', encoding='shift_jis') as f:
@@ -367,9 +394,17 @@ class Exo:
     # 海外版拡張編集を使用する際にDictから翻訳するための関数
     def t(self, txt):
         if self.exedit_lang != 'ja':
-            return ExDict[self.exedit_lang][txt]
+            return dict.ExDict[self.exedit_lang][txt]
         else:
             return txt
+
+    # iを設定内容の通りに丸める
+    def sur_round(self, i):
+        if self.mydict["UseRoundUp"] == 1:  # iを切り上げする
+            return math.ceil(i)
+        else:  # iを正確に四捨五入する
+            result = Decimal(str(i)).quantize(Decimal('0'), rounding=ROUND_HALF_UP)
+            return float(result)
 
 
 def encode_txt(text):  # textを拡張編集のテキストエンコード形式に直す
@@ -377,11 +412,6 @@ def encode_txt(text):  # textを拡張編集のテキストエンコード形式
     text = str(text)[:-1][2:]
     text = text + "0" * (4096 - len(str(text)))
     return text
-
-
-def sur_round(i):  # iを正確に四捨五入する
-    result = Decimal(str(i)).quantize(Decimal('0'), rounding=ROUND_HALF_UP)
-    return float(result)
 
 
 def is_audio(path):
