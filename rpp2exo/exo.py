@@ -209,7 +209,7 @@ class Exo:
                 exo_eff += '\n'
                 with open(str(self.mydict["EffPath"]), mode='r', encoding='shift_jis', errors='replace') as f:
                     exa = f.readlines()
-                    if exa[0][0] != '[' or exa[0][-2] != ']' or exa[0] == '[exedit]\n':
+                    if exa[0][0] != '[' or exa[0][-2] != ']':
                         raise utils.LoadFilterFileError
 
                     for idx in range(len(exa)):
@@ -218,9 +218,11 @@ class Exo:
                             exo_5 = '.0]\n'
                             continue
                         elif exa[idx][0] == '[' and exa[idx][-2] == ']':  # 切り替え部
-                            if exa[idx] == '[vo]\n':
+                            if exa[idx] in ['[vo]\n', '[exedit]\n', '[0]\n', '[1]\n']:
                                 if condition == '':
                                     continue
+                                elif exa[idx] == '[1]\n':
+                                    end['multiple_items'] = True
                                 else:
                                     end['keyframe_exists'] = True
                                     break

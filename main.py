@@ -1,6 +1,6 @@
 #####################################################################################
-#               RPP to EXO ver 2.09                                                 #
-#                                                                       2024/12/28  #
+#               RPP to EXO ver 2.09.1                                               #
+#                                                                       2025/01/04  #
 #       Original Written by Maimai (@Maimai22015/YTPMV.info)                        #
 #       Forked by Garech (@Garec_)                                                  #
 #                                                                                   #
@@ -156,6 +156,9 @@ def main():
 
         if 'keyframe_exists' in end:
             warn_msgs.append(_("★警告: エイリアスファイルに中間点が存在したため、正常に生成できませんでした。"))
+
+        if 'multiple_items' in end:
+            warn_msgs.append(_("★警告: エイリアスファイル（EXOファイル）に複数アイテムが存在しているため、１番目のアイテムのみ生成されます。"))
 
         if 'byoga_henkan_not_exists' in end:
             warn_msgs.append(_("★警告: YMM4では上下反転機能が実装されていないため、上下反転の設定は反映されません。\n"
