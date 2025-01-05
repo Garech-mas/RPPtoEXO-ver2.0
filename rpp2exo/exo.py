@@ -79,7 +79,8 @@ class Exo:
         exo_2 = "]\nstart="  # StartFrame
         exo_3 = "\nend="  # EndFrame
         exo_4 = "\nlayer="  # layer
-        exo_4_2 = "\ngroup=1\noverlay=1\nclipping=" + str(self.mydict["clipping"]) + \
+        exo_4_1 = ""  # オブジェクト種類別差分
+        exo_4_2 = "\ngroup=1\nclipping=" + str(self.mydict["clipping"]) + \
                   "\ncamera=" + str(self.mydict["IsExSet"]) + "\n["  # item_count
         exo_5 = ""
         exo_6 = "\n["  # item_count
@@ -102,6 +103,7 @@ class Exo:
             self.mydict['RandomEnd'] = videoload.get(cv2.CAP_PROP_FRAME_COUNT)  # フレーム数
 
         for index in range(1, len(objdict["length"])):
+            exo_4_1 = ""
             exo_5 = ""
             exo_eff = ""
             filter_count = 0
@@ -203,22 +205,29 @@ class Exo:
                         exo_eff += "\n" + str(eff[x][0]) + "=" + str(eff[x][1])
 
             # EXA読み込み
-            if self.mydict["EffPath"] != "":
+            eff_path = self.mydict['EffPaths'][(bfidx + item_count) % len(self.mydict['EffPaths'])]
+            if not eff_path:  # EXAファイルがブランクのときは後続処理に回す
+                exo_4_1 = '\noverlay=1'
+            else:
                 condition = ''
                 exo_5 = '\n'
                 exo_eff += '\n'
-                with open(str(self.mydict["EffPath"]), mode='r', encoding='shift_jis', errors='replace') as f:
+                with open(eff_path, mode='r', encoding='shift_jis', errors='replace') as f:
                     exa = f.readlines()
                     if exa[0][0] != '[' or exa[0][-2] != ']':
-                        raise utils.LoadFilterFileError
+                        raise utils.LoadFilterFileError('', filename=eff_path)
 
                     for idx in range(len(exa)):
                         if exa[idx][-4:] == '.0]\n':  # オブジェクトファイル情報が存在する場合、exo_5を上書き
                             condition = 'exo_5'
                             exo_5 = '.0]\n'
+                            if 'o.' in exa[idx]:
+                                exo_4_1 = "\noverlay=1"
+                            if 'a' in exa[idx]:
+                                exo_4_1 += "\naudio=1"
                             continue
                         elif exa[idx][0] == '[' and exa[idx][-2] == ']':  # 切り替え部
-                            if exa[idx] in ['[vo]\n', '[exedit]\n', '[0]\n', '[1]\n']:
+                            if '.' not in exa[idx]:
                                 if condition == '':
                                     continue
                                 elif exa[idx] == '[1]\n':
@@ -242,6 +251,11 @@ class Exo:
                             exo_eff += exa[idx]
                         elif condition == 'exo_7_':
                             exo_7_ += exa[idx]
+                        elif exa[idx] == 'overlay=1\n':
+                            exo_4_1 = "\noverlay=1"
+                        elif exa[idx] == 'audio=1\n':
+                            exo_4_1 = "\naudio=1"
+
                 # それぞれ末尾の\nを削除
                 exo_5 = exo_5[:-1]
                 exo_eff = exo_eff[:-1]
@@ -275,11 +289,17 @@ class Exo:
                 filter_count += 1
 
             # EXA読み込み部でexo_5部分が読み込まれていた場合、EXAファイルの中身のオブジェクトをそのまま反映する (この先の処理は無視)
-            if exo_5 != '':
-                exo_7 = "." + str(1 + filter_count) + exo_7_
-                exo_result.append(exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) +
-                              exo_4 + exo_4_2 + str(item_count) + exo_5 + exo_eff + exo_script + exo_6 +
-                              str(item_count) + exo_7)
+            if exo_5 != '':  # メディアオブジェクト
+                if exo_7_:
+                    exo_7 = "." + str(1 + filter_count) + exo_7_
+                    exo_result.append(exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) +
+                                  exo_4 + exo_4_1 + exo_4_2 + str(item_count) + exo_5 + exo_eff + exo_script + exo_6 +
+                                  str(item_count) + exo_7)
+                else:  # フィルタオブジェクト
+                    exo_4_2 = "\ngroup=1\n["  # item_count
+                    exo_result.append(exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) +
+                                  exo_4 + exo_4_1 + exo_4_2 + str(item_count) + exo_5)
+
                 item_count = item_count + 1
                 continue
 
@@ -346,15 +366,15 @@ class Exo:
                     exo_7 += '\n' + txt
 
                 exo_result.append(exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) +
-                              exo_4 + exo_4_2 + str(item_count) + exo_5 + exo_eff + exo_script + exo_6 +
+                              exo_4 + exo_4_1 + exo_4_2 + str(item_count) + exo_5 + exo_eff + exo_script + exo_6 +
                               str(item_count) + exo_7)
             # フィルタ効果
             elif self.mydict["OutputType"] == 3:
-                exo_4_2 = "\ngroup=1\noverlay=1"
+                exo_4_2 = "\ngroup=1"
                 # 何も効果がかかっていないとエラー吐くので（多分）とりあえず座標0,0,0を掛けておく
                 exo_5 = "\n[" + str(item_count) + ".0]\n_name=" + self.t("座標") + "\nX=0.0\nY=0.0\nZ=0.0"
                 exo_result.append(exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) +
-                              exo_4 + exo_4_2 + exo_5 + exo_eff + exo_script)
+                              exo_4 + exo_4_1 + exo_4_2 + exo_5 + exo_eff + exo_script)
 
             item_count += 1
 

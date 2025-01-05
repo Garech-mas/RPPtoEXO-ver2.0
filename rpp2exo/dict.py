@@ -347,6 +347,12 @@ mydict = {
     "IsAlpha": 0,  # アルファチャンネルを読み込む
     "IsLoop": 0,  # ループ再生
 
+    "EffPaths": [
+        '',
+        # "test2.exa",
+        # "test3.exa", ...
+        ],
+
     "clipping": 0,
     "SceneIdx": 0,
 
@@ -383,7 +389,7 @@ mydict = {
     "AlsLastDir": os.path.abspath(os.path.dirname(__file__)),  # エイリアス
     "IsCCW": 0,  # 左右・上下反転時に反時計回りにするかどうか
     "PatchExists": 0,  # patch.aulが導入済みか
-    "HasPatchError": 0,  # 拡張編集由来のバグが起きたかどうか
+    "HasPatchError": [],  # 拡張編集由来のバグが起きたかどうか
     "UseYMM4": 0,  # ゆっくりMovieMaker4出力にするかどうか
     "YMM4Path": "",  # YMM4の実態があるパスを選択 (テンプレート適用のため)
     "TemplateName": "RPPtoEXO",  # テンプレートの保存名

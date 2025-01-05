@@ -103,17 +103,6 @@ class YMM4:
             else:
                 end_frame = videoload.get(cv2.CAP_PROP_FRAME_COUNT)  # フレーム数
 
-        # エイリアステンプレート読み込み
-        if self.mydict["EffPath"] != "":
-            # ymmtファイルの読込み
-            with zipfile.ZipFile(self.mydict["EffPath"]) as myzip:
-                with myzip.open('catalog.json') as myfile:
-                    als_catalog = json.loads(myfile.read())
-                    als_item = als_catalog['ItemTemplates'][0]['Items'][0]
-                    # 中間点が設定されているとYMM4上でバグが発生するので警告
-                    if als_item['KeyFrames']['Count'] != 0:
-                        end['keyframe_exists'] = True
-
         for index in range(1, len(objdict["length"])):
             add_layer = 0
             # オブジェクト最初のフレームと長さの計算
@@ -184,10 +173,18 @@ class YMM4:
                     opt_layer.append(bf)
 
             # 先にダミーのitemを追加した後、必要な部分を置き換えていく
-
             # エイリアステンプレート読み込み
-            if self.mydict["EffPath"] != "":
-                items.append(deepcopy(als_item))
+            eff_path = self.mydict['EffPaths'][(bfidx + item_count) % len(self.mydict['EffPaths'])]
+            if eff_path:
+                # ymmtファイルの読込み
+                with zipfile.ZipFile(eff_path) as myzip:
+                    with myzip.open('catalog.json') as myfile:
+                        als_catalog = json.loads(myfile.read())
+                        als_item = als_catalog['ItemTemplates'][0]['Items'][0]
+                        items.append(deepcopy(als_item))
+                        # 中間点が設定されているとYMM4上でバグが発生するので警告
+                        if als_item['KeyFrames']['Count'] != 0:
+                            end['keyframe_exists'] = True
             elif self.mydict["OutputType"] == 0 and objdict["filetype"][index].startswith('TEXT'):
                 items.append(deepcopy(self.default_text_item))
             else:
@@ -226,7 +223,7 @@ class YMM4:
                     items[-1]['VideoEffects'].append(up_down_flip_effect)
 
             # エイリアステンプレートを読み込んでいる場合は、テンプレートの中身のオブジェクトをそのまま反映する (この先の処理は無視)
-            if self.mydict['EffPath'] != "":
+            if eff_path:
                 items[-1]['Group'] = 1
                 item_count += 1
                 continue
@@ -275,8 +272,9 @@ class YMM4:
             elif self.mydict["OutputType"] == 3:  # フィルタオブジェクト
                 items[-1]['$type'] = "YukkuriMovieMaker.Project.Items.EffectItem, YukkuriMovieMaker"
                 del items[-1]['Zoom']
-            elif self.mydict["OutputType"] == 5:  # 立ち絵オブジェクト
-                items[-1]['$type'] = "YukkuriMovieMaker.Project.Items.TachieItem, YukkuriMovieMaker"
+            elif self.mydict["OutputType"] == 4:  # シーンオブジェクト
+                items[-1]['$type'] = "YukkuriMovieMaker.Project.Items.SceneItem, YukkuriMovieMaker"
+                items[-1]['SceneId'] = ""
 
             item_count += 1
 

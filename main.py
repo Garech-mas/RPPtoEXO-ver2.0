@@ -24,15 +24,15 @@ rpp_cl = Rpp("")
 ymm4_cl = YMM4(mydict)
 midi_cl = Midi("")
 
-def patched_error(msg):
-    mydict['HasPatchError'] = 1
+def patched_error():
     if mydict['ExEditLang'] == 'ja':
         if mydict['PatchExists']:
-            print(_('(patch.aul未導入 かつ 拡張編集 Ver0.92以下 の環境では、%s)') % msg)
+            print(_('(patch.aul未導入 かつ 拡張編集 Ver0.92以下 の環境では、%s)') % '\n'.join(mydict['HasPatchError']))
             return
         rsp = messagebox.showwarning(
-            _("警告"), _('%s\nEXOのインポート後、個別に設定してください。') % msg,
-            detail=_('patch.aul導入済 / 拡張編集 Ver0.93rc1 の環境の方はこれらのエラーを修復しています。\nこれらの環境に当てはまっていますか？'),
+            _("警告"), _('AviUtl本体のバグの影響により、\n%s\nEXOのインポート後、個別に設定してください。') % '\n'.join(mydict['HasPatchError']),
+            detail=_('以下に当てはまる環境の方はこのバグを修正済みのため無視できます。以下のいずれかの環境に当てはまっていますか？\n'
+                     '・拡張編集 v0.92 かつ patch.aul を導入済み\n・拡張編集v0.93rc1以上 を導入済み'),
             type='yesno', default='no')
         if rsp == 'yes':
             print(_('★選択を記録しました。今後拡張編集のバグによるEXO生成エラーはコンソール上に通知されます。'))
@@ -41,7 +41,7 @@ def patched_error(msg):
     else:
         mydict["PatchExists"] = 0
         messagebox.showwarning(
-            _("警告"), _('%s\nEXOのインポート後、個別に設定してください。') % msg,
+            _("警告"), _('AviUtl本体のバグの影響により、%s\nEXOのインポート後、個別に設定してください。') % '\n'.join(mydict['HasPatchError']),
             detail=_('Tips: オリジナルの日本版拡張編集 v0.92を使い、patch.aul プラグインを導入することでこのエラーを回避できます。'))
 
 
@@ -110,8 +110,8 @@ def main():
         messagebox.showerror(_("エラー"), _("AviUtl上で使用できない文字がパス名に含まれています。\n"
                                          "パス名に含まれる該当文字を削除し、再度実行し直してください。\n\n")
                              + e.reason + '    "' + e.object + '"')
-    except LoadFilterFileError:
-        messagebox.showerror(_("エラー"), _("エイリアス / 効果ファイルが不正です。詳しくはREADMEを参照してください。"))
+    except LoadFilterFileError as e:
+        messagebox.showerror(_("エラー"), _("下記のエイリアスファイルが不正です。正規の方法でEXAファイルを生成してください。\n") + e.filename)
     except ItemNotFoundError:
         messagebox.showerror(_("エラー"), _("出力範囲内に変換対象のアイテムが見つかりませんでした。\n"
                                          "出力対象トラック、時間選択の設定を見直してください。"))
@@ -165,32 +165,15 @@ def main():
                              "    描画変換プラグインを導入し、テンプレートを再生成することで読み込むことができます。"))
 
         if not mydict['PatchExists'] and mydict['HasPatchError']:
-            print(_("★警告: AviUtl 拡張編集のバグにより、オブジェクトの設定は正常に反映されません。"))
-            warn_msgs.append(_("★警告: AviUtl 拡張編集のバグにより、オブジェクトの設定は正常に反映されません。"))
-            end = end | {1: 1}
+            patched_error()
 
         if 'file_copied' in end:
             messagebox.showinfo(_('確認'), _("AviUtlで読み込めないファイルが含まれていたため、RPPを保存したフォルダに一部の動画ファイルをコピーしました。"))
 
-        ret_ymm4 = False
-        if mydict['UseYMM4']:
-            if end == {}:
-                messagebox.showwarning(_("正常終了"), _("正常に生成されました。\n%sを開きます。") % _('ゆっくりMovieMaker4'), icon="info")
-            else:
-                for msg in warn_msgs:
-                    messagebox.showwarning(_("警告"), msg)
-                messagebox.showwarning(_("警告"), _("一部アイテムが正常に生成できませんでした。\n%sを開きます。") % _('ゆっくりMovieMaker4'))
-            ret_ymm4 = True
-
-        else:
-            if end != {}:
-                for msg in warn_msgs:
-                    messagebox.showwarning(_("警告"), msg)
-            show_dropwindow()
-
-        if ret_ymm4:
-            subprocess.Popen([mydict['YMM4Path'], os.path.join(tempfile.gettempdir(), 'RPPtoYMMT_temp.ymmt')])
-            fore_ymm4()
+        if end != {}:
+            for msg in warn_msgs:
+                messagebox.showwarning(_("警告"), msg)
+        show_dropwindow()
 
     finally:
         print('--------------------------------------------------------------------------')
@@ -201,6 +184,8 @@ def main():
 
 def show_dropwindow():
     window = pygetwindow.getWindowsWithTitle(ExDict["拡張編集"])
+    if mydict['UseYMM4']:
+        window = pygetwindow.getWindowsWithTitle("ゆっくりMovieMaker v" + ymm4_cl.version)
     if window and window[0]:
         window[0].activate()
 
@@ -214,6 +199,9 @@ def show_dropwindow():
     drop_root.attributes("-topmost", True)
 
     lbl_drag_help = ttk.Label(drop_root, text=_('このウィンドウからAviUtlに直接ドラッグ&ドロップしてください。\n※ 挿入したいレイヤーの0秒地点にドラッグ&ドロップするようにしてください。'))
+    if mydict['UseYMM4']:
+        lbl_drag_help['text'] = _('このウィンドウからYMM4に直接ドラッグ&ドロップしてください。\nその後、「%s」テンプレートを0秒地点に追加してください。\n'
+                                  '※上書き確認ダイアログが出てきた場合、「上書きする」を選択してください。') % mydict['TemplateName']
     lbl_drag_help.place(x=20,y=70)
 
     width = lbl_drag_help.winfo_reqwidth() + 40
@@ -233,18 +221,22 @@ def show_dropwindow():
             filetypes=[(_("AviUtlオブジェクトファイル"), "*.exo"), (_("すべてのファイル"), "*.*")],
             parent=drop_root
         )
-        if exo_path:  # 保存先が選択された場合
-            temp_exo_path = os.path.join(tempfile.gettempdir(), 'RPPtoEXO_temp.exo')
-            shutil.copy(temp_exo_path, exo_path)
-            btn_export_exo['text'] = _('保存済み')
+        try:
+            if exo_path:  # 保存先が選択された場合
+                temp_exo_path = os.path.join(tempfile.gettempdir(), 'RPPtoEXO_temp.exo')
+                shutil.copy(temp_exo_path, exo_path)
+                btn_export_exo['text'] = _('保存済み')
+        except PermissionError as e:
+            messagebox.showerror(_("エラー"), _("上書き先のEXOファイルが開かれているか、読み取り専用になっています。"))
 
     # EXO出力ボタンを作成
     btn_export_exo = ttk.Button(drop_root, text=_("EXO出力"), command=export_exo)
-    btn_export_exo.place(x=width - 100, y=height - 50, width=80, height=30)
+    if not mydict['UseYMM4']:
+        btn_export_exo.place(x=width - 100, y=height - 50, width=80, height=30)
 
     # ドラッグ操作
     def drag_init(event):
-        data = (os.path.join(tempfile.gettempdir(), 'RPPtoEXO_temp.exo'), )
+        data = (mydict['EXOPath'], )
         return (ASK, COPY), (DND_FILES, DND_TEXT), data
 
     def drag_window_close():
@@ -577,10 +569,12 @@ def toggle_media_label(flg):
 
 def run():
     mydict["RPPPath"] = svr_rpp_input.get().replace('"', '')
-    mydict["EXOPath"] = os.path.join(tempfile.gettempdir(), 'RPPtoEXO_temp.exo')
+    mydict["EXOPath"] = os.path.join(tempfile.gettempdir(), 'RPPtoYMMT_temp.ymmt' if mydict['UseYMM4'] else 'RPPtoEXO_temp.exo')
     mydict["OutputType"] = ivr_trgt_mode.get()
     mydict["SrcPath"] = to_absolute(svr_src_input.get().replace('"', '')).replace('/', '\\')
-    mydict["EffPath"] = to_absolute(svr_alias_input.get().replace('"', ''))
+    mydict["EffPaths"][0] = to_absolute(svr_alias_input.get().replace('"', ''))
+    while len(mydict['EffPaths']) > 1 and mydict['EffPaths'][-1] == '':
+        mydict['EffPaths'].pop()
     mydict["IsAlpha"] = ivr_import_alpha.get()
     mydict["IsLoop"] = ivr_loop.get()
     if is_float(svr_fps_input.get()):
@@ -647,11 +641,12 @@ def run():
     mydict["Track"] = tvw_slct_track.get_checked()
     mydict["DisplayLang"] = svr_lang_r2e.get()
     mydict["ExEditLang"] = svr_lang_aul.get()
+    mydict['HasPatchError'] = []
 
     mydict["Param"] = []
 
     def set_mparam(i, mv=1, tp=1):
-        if mydict['UseYMM4'] and i == 13:
+        if mydict['UseYMM4'] and i == 13:  # YMM4の再生位置（00:00:00の形式）だけ独自処理を取る
             if is_float(mEntryS[i].get()):
                 mEntryS[i].set(format_seconds(float(mEntryS[i].get())))
             if not re.match(r'^\d{2}:\d{2}:\d{2}(\.\d+)?$', mEntryS[i].get()):
@@ -659,13 +654,14 @@ def run():
                 mLabel[0].get(), mLabel[i + 1].get()))
                 mEntrySE[i].focus_set()
                 raise ValueError
+            return mv, tp
         elif not is_float(mEntryS[i].get()):
             messagebox.showinfo(_("エラー"), _("%s : %s の値が正しく入力されていません。") % (mLabel[0].get(), mLabel[i+1].get()))
             mEntrySE[i].focus_set()
             raise ValueError
         if mv and -1 < float(mEntryS[i].get()) < 0:
-            patched_error(_('AviUtl本体のバグの影響により、トラックバーの-1越0未満 ( -0.* ) の値は反映されません。'))
-            return 1, tp
+            mydict['HasPatchError'].append(_('・トラックバーの-1越0未満 ( -0.* ) の値は反映されません。'))
+            mv = 0
         mydict["Param"].append(mLabel[i+1].get() + '=' + set_decimal(mEntryS[i], prmlist[i][2]))
         if mEntryX[i].get() == list(XDict.keys())[0] or mEntryX[i].get() == "":
             return mv, tp
@@ -675,8 +671,8 @@ def run():
             mEntryEE[i].focus_set()
             raise ValueError
         if mv and -1 < float(mEntryE[i].get()) < 0:
-            patched_error(_('AviUtl本体のバグの影響により、トラックバーの-1越0未満 ( -0.* ) の値は反映されません。'))
-            return 1, tp
+            mydict['HasPatchError'].append(_('・トラックバーの-1越0未満 ( -0.* ) の値は反映されません。'))
+            mv = 0
         mydict["Param"][-1] += ',' + set_decimal(mEntryE[i], prmlist[i][2]) + ','\
             + str(XDict.get(mEntryX[i].get(), '15@' + mEntryX[i].get()))
         if mEntryConf[i].get() != '':
@@ -687,12 +683,12 @@ def run():
                 raise ValueError
             mydict["Param"][-1] += ',' + str(int(mEntryConf[i].get()))
             if tp and not str(XDict.get(mEntryX[i].get(), mEntryX[i].get())).isascii():
-                patched_error(_("AviUtl本体のバグの影響により、移動の設定の値は反映されません。"))
-                return mv, 1
+                mydict['HasPatchError'].append(_("・移動方法の設定の値は反映されません。"))
+                tp = 0
         return mv, tp
 
     try:
-        show_mv, show_tp = (0, 0)
+        show_mv, show_tp = (1, 1)  # -1越0未満エラー(mv)・移動設定値エラー(tp)を表示する場合は1 一度表示したら0になる
         if ivr_adv_draw.get():
             mydict['Param'].append('_name=' + ExDict['拡張描画'])
             for i in [0, 1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14]:
@@ -736,13 +732,17 @@ def run():
             messagebox.showinfo(_("エラー"), _("正しいエイリアスのパスを入力してください。"))
             ent_alias_input.focus_set()
             return 0
+        elif svr_alias_input2.get() and not os.path.isfile(svr_alias_input2.get()):
+            messagebox.showinfo(_("エラー"), _("正しいエイリアスのパスを入力してください。"))
+            ent_alias_input2.focus_set()
+            return 0
 
         if (mydict["SceneIdx"] <= 0 or mydict["SceneIdx"] >= 50) and mydict["OutputType"] == 4:
             messagebox.showinfo(_("エラー"), _("正しいシーン番号を入力してください。（範囲 : 1 ~ 49）"))
             ent_scene_idx.focus_set()
             return 0
         elif mydict["SceneIdx"] != 1 and mydict["OutputType"] == 4:
-            patched_error(_('AviUtl本体のバグの影響により、シーン番号は反映されません。'))
+            mydict['HasPatchError'].append(_('・シーン番号は反映されません。'))
 
         count = mydict["EffCount"]
         runcount = 0
@@ -760,7 +760,7 @@ def run():
                     if hEntryX[runcount].get() == list(XDict.keys())[0] or hEntryX[runcount].get() == "":  # 移動なしの場合
                         if show_mv and EffDict[mydict["Effect"][i][0]][x][-1] != -2 and \
                                 -1 < float(hEntryS[runcount].get()) < 0:
-                            patched_error(_('AviUtl本体のバグの影響により、トラックバーの-1越0未満 ( -0.* ) の値は反映されません。'))
+                            mydict['HasPatchError'].append(_('・トラックバーの-1越0未満 ( -0.* ) の値は反映されません。'))
                             show_mv = False
 
                         eff = [EffDict[mydict["Effect"][i][0]][x][0],
@@ -774,7 +774,7 @@ def run():
                             return 0
                         if show_mv and EffDict[mydict["Effect"][i][0]][x][-1] != -2 and \
                                 (-1 < float(hEntryS[runcount].get()) < 0 or -1 < float(hEntryE[runcount].get()) < 0):
-                            patched_error(_('AviUtl本体のバグの影響により、トラックバーの-1越0未満 ( -0.* ) の値は反映されません。'))
+                            mydict['HasPatchError'].append(_('・トラックバーの-1越0未満 ( -0.* ) の値は反映されません。'))
                             show_mv = False
                         eff = [EffDict[mydict["Effect"][i][0]][x][0],
                                set_decimal(hEntryS[runcount], EffDict[mydict["Effect"][i][0]][x][-1]) + ","
@@ -783,7 +783,7 @@ def run():
                         if XDict.get(hEntryX[runcount].get(), 'a') != "":
                             eff[1] += str(hEntryConf[runcount].get())
                             if show_tp and not str(XDict.get(hEntryX[runcount].get(), hEntryX[runcount].get())).isascii():
-                                patched_error(_("AviUtl本体のバグの影響により、移動の設定の値は反映されません。"))
+                                mydict['HasPatchError'].append(_("・移動の設定の値は反映されません。"))
                                 show_tp = False
                         if XDict.get(hEntryX[runcount].get(), 'a') != "" and hEntryConf[runcount].get() != "":
                             eff = [EffDict[mydict["Effect"][i][0]][x][0],
@@ -1217,7 +1217,7 @@ if __name__ == '__main__':
         btn_rpp_browse.grid(row=0, column=3)
 
     # frame_r2e ソフト独自設定 / 時間選択 / トラック選択
-    frame_r2e = ttk.Frame(frame_left, padding=10)
+    frame_r2e = ttk.Frame(frame_left, padding=5)
     frame_r2e.grid(row=4, column=0)
 
     def change_flip():
@@ -1323,32 +1323,96 @@ if __name__ == '__main__':
     tvw_slct_track.bind('<<TreeviewClose>>', lambda event: tvw_slct_track.expand_all())
 
     # frame_alias 効果をファイルから読み込む
-    frame_alias = ttk.Frame(frame_left, padding=5)
+    frame_alias = ttk.Frame(frame_left, padding=2)
     frame_alias.grid(row=6, column=0)
     lbl_alias_input = ttk.Label(frame_alias, text=_('エイリアス : '))
     lbl_alias_input.grid(row=0, column=0, sticky=W)
     svr_alias_input = StringVar()
+    svr_alias_input2 = StringVar()
+    svr_alias_spinbox = StringVar(value=_('%01.0f番目') % 2)  # 初期値を2に設定
+    def chg_alias_idx():
+        alias_idx = int(re.search(r'\d+', svr_alias_spinbox.get()).group()) - 1
+        if len(mydict['EffPaths']) - 1 < alias_idx:
+            svr_alias_input2.set('')
+        else:
+            svr_alias_input2.set(mydict['EffPaths'][alias_idx])
+        ent_alias_input2.focus_set()
+        ent_alias_input2.icursor('end')
+        ent_alias_input2.xview_moveto(1)
 
-    def slct_filter_cfg_file():  # 効果設定ファイル読み込み
+    spn_alias_index = ttk.Spinbox(frame_alias, from_=2, to=50, increment=-1, format=_('%01.0f番目'),
+                                  textvariable=svr_alias_spinbox, width=8, state="readonly", command=chg_alias_idx)
+    spn_alias_index.grid(row=1, column=0, sticky=W)
+    def drop_alias_files(event):
+        paths = list(root.tk.splitlist(event.data))
+        if event.widget == ent_alias_input:
+            path0 = paths.pop(0)
+            svr_alias_input.set(path0)
+            svr_alias_spinbox.set(_('%01.0f番目') % 2)
+            if not paths: return
+
+        alias_idx = int(re.search(r'\d+', svr_alias_spinbox.get()).group()) - 1
+        svr_alias_input2.set(paths[0].replace('\\', '/') if paths else '')
+
+        # `paths[1:]` の要素を `mydict['EffPaths']` に反映
+        for i, path in enumerate(paths, start=alias_idx):
+            if i < len(mydict['EffPaths']):
+                mydict['EffPaths'][i] = path.replace('\\', '/')
+            else:
+                mydict['EffPaths'].insert(i, path.replace('\\', '/'))
+    def slct_filter_cfg_files(target):  # 効果設定ファイル読み込み
         if not mydict['UseYMM4']:
             filetype = [(_("AviUtl エイリアス/効果ファイル"), "*.exa;*.exc;*.exo;*.txt"),
                         (_("すべてのファイル"), "*.*")]
         else:
             filetype = [(_("ゆっくりMovieMaker4 エイリアスファイル"), "*.ymmt;"), (_("すべてのファイル"), "*.*")]
-        filepath = filedialog.askopenfilename(
+        filepaths = filedialog.askopenfilenames(
             filetypes=filetype, initialdir=mydict["AlsLastDir"], title=_("参照するエイリアス/効果ファイルの選択"))
-        if filepath != '':
-            svr_alias_input.set(filepath)
-            write_cfg(filepath, "AlsDir", "Directory")
-    btn_alias_browse = ttk.Button(frame_alias, text=_('参照…'), command=slct_filter_cfg_file)
+        if filepaths:
+            # 擬似イベントオブジェクトを作成
+            event = Event()
+            event.data = filepaths  # ファイルパスをイベントに設定
+            event.widget = target  # ウィジェットをイベントに設定
+            drop_alias_files(event)
+            write_cfg(filepaths[0], "AlsDir", "Directory")
+            if target == svr_alias_input:
+                ent_alias_input.focus_set()
+            else:
+                ent_alias_input2.focus_set()
+    btn_alias_browse = ttk.Button(frame_alias, text=_('参照…'), command=lambda: slct_filter_cfg_files(ent_alias_input))
     btn_alias_browse.grid(row=0, column=3)
+    btn_alias_browse2 = ttk.Button(frame_alias, text=_('参照…'), command=lambda: slct_filter_cfg_files(ent_alias_input2))
+    btn_alias_browse2.grid(row=1, column=3)
     ent_alias_input = ttk.Entry(frame_alias, textvariable=svr_alias_input, width=40)
     ent_alias_input.grid(row=0, column=1)
     ent_alias_input.drop_target_register(DND_FILES)
-    ent_alias_input.dnd_bind("<<Drop>>", partial(drop_file, svr_alias_input))
+    ent_alias_input.dnd_bind("<<Drop>>", drop_alias_files)
+    def set_alias_path(args=None):
+        alias_idx = int(re.search(r'\d+', svr_alias_spinbox.get()).group()) - 1
+        if len(mydict['EffPaths']) - 1 < alias_idx:
+            mydict['EffPaths'].append(to_absolute(svr_alias_input2.get().replace('"', '')))
+        else:
+            mydict['EffPaths'][alias_idx] = to_absolute(svr_alias_input2.get().replace('"', ''))
+        return 1
+
+    ent_alias_input2 = ttk.Entry(frame_alias, textvariable=svr_alias_input2, width=40, validate='all',
+                              validatecommand=set_alias_path)
+    ent_alias_input2.grid(row=1, column=1)
+    ent_alias_input2.drop_target_register(DND_FILES)
+
+    ent_alias_input2.dnd_bind("<<Drop>>", drop_alias_files)
+    ent_alias_input2.bind("<KeyRelease>", set_alias_path)
+
+    btn_clear_alias = ttk.Button(frame_alias, text='×', command=lambda:[
+                                        mydict['EffPaths'].clear(),
+                                        mydict['EffPaths'].append(''),
+                                        svr_alias_input2.set(''),
+                                        svr_alias_spinbox.set(_('%01.0f番目') % 2)
+                                  ], width=2)
+    btn_clear_alias.grid(row=1, column=4)
 
     # frame_script スクリプト制御
-    frame_script = ttk.Frame(frame_left, padding=10)
+    frame_script = ttk.Frame(frame_left, padding=5)
     txt_script = Text(frame_script, width=50, height=10)
     if not mydict['UseYMM4']:
         frame_script.grid(row=7, column=0)
@@ -1383,7 +1447,7 @@ if __name__ == '__main__':
         rbt_trgt_scene.grid(row=0, column=5)
         ent_scene_idx.grid(row=0, column=6)
     else:
-        rbt_trgt_scene = ttk.Radiobutton(frame_trgt, value=5, variable=ivr_trgt_mode, text=_('立ち絵'),
+        rbt_trgt_scene = ttk.Radiobutton(frame_trgt, value=4, variable=ivr_trgt_mode, text=_('シーン'),
                                          command=mode_command)
         rbt_trgt_scene.grid(row=0, column=5)
         svr_scene_idx.set('1')
@@ -1485,6 +1549,8 @@ if __name__ == '__main__':
         mEntryConf.append(StringVar())
         mEntryConfE.append(ttk.Entry(frame_stddraw, textvariable=mEntryConf[n], width=5))
         mEntryConfE[n].grid(row=n+1, column=4, padx=5)
+        if mydict['UseYMM4']:
+            mEntryConfE[n]['state'] = 'disabled'
     toggle_media_label(1)
     if mydict['UseYMM4']:
         mEntryS[4].set('100.0')
@@ -1554,7 +1620,7 @@ if __name__ == '__main__':
             if path.lower().endswith('.rpp'):
                 svr_rpp_input.set(path)
                 set_rppinfo()
-            elif path.lower().endswith('.ymmt') or path.lower().endswith('.exa'):
+            elif path.lower().endswith('.ymmt') or path.lower().endswith('.exa') or path.lower().endswith('.exo'):
                 svr_alias_input.set(path)
             elif not path.lower().endswith('.exe'):
                 svr_src_input.set(path)

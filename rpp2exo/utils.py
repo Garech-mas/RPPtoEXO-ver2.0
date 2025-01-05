@@ -8,7 +8,7 @@ from tkinter import messagebox
 
 from rpp2exo.dict import mydict
 
-R2E_VERSION = '2.09'
+R2E_VERSION = '2.09.1'
 R2E_TITLE = 'RPPtoEXO v' + R2E_VERSION
 
 if os.path.abspath(sys.argv[0]).endswith('.py'):
@@ -20,7 +20,9 @@ CONFIG_PATH = os.path.join(os.path.dirname(sys.argv[0]), "config.ini")
 
 
 class LoadFilterFileError(Exception):  # EXA読み込みエラー
-    pass
+    def __init__(self, message, filename=None):
+        super().__init__(message)
+        self.filename = filename
 
 
 class ItemNotFoundError(Exception):  # 出力対象アイテム数0エラー
