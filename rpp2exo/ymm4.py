@@ -274,7 +274,7 @@ class YMM4:
                 del items[-1]['Zoom']
             elif self.mydict["OutputType"] == 4:  # シーンオブジェクト
                 items[-1]['$type'] = "YukkuriMovieMaker.Project.Items.SceneItem, YukkuriMovieMaker"
-                items[-1]['SceneId'] = ""
+                items[-1]['SceneId'] = "00000000-0000-0000-0000-000000000000"
 
             item_count += 1
 

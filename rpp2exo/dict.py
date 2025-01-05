@@ -314,6 +314,7 @@ ExDict = {
 
         "動画ファイル": "Video file",
         "画像ファイル": "Image file",
+        "テキスト": "Text",
         "シーン": "Scene",
         "再生位置": "Playback position",
         "再生速度": "vPlay",
@@ -327,6 +328,12 @@ ExDict = {
         "X軸回転": "X-Spin", "Y軸回転": "Y-Spin", "Z軸回転": "Z-Spin",
         "中心X": "Center X", "中心Y": "Center Y", "中心Z": "Center Z",
         "裏面を表示しない": "Do not show backside",
+
+        "サイズ": "Size",
+        "表示速度": "vDisplay",
+        "文字毎に個別オブジェクト": "1char1obj",
+        "移動座標上に表示する": "Show on motion coordinate",
+        "自動スクロール": "Automatic scrolling",
 
         "座標": "Coordinate",
         "反転": "Reversal",

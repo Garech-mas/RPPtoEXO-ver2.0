@@ -1,6 +1,7 @@
 import configparser
 import gettext
 import os
+import re
 import subprocess
 import sys
 import datetime
@@ -41,6 +42,16 @@ def get_locale(language):
         languages=[language],  # 翻訳に使用する言語
         fallback=True
     ).gettext
+
+
+def replace_ordinal(num_str):
+    def replace(match):
+        num = int(match.group(1))
+        # 10-20の間は' th'を付け、それ以外は1st, 2nd, 3rd等を処理
+        suffix = {1: 'st', 2: 'nd', 3: 'rd'}.get(num % 10, 'th') if not (10 <= num % 100 <= 20) else 'th'
+        return f"{num}{suffix}"
+
+    return re.sub(r'(\d+)(th)', replace, num_str)
 
 
 def ignore_sjis(path, chars=0):

@@ -654,6 +654,7 @@ def run():
                 mLabel[0].get(), mLabel[i + 1].get()))
                 mEntrySE[i].focus_set()
                 raise ValueError
+            mydict["Param"].append(mLabel[i + 1].get() + '=' + set_decimal(mEntryS[i], prmlist[i][2]))
             return mv, tp
         elif not is_float(mEntryS[i].get()):
             messagebox.showinfo(_("エラー"), _("%s : %s の値が正しく入力されていません。") % (mLabel[0].get(), mLabel[i+1].get()))
@@ -1329,7 +1330,8 @@ if __name__ == '__main__':
     lbl_alias_input.grid(row=0, column=0, sticky=W)
     svr_alias_input = StringVar()
     svr_alias_input2 = StringVar()
-    svr_alias_spinbox = StringVar(value=_('%01.0f番目') % 2)  # 初期値を2に設定
+    str_alias_spinbox = replace_ordinal(_('%01.0f番目') % 2)
+    svr_alias_spinbox = StringVar(value=str_alias_spinbox)  # 初期値を2に設定
     def chg_alias_idx():
         alias_idx = int(re.search(r'\d+', svr_alias_spinbox.get()).group()) - 1
         if len(mydict['EffPaths']) - 1 < alias_idx:
@@ -1339,6 +1341,7 @@ if __name__ == '__main__':
         ent_alias_input2.focus_set()
         ent_alias_input2.icursor('end')
         ent_alias_input2.xview_moveto(1)
+        svr_alias_spinbox.set(replace_ordinal(svr_alias_spinbox.get()))
 
     spn_alias_index = ttk.Spinbox(frame_alias, from_=2, to=50, increment=-1, format=_('%01.0f番目'),
                                   textvariable=svr_alias_spinbox, width=8, state="readonly", command=chg_alias_idx)
@@ -1348,7 +1351,7 @@ if __name__ == '__main__':
         if event.widget == ent_alias_input:
             path0 = paths.pop(0)
             svr_alias_input.set(path0)
-            svr_alias_spinbox.set(_('%01.0f番目') % 2)
+            svr_alias_spinbox.set(str_alias_spinbox)
             if not paths: return
 
         alias_idx = int(re.search(r'\d+', svr_alias_spinbox.get()).group()) - 1

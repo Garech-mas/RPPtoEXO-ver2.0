@@ -8,7 +8,7 @@ from fractions import Fraction
 
 import cv2
 
-from rpp2exo import utils
+from rpp2exo import utils, dict
 
 
 class Exo:
@@ -312,10 +312,12 @@ class Exo:
 
                 # 空アイテム (テキスト) の場合の処理
                 if objdict["filetype"][index].startswith('TEXT'):
-                    exo_5 = ".0]\n_name=テキスト\nサイズ=34\n表示速度=0.0\n文字毎に個別オブジェクト=0\n移動座標上に表示する=0\n" + \
-                            "自動スクロール=0\nB=0\nI=0\ntype=0\nautoadjust=0\nsoft=1\nmonospace=0\nalign=0\nspacing_x=0\n" + \
-                            "spacing_y=0\nprecision=1\ncolor=ffffff\ncolor2=000000\nfont=MS UI Gothic\ntext=" + \
-                            encode_txt(objdict["filetype"][index][5:])
+                    exo_5 = (".0]\n"
+                           + "_name=" + self.t("テキスト") + "\n" + self.t("サイズ") + "=34\n"
+                           + self.t("表示速度") + "=0.0\n" + self.t("文字毎に個別オブジェクト") + "=0\n"
+                           + self.t("移動座標上に表示する") + "=0\nB=0\nI=0\ntype=0\nautoadjust=0\nsoft=1\nmonospace=0\n"
+                             "align=0\nspacing_x=0\nspacing_y=0\nprecision=1\ncolor=ffffff\ncolor2=000000\n"
+                             "font=MS UI Gothic\ntext=" + encode_txt(objdict["filetype"][index][5:]))
 
                 # 空アイテム (画像) の場合の処理
                 elif objdict["filetype"][index].startswith('IMAGE'):
