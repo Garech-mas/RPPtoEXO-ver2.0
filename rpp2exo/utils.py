@@ -9,7 +9,7 @@ from tkinter import messagebox
 
 from rpp2exo.dict import mydict
 
-R2E_VERSION = '2.09.1'
+R2E_VERSION = '2.09.2'
 R2E_TITLE = 'RPPtoEXO v' + R2E_VERSION
 
 if os.path.abspath(sys.argv[0]).endswith('.py'):

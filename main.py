@@ -1,6 +1,6 @@
 #####################################################################################
-#               RPP to EXO ver 2.09.1                                               #
-#                                                                       2025/01/04  #
+#               RPP to EXO ver 2.09.2                                               #
+#                                                                       2025/01/20  #
 #       Original Written by Maimai (@Maimai22015/YTPMV.info)                        #
 #       Forked by Garech (@Garec_)                                                  #
 #                                                                                   #
@@ -263,51 +263,69 @@ def fore_ymm4():
         pass
 
 def set_rppinfo(reload=0):  # RPP内の各トラックの情報を表示する
-    filepath = ent_rpp_input.get().replace('"', '')  # パスをコピペした場合のダブルコーテーションを削除
-    if filepath == svr_rpp_input_temp.get() and reload == 0:
-        return True
-    svr_rpp_input_temp.set(filepath)
-    tvw_slct_track.delete(*tvw_slct_track.get_children())
-    tvw_slct_track.insert("", "end", text=_("＊全トラック"), iid="all", open=True)
-    tvw_slct_track.change_state("all", 'tristate')
-    tvw_slct_track.yview(0)
-
-    rpp_cl.load_recent_path()
-    opm_rpp_input.set_menu(*rpp_cl.rpp_list)
-
-    if filepath.lower().endswith(".rpp"):
-        rbt_trgt_auto['state'] = 'enable'
-        try:
-            rpp_cl.load(filepath)
-        except (PermissionError, FileNotFoundError):
+    try:
+        filepath = ent_rpp_input.get().replace('"', '')  # パスをコピペした場合のダブルコーテーションを削除
+        if filepath == svr_rpp_input_temp.get() and reload == 0:
             return True
-        tree = rpp_cl.load_track()
-        change_time_cb()
-        insert_treedict(tree, "", 0)
-    elif filepath.lower().endswith(".mid") or filepath.lower().endswith(".midi"):
-        rbt_trgt_auto['state'] = 'disable'
-        rpp_cl.load('')
-        change_time_cb()
-        if ivr_trgt_mode.get() == 0:
-            ivr_trgt_mode.set(1)
-            mode_command()
+        svr_rpp_input_temp.set(filepath)
+        tvw_slct_track.delete(*tvw_slct_track.get_children())
+        tvw_slct_track.insert("", "end", text=_("＊全トラック"), iid="all", open=True)
+        tvw_slct_track.change_state("all", 'tristate')
+        tvw_slct_track.yview(0)
 
-        with warnings.catch_warnings():
-            warnings.filterwarnings('error')
+        rpp_cl.load_recent_path()
+        if rpp_cl.rpp_list:
+            opm_rpp_input.set_menu(*rpp_cl.rpp_list)
+
+        if filepath.lower().endswith(".rpp"):
+            rbt_trgt_auto['state'] = 'enable'
             try:
-                midi_cl.load(filepath)
-            except (PermissionError, FileNotFoundError):
+                rpp_cl.load(filepath)
+            except PermissionError as e:
+                messagebox.showerror(_("エラー"), _("下記ファイルの読込み権限がありません。\n") + e.filename)
                 return True
-            except ValueError as e:
-                messagebox.showerror(_('エラー'), _('MIDIファイルの容量が極端に大きいか小さいため、読み込めませんでした。'))
-                raise e
-            except RuntimeWarning as e:
-                messagebox.showwarning(_('警告'), _('MIDIの 拍子/テンポ 情報が正しく読み込めなかった可能性があります。\n'
-                                                  '生成後、FPSの値が合っているにも関わらずテンポが合わない場合、Dominoを使ってMIDIを再出力してください。'))
-                warnings.filterwarnings('default')
-                midi_cl.load(filepath)
-            tree = midi_cl.load_track()
+            except FileNotFoundError as e:
+                messagebox.showerror(_("エラー"),
+                                     _("下記パス内のファイル/フォルダは存在しませんでした。\n") + e.filename)
+                return True
+            tree = rpp_cl.load_track()
+            change_time_cb()
             insert_treedict(tree, "", 0)
+        elif filepath.lower().endswith(".mid") or filepath.lower().endswith(".midi"):
+            rbt_trgt_auto['state'] = 'disable'
+            rpp_cl.load('')
+            change_time_cb()
+            if ivr_trgt_mode.get() == 0:
+                ivr_trgt_mode.set(1)
+                mode_command()
+
+            with warnings.catch_warnings():
+                warnings.filterwarnings('error')
+                try:
+                    midi_cl.load(filepath)
+                except PermissionError as e:
+                    messagebox.showerror(_("エラー"), _("下記ファイルの読込み権限がありません。\n") + e.filename)
+                    return True
+                except FileNotFoundError as e:
+                    messagebox.showerror(_("エラー"),
+                                         _("下記パス内のファイル/フォルダは存在しませんでした。\n") + e.filename)
+                    return True
+                except ValueError as e:
+                    messagebox.showerror(_('エラー'), _('MIDIファイルの容量が極端に大きいか小さいため、読み込めませんでした。'))
+                    raise e
+                except RuntimeWarning as e:
+                    messagebox.showwarning(_('警告'), _('MIDIの 拍子/テンポ 情報が正しく読み込めなかった可能性があります。\n'
+                                                      '生成後、FPSの値が合っているにも関わらずテンポが合わない場合、Dominoを使ってMIDIを再出力してください。'))
+                    warnings.filterwarnings('default')
+                    midi_cl.load(filepath)
+                tree = midi_cl.load_track()
+                insert_treedict(tree, "", 0)
+    except Exception as e:
+        e_type, e_object, e_traceback = sys.exc_info()
+        messagebox.showerror(_("エラー"), _("予期せぬエラーが発生しました。不正なRPPファイルの可能性があります。\n"
+                                         "最新バージョンのREAPERをインストールし、RPPファイルを再保存して再試行してください。\n"
+                                         ) + str(e) + ";\n" + e_traceback.tb_frame.f_code.co_filename + ": " + str(e_traceback.tb_lineno))
+        raise e
     return True
 
 
