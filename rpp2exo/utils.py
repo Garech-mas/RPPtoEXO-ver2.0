@@ -1,5 +1,6 @@
 import configparser
 import gettext
+import locale
 import os
 import re
 import subprocess
@@ -9,7 +10,7 @@ from tkinter import messagebox
 
 from rpp2exo.dict import mydict
 
-R2E_VERSION = '2.09.2'
+R2E_VERSION = '2.09.3'
 R2E_TITLE = 'RPPtoEXO v' + R2E_VERSION
 
 if os.path.abspath(sys.argv[0]).endswith('.py'):
@@ -54,12 +55,12 @@ def replace_ordinal(num_str):
     return re.sub(r'(\d+)(th)', replace, num_str)
 
 
-def ignore_sjis(path, chars=0):
+def ignore_sjis(encoding, path, chars=0):
     text = ''
     ext = os.path.splitext(path)[1]
     for c in path:
         try:
-            c.encode('shift-jis')
+            c.encode(encoding)
             text += c
             chars += 1
             if chars >= 259 - len(ext):
@@ -82,6 +83,11 @@ def read_cfg():
         config_ini = configparser.ConfigParser()
         config_ini.read(CONFIG_PATH, encoding='utf-8')
 
+        # システムロケールの読込み
+        default_lang = locale.getdefaultlocale()[0][:2]
+        if default_lang not in ('ja', 'zh'):
+            default_lang = 'ja'
+
         # 欠損値を補完
         for default, option, section in [
             ('', 'RPPDir', 'Directory'),  # RPPの保存ディレクトリ
@@ -95,8 +101,8 @@ def read_cfg():
             ('0', 'use_ymm4', 'Param'),   # YMM4を使うかどうか 0/1
             ('', 'ymm4path', 'Param'),    # YMM4の実行ファイルパス
             ('RPPtoEXO', 'templ_name', 'Param'),  # YMM4のテンプレート保存名
-            ('ja', 'display', 'Language'),  # 表示言語
-            ('ja', 'exedit', 'Language'),  # 拡張編集の言語
+            (default_lang, 'display', 'Language'),  # 表示言語
+            (default_lang, 'exedit', 'Language'),  # 拡張編集の言語
         ]:
 
             if not config_ini.has_section(section):
@@ -136,7 +142,7 @@ def read_cfg():
             ).gettext
 
     except Exception as e:
-        messagebox.showerror(R2E_TITLE, '壊れたconfig.iniを修復するため、全設定がリセットされます。')
+        messagebox.showerror(R2E_TITLE, '壊れたconfig.iniを修復するため、全設定がリセットされます。\nconfig.ini is corrupted. Restoring defaults.')
         os.remove('config.ini')
         restart_software()
 

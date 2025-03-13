@@ -1,18 +1,20 @@
 #####################################################################################
-#               RPP to EXO ver 2.09.2                                               #
-#                                                                       2025/01/20  #
+#               RPP to EXO ver 2.09.3                                               #
+#                                                                       2025/03/13  #
 #       Original Written by Maimai (@Maimai22015/YTPMV.info)                        #
 #       Forked by Garech (@Garec_)                                                  #
 #                                                                                   #
-#       協力：SHI (@sbt54864666), wakanameko (@wakanameko2)                          #
+#       協力：SHI (@sbt54864666)                                                     #
+#            wakanameko (@wakanameko2)                                              #
+#            Flowzy (@FlowZy_BA)                                                    #
 #####################################################################################
-
 import threading
 import warnings
 import webbrowser
 from functools import partial
 from tkinter import *
 from tkinter import Menu, filedialog, simpledialog, ttk
+import tkinter.font as tkFont
 
 import pygetwindow
 from tkinterdnd2 import *
@@ -25,24 +27,18 @@ ymm4_cl = YMM4(mydict)
 midi_cl = Midi("")
 
 def patched_error():
-    if mydict['ExEditLang'] == 'ja':
-        if mydict['PatchExists']:
-            print(_('(patch.aul未導入 かつ 拡張編集 Ver0.92以下 の環境では、%s)') % '\n'.join(mydict['HasPatchError']))
-            return
-        rsp = messagebox.showwarning(
-            _("警告"), _('AviUtl本体のバグの影響により、\n%s\nEXOのインポート後、個別に設定してください。') % '\n'.join(mydict['HasPatchError']),
-            detail=_('以下に当てはまる環境の方はこのバグを修正済みのため無視できます。以下のいずれかの環境に当てはまっていますか？\n'
-                     '・拡張編集 v0.92 かつ patch.aul を導入済み\n・拡張編集v0.93rc1以上 を導入済み'),
-            type='yesno', default='no')
-        if rsp == 'yes':
-            print(_('★選択を記録しました。今後拡張編集のバグによるEXO生成エラーはコンソール上に通知されます。'))
-            mydict['PatchExists'] = 1
-            write_cfg("1", "patch_exists", "Param")
-    else:
-        mydict["PatchExists"] = 0
-        messagebox.showwarning(
-            _("警告"), _('AviUtl本体のバグの影響により、%s\nEXOのインポート後、個別に設定してください。') % '\n'.join(mydict['HasPatchError']),
-            detail=_('Tips: オリジナルの日本版拡張編集 v0.92を使い、patch.aul プラグインを導入することでこのエラーを回避できます。'))
+    if mydict['PatchExists']:
+        print(_('(patch.aul未導入 かつ 拡張編集 Ver0.92以下 の環境では、%s)') % '\n'.join(mydict['HasPatchError']))
+        return
+    rsp = messagebox.showwarning(
+        _("警告"), _('AviUtl本体のバグの影響により、\n%s\nEXOのインポート後、個別に設定してください。') % '\n'.join(mydict['HasPatchError']),
+        detail=_('以下に当てはまる環境の方はこのバグを修正済みのため無視できます。以下のいずれかの環境に当てはまっていますか？\n'
+                 '・拡張編集 v0.92 かつ patch.aul を導入済み\n・拡張編集v0.93rc1以上 を導入済み'),
+        type='yesno', default='no')
+    if rsp == 'yes':
+        print(_('★選択を記録しました。今後拡張編集のバグによるEXO生成エラーはコンソール上に通知されます。'))
+        mydict['PatchExists'] = 1
+        write_cfg("1", "patch_exists", "Param")
 
 
 def set_class_pos(cls):
@@ -239,19 +235,19 @@ def show_dropwindow():
         data = (mydict['EXOPath'], )
         return (ASK, COPY), (DND_FILES, DND_TEXT), data
 
-    def drag_window_close():
+    def drag_window_close(event=None):
         drop_root.destroy()
 
     drop_root.protocol("WM_DELETE_WINDOW", drag_window_close)
     drop_root.drag_source_register(1, DND_FILES)
     drop_root.dnd_bind('<<DragInitCmd>>', drag_init)
+    drop_root.bind('<Escape>', drag_window_close)
     lbl_drag_help.drag_source_register(1, DND_FILES)
     lbl_drag_help.dnd_bind('<<DragInitCmd>>', drag_init)
     btn_export_exo.drag_source_register(1, DND_FILES)
     btn_export_exo.dnd_bind('<<DragInitCmd>>', drag_init)
 
     drop_root.mainloop()
-
 
 
 def fore_ymm4():
@@ -725,12 +721,6 @@ def run():
             messagebox.showinfo(_("エラー"), _("読み込むRPPを入力してください。"))
             ent_rpp_input.focus_set()
             return 0
-        elif mydict["EXOPath"] == "":  # 到達不可能
-            messagebox.showinfo(_("エラー"), _("EXOの保存先パスを入力してください。"))
-            return 0
-        elif mydict["EXOPath"] != ignore_sjis(mydict["EXOPath"]):  # 到達不可能
-            messagebox.showinfo(_("エラー"), _("EXOの保存先パスにAviUtlでの使用不可能文字が混入しているか、保存先パスが長すぎます。パスを変更してください。"))
-            return 0
         elif mydict["fps"] == "" or mydict["fps"] <= 0:
             messagebox.showinfo(_("エラー"), _("正しいFPSの値を入力してください。"))
             ent_fps_input.focus_set()
@@ -974,7 +964,6 @@ if __name__ == '__main__':
     XDict = XDict[mydict['ExEditLang']]
     BlendDict = BlendDict[mydict['ExEditLang']]
     ExDict = ExDict[mydict['ExEditLang']]
-
     # root
     root = TkinterDnD.Tk()
     root.title(R2E_TITLE)
@@ -982,6 +971,14 @@ if __name__ == '__main__':
     root.iconbitmap(default=os.path.join(TEMP_PATH, 'RPPtoEXO.ico'))
     root.columnconfigure(1, weight=1)
     root.resizable(False, False)
+    #Chinese translation:Use Arial font and resize window.
+    if mydict['DisplayLang'] == "zh":
+        default_font=tkFont.nametofont("TkDefaultFont")
+        default_font.configure(family="Arial",size=8)
+    if mydict['ExEditLang']=="zh":
+        root.option_add("*Font","Arial 10")
+    else:
+        root.option_add("*Label.Font","HomuraM 10")
 
     def click_close():
         try:
@@ -1128,6 +1125,7 @@ if __name__ == '__main__':
 
     menu_lang_r2e.add_radiobutton(label='日本語', value='ja', variable=svr_lang_r2e, command=change_lang_r2e)
     menu_lang_r2e.add_radiobutton(label='English', value='en', variable=svr_lang_r2e, command=change_lang_r2e)
+    menu_lang_r2e.add_radiobutton(label='简体中文', value='zh', variable=svr_lang_r2e, command=change_lang_r2e)
 
     menu_lang_aul = Menu(menu_lang, tearoff=0)
     menu_lang.add_cascade(label=_('拡張編集の言語'), menu=menu_lang_aul)
@@ -1141,6 +1139,8 @@ if __name__ == '__main__':
         confirm_restart()
     menu_lang_aul.add_radiobutton(label='日本語', value='ja', variable=svr_lang_aul, command=change_lang_aul)
     menu_lang_aul.add_radiobutton(label='English', value='en', variable=svr_lang_aul, command=change_lang_aul)
+    if locale.getdefaultlocale()[0][:2] == 'zh':
+        menu_lang_aul.add_radiobutton(label='简体中文', value='zh', variable=svr_lang_aul, command=change_lang_aul)
 
     # ヘルプメニュー
     menu_help = Menu(mbar, tearoff=0)
@@ -1647,5 +1647,9 @@ if __name__ == '__main__':
                 svr_src_input.set(path)
     except Exception:
         pass
+
+    canvas.update()
+    canvas.configure(scrollregion=(0, 0, frame_right.winfo_height(), frame_right.winfo_height()))
+    canvas.grid(row=0, column=2, sticky=N, ipadx=frame_right.winfo_width()/2, ipady=310)
 
     root.mainloop()

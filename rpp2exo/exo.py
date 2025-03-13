@@ -21,6 +21,8 @@ class Exo:
         self.file_path = file_path
         self.file_fps = []
         self.exedit_lang = mydict['ExEditLang']
+        self.txt_default_font = 'MS UI Gothic' if mydict['ExEditLang'] == 'ja' else 'Arial'
+        self.encoding = 'cp932' if mydict['ExEditLang'] == 'ja' else 'ANSI'
         # 翻訳用
         global _
         _ = utils.get_locale(mydict['DisplayLang'])
@@ -28,17 +30,17 @@ class Exo:
     def fix_sjis_files(self):
         end = {'file_copy_failed': []}
         # 素材ファイルがSJIS非対応だった場合の処理
-        if self.mydict["SrcPath"] != utils.ignore_sjis(self.mydict["SrcPath"]):
-            os.makedirs(utils.ignore_sjis(self.mydict["RPPPath"][:-4]), exist_ok=True)
-            save_path = utils.ignore_sjis(self.mydict["RPPPath"][:-4] + '\\' + os.path.basename(self.mydict["SrcPath"]))
+        if self.mydict["SrcPath"] != utils.ignore_sjis(self.encoding, self.mydict["SrcPath"]):
+            os.makedirs(utils.ignore_sjis(self.encoding, self.mydict["RPPPath"][:-4]), exist_ok=True)
+            save_path = utils.ignore_sjis(self.encoding, self.mydict["RPPPath"][:-4] + '\\' + os.path.basename(self.mydict["SrcPath"]))
             shutil.copy(self.mydict["SrcPath"], save_path)
             end['file_copied'] = True
 
         for i, file in enumerate(self.file_path):
-            sjis_file = utils.ignore_sjis(file)
+            sjis_file = utils.ignore_sjis(self.encoding, file)
             if file != sjis_file and not is_audio(file):
-                os.makedirs(utils.ignore_sjis(self.mydict["RPPPath"][:-4]), exist_ok=True)
-                save_path = utils.ignore_sjis(self.mydict["RPPPath"][:-4] + '\\' + os.path.basename(file))
+                os.makedirs(utils.ignore_sjis(self.encoding, self.mydict["RPPPath"][:-4]), exist_ok=True)
+                save_path = utils.ignore_sjis(self.encoding, self.mydict["RPPPath"][:-4] + '\\' + os.path.basename(file))
                 try:
                     shutil.copy(file, save_path)
                     self.file_path[i] = save_path
@@ -212,7 +214,7 @@ class Exo:
                 condition = ''
                 exo_5 = '\n'
                 exo_eff += '\n'
-                with open(eff_path, mode='r', encoding='shift_jis', errors='replace') as f:
+                with open(eff_path, mode='r', encoding=self.encoding, errors='replace') as f:
                     exa = f.readlines()
                     if exa[0][0] != '[' or exa[0][-2] != ']':
                         raise utils.LoadFilterFileError('', filename=eff_path)
@@ -317,7 +319,7 @@ class Exo:
                            + self.t("表示速度") + "=0.0\n" + self.t("文字毎に個別オブジェクト") + "=0\n"
                            + self.t("移動座標上に表示する") + "=0\nB=0\nI=0\ntype=0\nautoadjust=0\nsoft=1\nmonospace=0\n"
                              "align=0\nspacing_x=0\nspacing_y=0\nprecision=1\ncolor=ffffff\ncolor2=000000\n"
-                             "font=MS UI Gothic\ntext=" + encode_txt(objdict["filetype"][index][5:]))
+                             "font=" + self.txt_default_font + "\ntext=" + encode_txt(objdict["filetype"][index][5:]))
 
                 # 空アイテム (画像) の場合の処理
                 elif objdict["filetype"][index].startswith('IMAGE'):
@@ -384,7 +386,7 @@ class Exo:
             raise utils.ItemNotFoundError
 
         try:
-            with open(self.mydict["EXOPath"], mode='w', encoding='shift_jis') as f:
+            with open(self.mydict["EXOPath"], mode='w', encoding=self.encoding) as f:
                 line = ""
                 # 一文字ずつファイルに書き込んでいく (詳細エラー表示をできるようにするため)
                 exo_result_text = ''.join(exo_result)
