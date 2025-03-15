@@ -101,6 +101,7 @@ def read_cfg():
             ('0', 'use_ymm4', 'Param'),   # YMM4を使うかどうか 0/1
             ('', 'ymm4path', 'Param'),    # YMM4の実行ファイルパス
             ('RPPtoEXO', 'templ_name', 'Param'),  # YMM4のテンプレート保存名
+            ('1', 'output_type', 'Param'),  # 「追加対象」のデフォルト値 0-4
             (default_lang, 'display', 'Language'),  # 表示言語
             (default_lang, 'exedit', 'Language'),  # 拡張編集の言語
         ]:
@@ -130,6 +131,7 @@ def read_cfg():
             mydict["UseYMM4"] = int(config_ini.get("Param", "use_ymm4"))
             mydict["YMM4Path"] = config_ini.get("Param", "ymm4path")
             mydict["TemplateName"] = config_ini.get("Param", "templ_name")
+            mydict["OutputType"] = config_ini.get("Param", "output_type")
             mydict["DisplayLang"] = config_ini.get("Language", "display")
             mydict["ExEditLang"] = config_ini.get("Language", "exedit")
 

@@ -18,6 +18,7 @@ class Rpp:
         self.start_pos = 0.0
         self.end_pos = 100000.0
         self.rpp_ary = []
+        self.has_solo = False
         self.objDict = {
             "pos": [-1.0],
             "length": [-1.0],
@@ -69,6 +70,7 @@ class Rpp:
 
     def load(self, path):  # RPPファイルをself.rpp_aryに入れる
         self.rpp_path = path
+        self.has_solo = False
         try:
             if ".rpp" in path.lower():
                 with open(path, mode='r', encoding='UTF-8', errors='replace') as f:
@@ -141,8 +143,13 @@ class Rpp:
                 if key == 'NAME':
                     name = str(self.rpp_ary[i][9:-1])
                 elif key == 'MUTESOLO':
+                    solo = int(self.rpp_ary[i][15]) > 0
                     mute = int(self.rpp_ary[i][13])
-                    name += "[M​]" * mute
+                    if solo > 0:
+                        name += "[S​]" * solo
+                        self.has_solo = True
+                    elif mute > 0:
+                        name += "[M​]" * mute
                 elif key == 'ISBUS':
                     isbus = self.rpp_ary[i].split()  # [1] > フォルダ始端・終端 [2] > 階層を何個下るか
 

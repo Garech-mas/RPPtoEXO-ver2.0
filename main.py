@@ -325,25 +325,30 @@ def set_rppinfo(reload=0):  # RPP内の各トラックの情報を表示する
     return True
 
 
-def insert_treedict(tree, prefix, iid):  # ツリー表示でトラック１行を描画する(再帰用)
+def insert_treedict(tree, prefix, iid, parent_state=0):  # ツリー表示でトラック１行を描画する(再帰用)
     for k in tree:
         iid += 1
+        state = 0
+        if "[S​]" in k:
+            state = 1
+        elif "[M​]" in k:
+            state = -1
+        elif parent_state:
+            state = parent_state
+
         if k == list(tree.keys())[-1]:  # 最下層のフォルダ内トラックの場合 視覚上の縦繋がりを消す
             tvw_slct_track.insert("all", "end", text=str(iid).zfill(2) + prefix + "└" + k, iid=str(iid))
-
-            # 親トラックがミュート状態の場合、こっそりゼロ幅スペース(​)を挿入して子トラックが後から区別できるように
-            if "​" not in k and "​" not in prefix:
+            # チェックを付ける ソロトラックがない場合はstate>=0(normal)、ある場合は>=1(solo)
+            if state >= rpp_cl.has_solo:
                 tvw_slct_track.change_state(str(iid), 'checked')
             if tree[k]:
-                iid = insert_treedict(tree[k], prefix + "　", iid) if "​" not in k else \
-                    insert_treedict(tree[k], prefix + "　​", iid)  # フォルダ開始部の場合、prefixを追加して再帰呼び出し
+                iid = insert_treedict(tree[k], prefix + "　", iid, state)
         else:
             tvw_slct_track.insert("all", "end", text=str(iid).zfill(2) + prefix + "├" + k, iid=str(iid))
-            if "​" not in k and "​" not in prefix:
+            if state >= rpp_cl.has_solo:
                 tvw_slct_track.change_state(str(iid), 'checked')
             if tree[k]:
-                iid = insert_treedict(tree[k], prefix + "│", iid) if "​" not in k else \
-                    insert_treedict(tree[k], prefix + "│​", iid)
+                iid = insert_treedict(tree[k], prefix + "│", iid, state)
     return iid
 
 
@@ -658,6 +663,7 @@ def run():
     mydict['HasPatchError'] = []
 
     mydict["Param"] = []
+    write_cfg(mydict['OutputType'], "output_type", "Param")
 
     def set_mparam(i, mv=1, tp=1):
         if mydict['UseYMM4'] and i == 13:  # YMM4の再生位置（00:00:00の形式）だけ独自処理を取る
@@ -1446,7 +1452,7 @@ if __name__ == '__main__':
     frame_trgt = ttk.Frame(frame_right, padding=5)
     frame_trgt.grid(row=0, column=0, columnspan=2)
     ivr_trgt_mode = IntVar()
-    ivr_trgt_mode.set(1)
+    ivr_trgt_mode.set(mydict['OutputType'])
 
     lbl_trgt_mode = ttk.Label(frame_trgt, text=_('追加対象 : '))
     lbl_trgt_mode.grid(row=0, column=0, sticky=W)
@@ -1650,6 +1656,7 @@ if __name__ == '__main__':
 
     canvas.update()
     canvas.configure(scrollregion=(0, 0, frame_right.winfo_height(), frame_right.winfo_height()))
-    canvas.grid(row=0, column=2, sticky=N, ipadx=frame_right.winfo_width()/2, ipady=310)
+    canvas.grid(row=0, column=2, sticky=N, ipadx=frame_right.winfo_width()/2, ipady=290)
+    mode_command()
 
     root.mainloop()
