@@ -84,9 +84,9 @@ def read_cfg():
         config_ini.read(CONFIG_PATH, encoding='utf-8')
 
         # システムロケールの読込み
-        default_lang = locale.getdefaultlocale()[0][:2]
-        if default_lang not in ('ja', 'zh'):
-            default_lang = 'ja'
+        default_lang = 'ja'
+        if locale.getencoding() == 'cp936':
+            default_lang = 'zh'
 
         # 欠損値を補完
         for default, option, section in [

@@ -1,6 +1,6 @@
 #####################################################################################
 #               RPP to EXO ver 2.09.3                                               #
-#                                                                       2025/03/13  #
+#                                                                       2025/03/15  #
 #       Original Written by Maimai (@Maimai22015/YTPMV.info)                        #
 #       Forked by Garech (@Garec_)                                                  #
 #                                                                                   #
@@ -1137,7 +1137,6 @@ if __name__ == '__main__':
     menu_lang.add_cascade(label=_('拡張編集の言語'), menu=menu_lang_aul)
     svr_lang_aul = StringVar()
     svr_lang_aul.set(mydict['ExEditLang'])
-
     def change_lang_aul():
         if mydict['ExEditLang'] == svr_lang_aul.get():
             return
@@ -1145,7 +1144,7 @@ if __name__ == '__main__':
         confirm_restart()
     menu_lang_aul.add_radiobutton(label='日本語', value='ja', variable=svr_lang_aul, command=change_lang_aul)
     menu_lang_aul.add_radiobutton(label='English', value='en', variable=svr_lang_aul, command=change_lang_aul)
-    if locale.getdefaultlocale()[0][:2] == 'zh':
+    if locale.getencoding() == 'cp936':
         menu_lang_aul.add_radiobutton(label='简体中文', value='zh', variable=svr_lang_aul, command=change_lang_aul)
 
     # ヘルプメニュー
