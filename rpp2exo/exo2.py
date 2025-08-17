@@ -12,7 +12,7 @@ import cv2
 from rpp2exo import utils, dict
 
 
-class Exo:
+class Exo2:
     def __init__(self, mydict, file_path):
         self.fps = Fraction(mydict["fps"]).limit_denominator().numerator
         self.scale = Fraction(mydict["fps"]).limit_denominator().denominator
@@ -107,7 +107,16 @@ class Exo:
         opt_layer2 = []
         if self.mydict['RandomPlay'] and not self.mydict['RandomEnd']:
             videoload = cv2.VideoCapture(str(self.mydict["SrcPath"]))  # 動画を読み込む
-            self.mydict['RandomEnd'] = videoload.get(cv2.CAP_PROP_FRAME_COUNT)  # フレーム数
+            if videoload.isOpened():
+                frame_count = videoload.get(cv2.CAP_PROP_FRAME_COUNT)
+                fps = videoload.get(cv2.CAP_PROP_FPS)
+                if fps > 0:
+                    self.mydict['RandomEnd'] = frame_count / fps
+                else:
+                    self.mydict['RandomEnd'] = '0'
+                videoload.release()
+            else:
+                self.mydict['RandomEnd'] = '0'
 
         for index in range(1, len(objdict["length"])):
             exo_4_1 = ""
@@ -115,9 +124,6 @@ class Exo:
             exo_eff = ""
             filter_count = 0
             add_layer = 0
-
-            if layer > 100:
-                break
 
             # オブジェクト最初のフレームと長さの計算
             obj_frame_pos = objdict["pos"][index] * self.mydict["fps"] + 1
@@ -219,38 +225,62 @@ class Exo:
                 condition = ''
                 exo_5 = '\n'
                 exo_eff += '\n'
-                with open(eff_path, mode='r', encoding=self.encoding, errors='replace') as f:
+                with open(eff_path, mode='r', encoding='utf-8', errors='replace') as f:
                     exa = f.readlines()
                     if exa[0][0] != '[' or exa[0][-2] != ']':
                         raise utils.LoadFilterFileError('', filename=eff_path)
 
                     for idx in range(len(exa)):
-                        if exa[idx][-4:] == '.0]\n':  # オブジェクトファイル情報が存在する場合、exo_5を上書き
+                        if exa[idx][-10:] == 'Object.0]\n':  # オブジェクトファイル情報が存在する場合、exo_5を上書き
                             condition = 'exo_5'
                             exo_5 = '.0]\n'
-                            if 'o.' in exa[idx]:
-                                exo_4_1 = "\noverlay=1"
-                            if 'a' in exa[idx]:
-                                exo_4_1 += "\naudio=1"
                             continue
                         elif exa[idx][0] == '[' and exa[idx][-2] == ']':  # 切り替え部
                             if '.' not in exa[idx]:
-                                if condition == '':
-                                    continue
-                                elif exa[idx] == '[1]\n':
-                                    end['multiple_items'] = True
-                                else:
+                                if exa[idx + 1].startswith('frame=') and exa[idx + 1].count(',') >= 2:
                                     end['keyframe_exists'] = True
                                     break
-                            if (exa[idx + 1][6:] == self.t('標準描画') + '\n' or
-                                    exa[idx + 1][6:] == self.t('拡張描画') + '\n'):
-                                condition = 'exo_7_'
-                                exo_7_ = ']\n'
-                            else:
-                                condition = 'exo_eff'
-                                filter_count += 1
-                                exo_eff += '\n[' + str(item_count) + "." + str(filter_count) + ']\n'
+                                if condition == '':
+                                    continue
+                            condition = 'exo_eff'
+                            filter_count += 1
+                            exo_eff += '\n[' + str(item_count) + "." + str(filter_count) + ']\n'
                             continue
+
+                        # AviUtl2形式→EXO形式の変換
+                        if exa[idx].startswith('effect.name'):
+                            exa[idx] = exa[idx].replace('effect.', '_')
+                        if ',' in exa[idx]:  # 移動方法の変換
+                            exa_1 = exa_2 = None
+                            if '|' in exa[idx]:
+                                exa_1, exa_2 = exa[idx].split('|', 1)
+                                exa_1 = exa_1.split(',')
+
+                                if exa_2.count(',') > 0:  # |以降にカンマがある場合 (時間制御のバンドル情報がある場合)
+                                    end['time_tra_exists'] = True
+                            else:
+                                exa_1 = exa[idx].split(',')
+
+                            # 移動方法を2→1に変換
+                            move_check = 0  # まずは加速・減速のチェックボックスを判定
+                            move2_check = int(exa_1.pop(-1))
+                            if move2_check & 1:  # 1の位が立っていれば64を加算 (加算チェックボックス)
+                                move_check += 64
+                            if move2_check & 2:  # 2の位が立っていれば32を加算 (減算チェックボックス)
+                                move_check += 32
+                            if move2_check & 4 and exa[-1] == '直線移動':  # 4の位が立っていれば中間点無視 (直線移動の場合のみ設定)
+                                exa[-1] = '中間点無視'
+
+                            for key in dict.XDict['2to1'].keys():  # 移動方法名→移動方法Noの変換
+                                value = dict.XDict['2to1'][key]
+                                if exa_1[-1] == key:
+                                    exa_1[-1] = str(value + move_check)
+                                    break
+                            else:
+                                exa_1[-1] = str(15 + move_check) + '@' + exa_1[-1]
+
+                            # 設定値へ変換
+                            exa[idx] = ','.join(exa_1 + ([exa_2] if exa_2 else [])) + '\n'
 
                         if condition == 'exo_5':
                             exo_5 += exa[idx]
@@ -262,6 +292,8 @@ class Exo:
                             exo_4_1 = "\noverlay=1"
                         elif exa[idx] == 'audio=1\n':
                             exo_4_1 = "\naudio=1"
+                        elif exa[idx] == 'clipping=1\n':
+                            end['clipping_object_exists'] = True
 
                 # それぞれ末尾の\nを削除
                 exo_5 = exo_5[:-1]
@@ -292,20 +324,15 @@ class Exo:
 
             if self.mydict["ScriptText"] != "":  # スクリプト制御追加する場合
                 exo_script = ("\n[" + str(item_count) + "." + str(1 + filter_count) +
-                              "]\n_name=" + self.t("スクリプト制御") + "\ntext=" + encode_txt(self.mydict["ScriptText"]))
+                              "]\n_name=" + self.t("スクリプト制御") + "\nスクリプト=" + self.mydict["ScriptText"])
                 filter_count += 1
 
             # EXA読み込み部でexo_5部分が読み込まれていた場合、EXAファイルの中身のオブジェクトをそのまま反映する (この先の処理は無視)
             if exo_5 != '':  # メディアオブジェクト
-                if exo_7_:
-                    exo_7 = "." + str(1 + filter_count) + exo_7_
-                    exo_result.append(exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) +
-                                  exo_4 + exo_4_1 + exo_4_2 + str(item_count) + exo_5 + exo_eff + exo_script + exo_6 +
-                                  str(item_count) + exo_7)
-                else:  # フィルタオブジェクト
-                    exo_4_2 = "\ngroup=1\n["  # item_count
-                    exo_result.append(exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) +
-                                  exo_4 + exo_4_1 + exo_4_2 + str(item_count) + exo_5)
+                exo_7 = "." + str(1 + filter_count) + exo_7_
+                exo_result.append(exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) +
+                              exo_4 + exo_4_1 + exo_4_2 + str(item_count) + exo_5 + exo_eff + exo_script + exo_6 +
+                              str(item_count) + exo_7)
 
                 item_count = item_count + 1
                 continue
@@ -336,7 +363,7 @@ class Exo:
                     if file[file.find('.'):] == ".avi":  # AVIファイルの場合だけ、透過AVIの可能性があるためアルファチャンネル有
                         is_alpha = 1
 
-                    play_pos = int(objdict["soffs"][index] * self.file_fps[objdict["fileidx"][index]] + 1)
+                    play_pos = objdict["soffs"][index]
                     play_rate = int(objdict["playrate"][index] * 1000) / 10.0
 
                     exo_5 = ".0]\n_name=" + self.t("動画ファイル") + \
@@ -348,7 +375,7 @@ class Exo:
                             "\nfile=" + file
             elif self.mydict["OutputType"] == 1:  # 動画オブジェクト
                 if self.mydict["RandomPlay"]:   # 再生位置ランダム
-                    self.mydict["SrcPosition"] = random.randint(int(self.mydict['RandomStart']), int(self.mydict['RandomEnd']))
+                    self.mydict["SrcPosition"] = random.uniform(float(self.mydict['RandomStart']), float(self.mydict['RandomEnd']))
                 exo_5 = ".0]\n_name=" + self.t("動画ファイル") + \
                         "\n" + self.t("再生位置") + "=" + str(self.mydict["SrcPosition"]) + \
                         "\n" + self.t("再生速度") + "=" + str(self.mydict["SrcRate"]) + \
@@ -361,12 +388,12 @@ class Exo:
                         "\nfile=" + str(self.mydict["SrcPath"])
             elif self.mydict["OutputType"] == 4:  # シーンオブジェクト
                 if self.mydict["RandomPlay"]:   # 再生位置ランダム
-                    self.mydict["SrcPosition"] = random.randint(int(self.mydict['RandomStart']), int(self.mydict['RandomEnd']))
+                    self.mydict["SrcPosition"] = random.uniform(float(self.mydict['RandomStart']), float(self.mydict['RandomEnd']))
                 exo_5 = ".0]\n_name=" + self.t("シーン") + \
                         "\n" + self.t("再生位置") + "=" + str(self.mydict["SrcPosition"]) + \
                         "\n" + self.t("再生速度") + "=" + str(self.mydict["SrcRate"]) + \
                         "\n" + self.t("ループ再生") + "=" + str(self.mydict["IsLoop"]) + \
-                        "\nscene=" + str(self.mydict["SceneIdx"])
+                        "\nシーン=" + str(self.mydict["SceneIdx"])
 
             # メディアオブジェクト
             if self.mydict["OutputType"] != 3:
@@ -400,9 +427,6 @@ class Exo:
                     line += t
                     if t == '\n':
                         line = ""
-
-                if layer > 100:
-                    end["layer_over_100"] = True  # レイヤー100超
 
         except UnicodeEncodeError:
             raise UnicodeEncodeError('', t, 0, 0, line)  # objectとreasonにエラーの文字情報を渡して返す (本来の使い方じゃなさそう…)

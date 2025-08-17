@@ -1,6 +1,6 @@
 #####################################################################################
-#               RPP to EXO ver 2.09.3                                               #
-#                                                                       2025/03/15  #
+#               RPP to EXO ver 2.10                                                 #
+#                                                                       2025/08/17  #
 #       Original Written by Maimai (@Maimai22015/YTPMV.info)                        #
 #       Forked by Garech (@Garec_)                                                  #
 #                                                                                   #
@@ -59,6 +59,9 @@ def set_class_pos(cls):
 
 
 def main():
+    mbar.entryconfig(_('生成設定'), state='disabled')
+    mbar.entryconfig('Language', state='disabled')
+    mbar.entryconfig(_('ヘルプ'), state='disabled')
     btn_exec['state'] = 'disable'
     root['cursor'] = 'watch'
     btn_exec["text"] = _("実行中") + " (1/4)"
@@ -78,9 +81,20 @@ def main():
             end1 = midi_cl.main(mydict["Track"])
             objdict = midi_cl.objDict
 
-        if mydict["UseYMM4"]:
+        if mydict["OutputApp"] == 'YMM4':
             btn_exec["text"] = _("実行中") + " (4/4)"
             end3 = ymm4_cl.run(objdict, file_path)
+        if mydict["OutputApp"] == 'AviUtl2':
+            exo2_cl = Exo2(mydict, file_path)
+
+            btn_exec["text"] = _("実行中") + " (2/4)"
+            end2 = exo2_cl.fix_sjis_files()
+
+            btn_exec["text"] = _("実行中") + " (3/4)"
+            exo2_cl.fetch_fps()
+
+            btn_exec["text"] = _("実行中") + " (4/4)"
+            end3 = exo2_cl.make_exo(objdict)
         else:
             exo_cl = Exo(mydict, file_path)
 
@@ -160,7 +174,13 @@ def main():
             warn_msgs.append(_("★警告: YMM4では上下反転機能が実装されていないため、上下反転の設定は反映されません。\n"
                              "    描画変換プラグインを導入し、テンプレートを再生成することで読み込むことができます。"))
 
-        if not mydict['PatchExists'] and mydict['HasPatchError']:
+        if 'time_tra_exists' in end:
+            warn_msgs.append(_("★警告: 一部トラックバーの時間制御設定は反映されません。\nEXOのインポート後、個別に設定してください。"))
+
+        if 'clipping_object_exists' in end:
+            warn_msgs.append(_("★警告: クリッピングオブジェクトの設定は反映されません。\nEXOのインポート後、個別に設定してください。"))
+
+        if not mydict['PatchExists'] and mydict['HasPatchError'] and mydict['OutputApp'] == 'AviUtl':
             patched_error()
 
         if 'file_copied' in end:
@@ -172,6 +192,9 @@ def main():
         show_dropwindow()
 
     finally:
+        mbar.entryconfig(_('生成設定'), state='normal')
+        mbar.entryconfig('Language', state='normal')
+        mbar.entryconfig(_('ヘルプ'), state='normal')
         print('--------------------------------------------------------------------------')
         btn_exec['state'] = 'normal'
         root['cursor'] = 'arrow'
@@ -180,8 +203,10 @@ def main():
 
 def show_dropwindow():
     window = pygetwindow.getWindowsWithTitle(ExDict["拡張編集"])
-    if mydict['UseYMM4']:
+    if mydict['OutputApp'] == 'YMM4':
         window = pygetwindow.getWindowsWithTitle("ゆっくりMovieMaker v" + ymm4_cl.version)
+    elif mydict['OutputApp'] == 'AviUtl2':
+        window = pygetwindow.getWindowsWithTitle("AviUtl ExEdit2")
     if window and window[0]:
         window[0].activate()
 
@@ -195,9 +220,12 @@ def show_dropwindow():
     drop_root.attributes("-topmost", True)
 
     lbl_drag_help = ttk.Label(drop_root, text=_('このウィンドウからAviUtlに直接ドラッグ&ドロップしてください。\n※ 挿入したいレイヤーの0秒地点にドラッグ&ドロップするようにしてください。'))
-    if mydict['UseYMM4']:
+    if mydict['OutputApp'] == 'YMM4':
         lbl_drag_help['text'] = _('このウィンドウからYMM4に直接ドラッグ&ドロップしてください。\nその後、「%s」テンプレートを0秒地点に追加してください。\n'
                                   '※上書き確認ダイアログが出てきた場合、「上書きする」を選択してください。') % mydict['TemplateName']
+    elif mydict['OutputApp'] == 'AviUtl2':
+        lbl_drag_help['text'] = _(
+            'このウィンドウからAviUtl2のシーンリストに直接ドラッグ&ドロップしてください。')
     lbl_drag_help.place(x=20,y=70)
 
     width = lbl_drag_help.winfo_reqwidth() + 40
@@ -227,7 +255,7 @@ def show_dropwindow():
 
     # EXO出力ボタンを作成
     btn_export_exo = ttk.Button(drop_root, text=_("EXO出力"), command=export_exo)
-    if not mydict['UseYMM4']:
+    if not mydict['OutputApp'] == 'YMM4':
         btn_export_exo.place(x=width - 100, y=height - 50, width=80, height=30)
 
     # ドラッグ操作
@@ -380,6 +408,9 @@ hCheckBoxCb = []  # チェックボックス実体
 
 
 def add_filter_label():
+    if mydict['OutputApp'] == 'AviUtl' and mydict["EffCount"] >= 10:
+        messagebox.showerror(_("エラー"), _("フィルタ効果は11個以上追加できません。"))
+        return
     # エフェクト名ラベル
     hLabel.append(StringVar())
     hLabel[mydict["EffCount"] + mydict["EffNum"]].set(svr_add_eff.get())
@@ -536,6 +567,7 @@ mEntryConfE = []  # Entry 設定実体
 
 def toggle_media_label(flg):
     if flg == 2:  # 拡張描画切り替え
+        mLabel[0].set(ExDict['拡張描画'])
         # 回転を消す
         mLabel2[6].grid_remove()
         mEntrySE[5].grid_remove()
@@ -557,6 +589,7 @@ def toggle_media_label(flg):
             mEntryEE[i].grid()
             mEntryConfE[i].grid()
     elif flg == 1:  # 標準描画切り替え
+        mLabel[0].set(ExDict['標準描画'])
         # 拡張描画の設定項目を消す
         for i in range(6, 13):
             mLabel2[i+1].grid_remove()
@@ -588,7 +621,7 @@ def toggle_media_label(flg):
 
 def run():
     mydict["RPPPath"] = svr_rpp_input.get().replace('"', '')
-    mydict["EXOPath"] = os.path.join(tempfile.gettempdir(), 'RPPtoYMMT_temp.ymmt' if mydict['UseYMM4'] else 'RPPtoEXO_temp.exo')
+    mydict["EXOPath"] = os.path.join(tempfile.gettempdir(), 'RPPtoYMMT_temp.ymmt' if mydict['OutputApp'] == 'YMM4' else 'RPPtoEXO_temp.exo')
     mydict["OutputType"] = ivr_trgt_mode.get()
     mydict["SrcPath"] = to_absolute(svr_src_input.get().replace('"', '')).replace('/', '\\')
     mydict["EffPaths"][0] = to_absolute(svr_alias_input.get().replace('"', ''))
@@ -616,7 +649,7 @@ def run():
             messagebox.showinfo(_("エラー"), _("再生位置ランダムの終点の値を入力してください。"))
             ent_randplay_en.focus_set()
 
-        if mydict['UseYMM4']:
+        if mydict['OutputApp'] == 'YMM4':
             if is_float(svr_randplay_st.get()):
                 svr_randplay_st.set(format_seconds(float(svr_randplay_st.get())))
             elif svr_randplay_st.get() == '':
@@ -633,6 +666,18 @@ def run():
                     messagebox.showinfo(_("エラー"), _("%s : %s の値が正しく入力されていません。") % (_('再生位置ランダム'), _('終点')))
                     ent_randplay_en.focus_set()
                     return 0
+        elif mydict['OutputApp'] == 'AviUtl2':
+            if svr_randplay_st.get() == '':
+                svr_randplay_st.set('0.0')
+            if not is_float(svr_randplay_st.get()):
+                messagebox.showinfo(_("エラー"), _("%s : %s の値が正しく入力されていません。") % (_('再生位置ランダム'), _('始点')))
+                ent_randplay_st.focus_set()
+                return 0
+            if svr_randplay_en.get() and not is_float(svr_randplay_en.get()):
+                if not(mydict["OutputType"] == 1 and svr_randplay_en.get() == ''):
+                    messagebox.showinfo(_("エラー"), _("%s : %s の値が正しく入力されていません。") % (_('再生位置ランダム'), _('終点')))
+                    ent_randplay_en.focus_set()
+                    return 0
         else:
             if svr_randplay_st.get() == '':
                 svr_randplay_st.set('1')
@@ -645,8 +690,6 @@ def run():
                     messagebox.showinfo(_("エラー"), _("%s : %s の値が正しく入力されていません。") % (_('再生位置ランダム'), _('終点')))
                     ent_randplay_en.focus_set()
                     return 0
-            if svr_randplay_st.get() == '':
-                svr_randplay_st.set('1')
 
         mydict["RandomStart"] = svr_randplay_st.get()
         mydict["RandomEnd"] = svr_randplay_en.get()
@@ -666,7 +709,7 @@ def run():
     write_cfg(mydict['OutputType'], "output_type", "Param")
 
     def set_mparam(i, mv=1, tp=1):
-        if mydict['UseYMM4'] and i == 13:  # YMM4の再生位置（00:00:00の形式）だけ独自処理を取る
+        if mydict['OutputApp'] == 'YMM4' and i == 13:  # YMM4の再生位置（00:00:00の形式）だけ独自処理を取る
             if is_float(mEntryS[i].get()):
                 mEntryS[i].set(format_seconds(float(mEntryS[i].get())))
             if not re.match(r'^\d{2}:\d{2}:\d{2}(\.\d+)?$', mEntryS[i].get()):
@@ -710,18 +753,19 @@ def run():
 
     try:
         show_mv, show_tp = (1, 1)  # -1越0未満エラー(mv)・移動設定値エラー(tp)を表示する場合は1 一度表示したら0になる
-        if ivr_adv_draw.get():
-            mydict['Param'].append('_name=' + ExDict['拡張描画'])
-            for i in [0, 1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14]:
-                show_mv, show_tp = set_mparam(i, show_mv, show_tp)
-        else:
-            mydict['Param'].append('_name=' + ExDict['標準描画'])
-            for i in [0, 1, 2, 3, 4, 5, 13, 14]:
-                show_mv, show_tp = set_mparam(i, show_mv, show_tp)
+        if mydict['OutputType'] != 3 or mydict['OutputApp'] == 'YMM4':
+            if ivr_adv_draw.get():
+                mydict['Param'].append('_name=' + ExDict['拡張描画'])
+                for i in [0, 1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14]:
+                    show_mv, show_tp = set_mparam(i, show_mv, show_tp)
+            else:
+                mydict['Param'].append('_name=' + ExDict['標準描画'])
+                for i in [0, 1, 2, 3, 4, 5, 13, 14]:
+                    show_mv, show_tp = set_mparam(i, show_mv, show_tp)
 
-        mydict['SrcRate'] = mydict['Param'].pop()[5:]
-        mydict['SrcPosition'] = mydict['Param'].pop()[5:]
-        mydict['Param'].append('blend=' + str(BlendDict[ParamCombo15.get()]))
+            mydict['SrcRate'] = mydict['Param'].pop()[5:]
+            mydict['SrcPosition'] = mydict['Param'].pop()[5:]
+            mydict['Param'].append('blend=' + str(BlendDict[ParamCombo15.get()]))
 
         if mydict["RPPPath"] == "":
             messagebox.showinfo(_("エラー"), _("読み込むRPPを入力してください。"))
@@ -752,7 +796,7 @@ def run():
             ent_alias_input2.focus_set()
             return 0
 
-        if (mydict["SceneIdx"] <= 0 or mydict["SceneIdx"] >= 50) and mydict["OutputType"] == 4:
+        if (mydict["SceneIdx"] <= 0 or mydict["SceneIdx"] >= 50) and mydict["OutputType"] == 4 and mydict['OutputApp'] != 'AviUtl2':
             messagebox.showinfo(_("エラー"), _("正しいシーン番号を入力してください。（範囲 : 1 ~ 49）"))
             ent_scene_idx.focus_set()
             return 0
@@ -829,7 +873,7 @@ def check_reaper_editing():
     last_mtime = os.path.getmtime(mydict["RPPPath"])
     while ret != messagebox.IGNORE:
         ret = messagebox.IGNORE
-        windows = pygetwindow.getWindowsWithTitle(" - REAPER")
+        windows = pygetwindow.getWindowsWithTitle("REAPER v")
         # REAPERを閉じている状態、又はファイルに更新が見られた場合はループを抜ける
         if not windows or os.path.getmtime(mydict["RPPPath"]) != last_mtime:
             break
@@ -860,7 +904,9 @@ def set_decimal(entry, unit):
         m = float(entry.get())
     except ValueError:
         return entry.get()
-    if unit == 0.01:
+    if unit == 0.001:
+        n = format(m, '.3f')
+    elif unit == 0.01:
         n = format(m, '.2f')
     elif unit == 0.1:
         n = format(m, '.1f')
@@ -893,7 +939,7 @@ def mode_command():  # 「追加対象」変更時の状態切り替え
     else:
         ent_scene_idx['state'] = 'disable'
 
-    if ivr_trgt_mode.get() == 3 and not mydict['UseYMM4']:  # 上のオブジェクトでクリッピング・拡張描画・設定項目
+    if ivr_trgt_mode.get() == 3 and mydict['OutputApp'] != 'YMM4':  # 上のオブジェクトでクリッピング・拡張描画・設定項目
         chk_clipping['state'] = 'disable'
         chk_adv_draw['state'] = 'disable'
         toggle_media_label(-1)
@@ -922,6 +968,7 @@ def mode_command():  # 「追加対象」変更時の状態切り替え
     else:
         chk_loop['state'] = 'disable'
         chk_randplay['state'] = ent_randplay_st['state'] = ent_randplay_en['state'] = 'disable'
+        ivr_randplay.set(0)
         # 拡張描画の設定項目を消す
         for i in range(13, 15):
             mLabel2[i + 1].grid_remove()
@@ -966,6 +1013,7 @@ if __name__ == '__main__':
     print(_('★RPPtoEXO実行中はこのコンソール画面を閉じないでください。'))
 
     # 拡張編集の言語ごとに使用辞書を切り替える
+    prmlist = prmlist["1"]
     EffDict = EffDict[mydict['ExEditLang']]
     XDict = XDict[mydict['ExEditLang']]
     BlendDict = BlendDict[mydict['ExEditLang']]
@@ -1057,7 +1105,7 @@ if __name__ == '__main__':
                                     toggle_same_pitch_option()
                                   ])
     ivr_use_ymm4 = IntVar()
-    ivr_use_ymm4.set(mydict['UseYMM4'])
+    ivr_use_ymm4.set(mydict['OutputApp'] == 'YMM4')
 
     def change_ymm4_path():
         filetype = [(_("ゆっくりMovieMaker4実行ファイル"), "YukkuriMovieMaker.exe")]
@@ -1070,23 +1118,37 @@ if __name__ == '__main__':
             write_cfg(filepath, "ymm4Path", "Param")
         return filepath != ''
 
-    # YMM4使用切り替え
-    def change_ymm4():
-        if ivr_use_ymm4.get() == mydict['UseYMM4']:
+    menu_setting.add_separator()
+
+    # 選択処理
+    ivr_output_app = StringVar()
+    ivr_output_app.set(mydict['OutputApp'])
+    def change_output_app():
+        selected = ivr_output_app.get()
+        if selected == mydict['OutputApp']:
             return
-        if ivr_use_ymm4.get() == 1:
-            if change_ymm4_path():
-                write_cfg(int(ivr_use_ymm4.get()), "use_ymm4", "Param")
-                confirm_restart()
-            else:
-                ivr_use_ymm4.set(mydict['UseYMM4'])
-            return
-        write_cfg(int(ivr_use_ymm4.get()), "use_ymm4", "Param")
+
+        if selected == 'YMM4':
+            if not change_ymm4_path():
+                ivr_output_app.set(mydict['OutputApp'])
+                return
+
+        write_cfg(selected, "output_app", "Param")
         confirm_restart()
-    menu_setting.add_checkbutton(label=_('ゆっくりMovieMaker4モードで使う'), variable=ivr_use_ymm4, command=change_ymm4)
+
+    # メニューにラジオボタン追加
+    menu_setting.add_radiobutton(label=_('AviUtlモードで使う'),
+                                 variable=ivr_output_app, value='AviUtl',
+                                 command=change_output_app)
+    menu_setting.add_radiobutton(label=_('AviUtl2モードで使う (beta)'),
+                                 variable=ivr_output_app, value='AviUtl2',
+                                 command=change_output_app)
+    menu_setting.add_radiobutton(label=_('ゆっくりMovieMaker4モードで使う'),
+                                 variable=ivr_output_app, value='YMM4',
+                                 command=change_output_app)
 
     # ゆっくりMovieMaker4 使用時の書き換え処理
-    if mydict['UseYMM4']:
+    if mydict['OutputApp'] == 'YMM4':
         try:
             ymm4_cl.load()
             XDict = dict.XDict['ymm4']
@@ -1109,10 +1171,18 @@ if __name__ == '__main__':
                 write_cfg(mydict['TemplateName'], "templ_name", "Param")
             menu_setting.add_command(label=_('保存テンプレート名を変更'), command=change_template_name)
         except FileNotFoundError:
-            filepath = ''
-            ivr_use_ymm4.set(0)
-            mydict['UseYMM4'] = 0
-            write_cfg(0, "use_ymm4", "Param")
+            write_cfg('AviUtl', "output_app", "Param")
+            restart_software(root)
+    
+    # AviUtl2 使用時の書き換え処理
+    elif mydict['OutputApp'] == 'AviUtl2':
+        prmlist = dict.prmlist["2"]
+        ExDict = dict.ExDict["2"]
+        XDict = dict.XDict['ja']
+        BlendDict = dict.BlendDict['ja']
+        EffDict = dict.EffDict["2"]
+        R2E_TITLE = 'RPPtoEXO (for AviUtl2) v' + R2E_VERSION
+        root.title(R2E_TITLE)
 
     # 言語設定メニュー
     menu_lang = Menu(mbar, tearoff=0)
@@ -1195,7 +1265,7 @@ if __name__ == '__main__':
     canvas = Canvas(root, width=200, height=200, highlightthickness=0)
     vsb_canvas = ttk.Scrollbar(canvas, orient=VERTICAL, command=canvas.yview)
 
-    canvas.grid(row=0, column=2, sticky=N, ipadx=200, ipady=210 if mydict['UseYMM4'] else 290)
+    canvas.grid(row=0, column=2, sticky=N, ipadx=200, ipady=210 if mydict['OutputApp'] == 'YMM4' else 290)
     canvas.configure(yscrollcommand=vsb_canvas.set)
     frame_right = ttk.Frame(canvas)
     vsb_canvas.pack(side=RIGHT, fill=Y)
@@ -1387,8 +1457,11 @@ if __name__ == '__main__':
             else:
                 mydict['EffPaths'].insert(i, path.replace('\\', '/'))
     def slct_filter_cfg_files(target):  # 効果設定ファイル読み込み
-        if not mydict['UseYMM4']:
+        if mydict['OutputApp'] == 'AviUtl':
             filetype = [(_("AviUtl エイリアス/効果ファイル"), "*.exa;*.exc;*.exo;*.txt"),
+                        (_("すべてのファイル"), "*.*")]
+        elif mydict['OutputApp'] == 'AviUtl2':
+            filetype = [(_("AviUtl2 エイリアスファイル"), "*.object;*.effect"),
                         (_("すべてのファイル"), "*.*")]
         else:
             filetype = [(_("ゆっくりMovieMaker4 エイリアスファイル"), "*.ymmt;"), (_("すべてのファイル"), "*.*")]
@@ -1440,7 +1513,7 @@ if __name__ == '__main__':
     # frame_script スクリプト制御
     frame_script = ttk.Frame(frame_left, padding=5)
     txt_script = Text(frame_script, width=50, height=10)
-    if not mydict['UseYMM4']:
+    if mydict['OutputApp'] != 'YMM4':
         frame_script.grid(row=7, column=0)
         lbl_script = ttk.Label(frame_script, text=_('スクリプト制御 '))
         lbl_script.grid(row=0, column=0, sticky=W)
@@ -1467,7 +1540,7 @@ if __name__ == '__main__':
     svr_scene_idx = StringVar()
     ent_scene_idx = ttk.Entry(frame_trgt, textvariable=svr_scene_idx, width=3, state='disable')
 
-    if not mydict['UseYMM4']:
+    if mydict['OutputApp'] != 'YMM4':
         rbt_trgt_scene = ttk.Radiobutton(frame_trgt, value=4, variable=ivr_trgt_mode, text=_('シーン番号: '),
                                          command=mode_command)
         rbt_trgt_scene.grid(row=0, column=5)
@@ -1505,7 +1578,12 @@ if __name__ == '__main__':
     chk_randplay = ttk.Checkbutton(frame_trgt, padding=5, text=_('再生位置ランダム : '), onvalue=1, offvalue=0, variable=ivr_randplay, command=change_randplay)
     chk_randplay.grid(row=2, column=0, columnspan=3, sticky=W)
     svr_randplay_st = StringVar()
-    svr_randplay_st.set('1' if not mydict['UseYMM4'] else '00:00:00')
+    if mydict['OutputApp'] == 'YMM4':
+        svr_randplay_st.set('00:00:00')
+    elif mydict['OutputApp'] == 'AviUtl2':
+        svr_randplay_st.set('0.0')
+    else:
+        svr_randplay_st.set('1')
     ent_randplay_st = ttk.Entry(frame_trgt, textvariable=svr_randplay_st, width=7, state='disable')
     ent_randplay_st.grid(row=2, column=1, padx=(50, 0), columnspan=2, sticky=W)
     lbl_randplay = ttk.Label(frame_trgt, text='~')
@@ -1517,12 +1595,13 @@ if __name__ == '__main__':
     ivr_clipping = IntVar()
     chk_clipping = ttk.Checkbutton(frame_trgt, padding=5, text=ExDict['上のオブジェクトでクリッピング'],
                                    onvalue=1, offvalue=0, variable=ivr_clipping)
-    chk_clipping.grid(row=3, column=0, columnspan=3, sticky=W)
+    if mydict['OutputApp'] != 'AviUtl2':
+        chk_clipping.grid(row=3, column=0, columnspan=3, sticky=W)
     ivr_adv_draw = IntVar()
-    ivr_adv_draw.set(0)
+    ivr_adv_draw.set(0 if mydict['OutputApp'] != 'AviUtl2' else 1)
     chk_adv_draw = ttk.Checkbutton(frame_trgt, padding=5, text=ExDict['拡張描画'], onvalue=1, offvalue=0,
                                    variable=ivr_adv_draw, command=lambda: toggle_media_label(ivr_adv_draw.get() + 1))
-    if not mydict['UseYMM4']:
+    if mydict['OutputApp'] == 'AviUtl':
         chk_adv_draw.grid(row=3, column=5, columnspan=2, sticky=E)
 
     # frame_stddraw オブジェクトの標準パラメータ設定
@@ -1575,16 +1654,21 @@ if __name__ == '__main__':
         mEntryConf.append(StringVar())
         mEntryConfE.append(ttk.Entry(frame_stddraw, textvariable=mEntryConf[n], width=5))
         mEntryConfE[n].grid(row=n+1, column=4, padx=5)
-        if mydict['UseYMM4']:
+        if mydict['OutputApp'] == 'YMM4':
             mEntryConfE[n]['state'] = 'disabled'
-    toggle_media_label(1)
-    if mydict['UseYMM4']:
+
+    if mydict['OutputApp'] == 'YMM4':
         mEntryS[4].set('100.0')
         mEntryS[13].set('00:00:00')
         mLabel[5].set(_('不透明度'))
         mLabel[6].set(_('回転角'))
         mEntryXCb[13]['state'] = 'disable'
         mEntryXCb[14]['state'] = 'disable'
+        toggle_media_label(1)
+    elif mydict['OutputApp'] == 'AviUtl2':
+        toggle_media_label(2)
+    else:
+        toggle_media_label(1)
 
     frame_optdraw = ttk.Frame(frame_right, borderwidth=3)
     frame_optdraw.grid(row=2, sticky='W')
@@ -1600,14 +1684,15 @@ if __name__ == '__main__':
     ivr_import_alpha.set(0)
     chk_import_alpha = ttk.Checkbutton(frame_optdraw, padding=5, text=ExDict['アルファチャンネルを読み込む'],
                                        onvalue=1, offvalue=0, variable=ivr_import_alpha)
-    chk_import_alpha.grid(row=1, column=2, sticky=W)
+    if mydict['OutputApp'] != 'AviUtl2':
+        chk_import_alpha.grid(row=1, column=2, sticky=W)
     ivr_loop = IntVar()
     ivr_loop.set(0)
     chk_loop = ttk.Checkbutton(frame_optdraw, padding=5, text=ExDict['ループ再生'], onvalue=1, offvalue=0, variable=ivr_loop)
     chk_loop.grid(row=1, column=1, sticky=W)
 
     # frame_eff エフェクト追加/削除
-    if not mydict['UseYMM4']:
+    if mydict['OutputApp'] != 'YMM4':
         frame_eff = ttk.Frame(frame_right, padding=5)
         frame_eff.grid(row=3, column=0)
         svr_add_eff = StringVar()
@@ -1655,7 +1740,7 @@ if __name__ == '__main__':
 
     canvas.update()
     canvas.configure(scrollregion=(0, 0, frame_right.winfo_height(), frame_right.winfo_height()))
-    canvas.grid(row=0, column=2, sticky=N, ipadx=frame_right.winfo_width()/2, ipady=290)
+    canvas.grid(row=0, column=2, sticky=N, ipadx=frame_right.winfo_width()/2, ipady=210 if mydict['OutputApp'] == 'YMM4' else 290)
     mode_command()
 
     root.mainloop()
