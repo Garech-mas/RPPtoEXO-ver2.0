@@ -10,7 +10,7 @@ from tkinter import messagebox
 
 from rpp2exo.dict import mydict
 
-R2E_VERSION = '2.09.3'
+R2E_VERSION = '2.10'
 R2E_TITLE = 'RPPtoEXO v' + R2E_VERSION
 
 if os.path.abspath(sys.argv[0]).endswith('.py'):
@@ -98,7 +98,8 @@ def read_cfg():
             ('0', 'same_pitch_option', 'Param'),  # 同音程で反転を変更するオプションを表示するか 0/1
             ('0', 'patch_exists', 'Param'),  # patch.aulが存在するか 0/1
             ('0', 'use_roundup','Param'),  # 四捨五入処理を切り上げとするか 0/1
-            ('0', 'use_ymm4', 'Param'),   # YMM4を使うかどうか 0/1
+            # ('0', 'use_ymm4', 'Param'),   # (2.10以前) YMM4を使うかどうか 0/1
+            ('AviUtl', 'output_app', 'Param'),  # どのソフト向けに出力するか AviUtl/AviUtl2/YMM4
             ('', 'ymm4path', 'Param'),    # YMM4の実行ファイルパス
             ('RPPtoEXO', 'templ_name', 'Param'),  # YMM4のテンプレート保存名
             ('1', 'output_type', 'Param'),  # 「追加対象」のデフォルト値 0-4
@@ -115,6 +116,11 @@ def read_cfg():
         if not os.path.exists(CONFIG_PATH):
             config_ini['Param']['use_roundup'] = '1'
 
+        # 2.10以前のconfig UseYMM4をOutputAppに移し替える
+        if config_ini.has_option("Param", "use_ymm4"):
+            config_ini['Param']['output_app'] = 'YMM4' if int(config_ini.get("Param", "use_ymm4")) else 'AviUtl'
+            config_ini.remove_option('Param', 'use_ymm4')
+
         # Configファイルの書き込み
         with open(CONFIG_PATH, 'w', encoding='utf-8') as file:
             config_ini.write(file)
@@ -128,7 +134,7 @@ def read_cfg():
             mydict["AddSamePitchOption"] = int(config_ini.get("Param", "same_pitch_option"))
             mydict["PatchExists"] = int(config_ini.get("Param", "patch_exists"))
             mydict["UseRoundUp"] = int(config_ini.get("Param", "use_roundup"))
-            mydict["UseYMM4"] = int(config_ini.get("Param", "use_ymm4"))
+            mydict["OutputApp"] = config_ini.get("Param", "output_app")
             mydict["YMM4Path"] = config_ini.get("Param", "ymm4path")
             mydict["TemplateName"] = config_ini.get("Param", "templ_name")
             mydict["OutputType"] = config_ini.get("Param", "output_type")
