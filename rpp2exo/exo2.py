@@ -16,8 +16,6 @@ class Exo2:
     def __init__(self, mydict, file_path):
         self.fps = Fraction(mydict["fps"]).limit_denominator().numerator
         self.scale = Fraction(mydict["fps"]).limit_denominator().denominator
-        self.res_x = 1920  # 解像度X
-        self.res_y = 1080
         self.mydict = mydict
         self.file_path = file_path
         self.file_fps = []
@@ -77,10 +75,10 @@ class Exo2:
 
     def make_exo(self, objdict):
         end = {}
-        exo_result = ["[exedit]\nwidth=" + str(1280) + "\nheight=" + str(720) + \
+        exo_result = ["[exedit]\nwidth=" + str(self.mydict["res_x"]) + "\nheight=" + str(self.mydict["res_y"]) + \
                      "\nrate=" + str(Fraction(self.mydict["fps"]).limit_denominator().numerator) + \
                      "\nscale=" + str(Fraction(self.mydict["fps"]).limit_denominator().denominator) + \
-                     "\nlength=99999\naudio_rate=44100\naudio_ch=2"]
+                     "\nlength=99999\naudio_rate=" + str(self.mydict["audio_rate"]) + "\naudio_ch=2"]
         item_count = 0
         exo_1 = "\n["  # item_count
         exo_2 = "]\nstart="  # StartFrame

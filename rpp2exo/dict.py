@@ -581,6 +581,10 @@ ExDict = {
 mydict = {
     # 基本設定
     "fps": 60,
+    "default_fps": None,  # 初期値のFPS
+    "res_x": 1920,  # 解像度X
+    "res_y": 1080,  # 解像度Y
+    "audio_rate": 44100,  # 音声レート
     "RPPPath": "test.rpp",
     "EXOPath": "test.exo",
     "SrcPath": "C:\\Users\\USER\\Documents\\ytpmv_script\\movie.mp4",  # ファイルパス。絶対パスが必要。

@@ -1,6 +1,6 @@
 #####################################################################################
-#               RPP to EXO ver 2.10                                                 #
-#                                                                       2025/08/17  #
+#               RPP to EXO ver 2.10.1                                               #
+#                                                                       2025/08/21  #
 #       Original Written by Maimai (@Maimai22015/YTPMV.info)                        #
 #       Forked by Garech (@Garec_)                                                  #
 #                                                                                   #
@@ -1000,6 +1000,97 @@ def confirm_restart():
         restart_software(root)
 
 
+# EXOインポート時の設定
+def exo_import_setting():
+    import_setting_root = Toplevel(root)
+    import_setting_root.title(R2E_TITLE)
+    import_setting_root.resizable(False, False)
+    import_setting_root.attributes("-toolwindow", True)
+
+    frm = ttk.Frame(import_setting_root, padding=10)
+    frm.grid()
+
+    # バリデーション関数
+    def validate_int(P):
+        return P.isdigit() or P == ""
+
+    def validate_float(P):
+        if P == "": return True
+        try:
+            float(P)
+            return True
+        except ValueError:
+            return False
+
+    int_vcmd = (import_setting_root.register(validate_int), '%P')
+    float_vcmd = (import_setting_root.register(validate_float), '%P')
+
+    # 画像サイズ
+    ttk.Label(frm, text=_("画像サイズ")).grid(row=0, column=0, sticky="w")
+    width_entry = ttk.Entry(frm, width=6, validate="key", validatecommand=int_vcmd)
+    width_entry.insert(0, str(mydict["res_x"]))
+    width_entry.grid(row=0, column=1)
+    ttk.Label(frm, text="×").grid(row=0, column=2)
+    height_entry = ttk.Entry(frm, width=6, validate="key", validatecommand=int_vcmd)
+    height_entry.insert(0, str(mydict["res_y"]))
+    height_entry.grid(row=0, column=3)
+
+    # フレームレート
+    ttk.Label(frm, text=_("FPS(初期値)")).grid(row=1, column=0, sticky="w")
+    fps_entry = ttk.Entry(frm, width=6, validate="key", validatecommand=float_vcmd)
+    fps_entry.insert(0, str(mydict["default_fps"]))
+    fps_entry.grid(row=1, column=1)
+    ttk.Label(frm, text="fps").grid(row=1, column=2, sticky="w")
+
+    # 音声レート
+    ttk.Label(frm, text=_("音声レート")).grid(row=2, column=0, sticky="w")
+    audio_entry = ttk.Entry(frm, width=6, validate="key", validatecommand=int_vcmd)
+    audio_entry.insert(0, str(mydict["audio_rate"]))
+    audio_entry.grid(row=2, column=1)
+    ttk.Label(frm, text="Hz").grid(row=2, column=2, sticky="w")
+
+    def check_null(entry, name):
+        if not entry.get():
+            messagebox.showerror(R2E_TITLE, _("%sの値が入力されていません。") % name)
+            entry.focus_set()
+            raise ValueError
+
+    def on_ok():
+        try:
+            check_null(width_entry, _("画像サイズ(横)"))
+            check_null(height_entry, _("画像サイズ(縦)"))
+            check_null(audio_entry, _("音声レート"))
+            if None in (width_entry.get(), height_entry.get(), fps_entry.get(), audio_entry.get()): return
+            mydict.update({"res_x": width_entry.get(), "res_y": height_entry.get(), "default_fps": fps_entry.get(), "audio_rate": audio_entry.get()})
+            for key in ("res_x", "res_y", "default_fps", "audio_rate"):
+                write_cfg(mydict[key], key, "ImportSetting")
+            if fps_entry.get():
+                svr_fps_input.set(fps_entry.get())
+            import_setting_root.destroy()
+        except ValueError:
+            pass
+
+    # ボタン
+    btn_frame = ttk.Frame(frm)
+    btn_frame.grid(row=4, column=0, columnspan=4, pady=5)
+
+    ok_btn = ttk.Button(btn_frame, text="OK", command=on_ok)
+    ok_btn.grid(row=0, column=0, padx=5)
+
+    cancel_btn = ttk.Button(btn_frame, text=_("キャンセル"), command=import_setting_root.destroy)
+    cancel_btn.grid(row=0, column=1, padx=5)
+
+    # root に配置
+    import_setting_root.geometry(f"+{root.winfo_x()}+{root.winfo_y()}")
+
+    # モーダルにする
+    import_setting_root.transient(root)
+    import_setting_root.grab_set()
+    root.wait_window(import_setting_root)
+
+
+
+
 if __name__ == '__main__':
     read_cfg()
     # 翻訳用クラスの設定
@@ -1146,6 +1237,9 @@ if __name__ == '__main__':
     menu_setting.add_radiobutton(label=_('ゆっくりMovieMaker4モードで使う'),
                                  variable=ivr_output_app, value='YMM4',
                                  command=change_output_app)
+
+    menu_setting.add_separator()
+    menu_setting.add_command(label=_('EXOインポート時の設定'), command=exo_import_setting)
 
     # ゆっくりMovieMaker4 使用時の書き換え処理
     if mydict['OutputApp'] == 'YMM4':
@@ -1717,7 +1811,7 @@ if __name__ == '__main__':
     svr_fps_input = StringVar()
     ent_fps_input = ttk.Entry(frame_exec, textvariable=svr_fps_input, width=10)
     ent_fps_input.grid(row=0, column=1, sticky=W + E, padx=10)
-    ent_fps_input.insert(END, "")
+    ent_fps_input.insert(END, mydict['default_fps'])
     btn_exec = ttk.Button(frame_exec, text=_('実行'), command=run)
     btn_exec.grid(row=0, column=2)
 

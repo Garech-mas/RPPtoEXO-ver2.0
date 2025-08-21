@@ -570,3 +570,27 @@ msgstr "使用AviUtl2模式 (测试版)"
 
 msgid "AviUtl2 エイリアスファイル"
 msgstr "AviUtl2 预设文件"
+
+msgid "画像サイズ"
+msgstr "图像大小"
+
+msgid "FPS(初期値)"
+msgstr "FPS（默认值）"
+
+msgid "音声レート"
+msgstr "音频比特率"
+
+msgid "%sの値が入力されていません。"
+msgstr "%s 的值未输入。"
+
+msgid "画像サイズ(横)"
+msgstr "图像宽度"
+
+msgid "画像サイズ(縦)"
+msgstr "图像高度"
+
+msgid "キャンセル"
+msgstr "取消"
+
+msgid "EXOインポート時の設定"
+msgstr "EXO导入设置"
