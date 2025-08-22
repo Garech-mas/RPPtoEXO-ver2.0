@@ -1084,8 +1084,6 @@ def exo_import_setting():
     import_setting_root.geometry(f"+{root.winfo_x()}+{root.winfo_y()}")
 
     # モーダルにする
-    import_setting_root.transient(root)
-    import_setting_root.grab_set()
     root.wait_window(import_setting_root)
 
 
