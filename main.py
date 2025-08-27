@@ -84,7 +84,7 @@ def main():
         if mydict["OutputApp"] == 'YMM4':
             btn_exec["text"] = _("実行中") + " (4/4)"
             end3 = ymm4_cl.run(objdict, file_path)
-        if mydict["OutputApp"] == 'AviUtl2':
+        elif mydict["OutputApp"] == 'AviUtl2':
             exo2_cl = Exo2(mydict, file_path)
 
             btn_exec["text"] = _("実行中") + " (2/4)"
@@ -302,7 +302,6 @@ def set_rppinfo(reload=0):  # RPP内の各トラックの情報を表示する
             opm_rpp_input.set_menu(*rpp_cl.rpp_list)
 
         if filepath.lower().endswith(".rpp"):
-            rbt_trgt_auto['state'] = 'enable'
             try:
                 rpp_cl.load(filepath)
             except PermissionError as e:
@@ -316,7 +315,6 @@ def set_rppinfo(reload=0):  # RPP内の各トラックの情報を表示する
             change_time_cb()
             insert_treedict(tree, "", 0)
         elif filepath.lower().endswith(".mid") or filepath.lower().endswith(".midi"):
-            rbt_trgt_auto['state'] = 'disable'
             rpp_cl.load('')
             change_time_cb()
             if ivr_trgt_mode.get() == 0:
@@ -997,7 +995,10 @@ def confirm_restart():
     ret = messagebox.askyesno(_("注意"), _("設定を反映するにはソフトを再起動する必要があります。再起動しますか？"),
                               detail=_("現在設定中の項目は失われます。"), icon="info")
     if ret:
-        restart_software(root)
+        mydict["RPPPath"] = svr_rpp_input.get().replace('"', '')
+        mydict["SrcPath"] = to_absolute(svr_src_input.get().replace('"', '')).replace('/', '\\')
+        write_cfg(mydict['OutputType'], "output_type", "Param")
+        restart_software(root, mydict["RPPPath"], mydict["SrcPath"])
 
 
 # EXOインポート時の設定
@@ -1820,7 +1821,7 @@ if __name__ == '__main__':
 
         # パスの取出し
         for path in paths:
-            if path.lower().endswith('.rpp'):
+            if path.lower().endswith('.rpp') or path.lower().endswith('.mid') or path.lower().endswith('.midi'):
                 svr_rpp_input.set(path)
                 set_rppinfo()
             elif path.lower().endswith('.ymmt') or path.lower().endswith('.exa') or path.lower().endswith('.exo'):
