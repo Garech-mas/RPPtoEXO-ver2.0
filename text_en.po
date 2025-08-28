@@ -5,634 +5,730 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2025-08-21 21:18+0900\n"
+"POT-Creation-Date: 2025-08-28 13:28+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=cp932\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
 
-
 #: main.py:31
-msgid "(patch.aul–¢“±“ü ‚©‚Â Šg’£•ÒW Ver0.92ˆÈ‰º ‚ÌŠÂ‹«‚Å‚ÍA%s)"
-msgstr "(In environments where patch.aul has not been installed and the extended editing is Ver. 0.92 or earlier, %s)"
+msgid "(patch.aulæœªå°å…¥ ã‹ã¤ æ‹¡å¼µç·¨é›† Ver0.92ä»¥ä¸‹ ã®ç’°å¢ƒã§ã¯ã€%s)"
+msgstr ""
+"(In environments where patch.aul has not been installed and the extended "
+"editing is Ver. 0.92 or earlier, %s)"
 
 #: main.py:34
 msgid ""
-"AviUtl–{‘Ì‚ÌƒoƒO‚Ì‰e‹¿‚É‚æ‚èA\n"
+"AviUtlæœ¬ä½“ã®ãƒã‚°ã®å½±éŸ¿ã«ã‚ˆã‚Šã€\n"
 "%s\n"
-"EXO‚ÌƒCƒ“ƒ|[ƒgŒãAŒÂ•Ê‚Éİ’è‚µ‚Ä‚­‚¾‚³‚¢B"
-msgstr "Due to a bug in AviUtl itself: \n%s\nAfter importing the EXO file, set up individually."
+"EXOã®ã‚¤ãƒ³ãƒãƒ¼ãƒˆå¾Œã€å€‹åˆ¥ã«è¨­å®šã—ã¦ãã ã•ã„ã€‚"
+msgstr ""
+"Due to a bug in AviUtl itself: \n"
+"%s\n"
+"After importing the EXO file, set up individually."
 
-#: main.py:34 main.py:191 main.py:341 main.py:887
-msgid "Œx"
+#: main.py:34 main.py:191 main.py:339 main.py:885
+msgid "è­¦å‘Š"
 msgstr "Warning"
 
 #: main.py:35
 msgid ""
-"ˆÈ‰º‚É“–‚Ä‚Í‚Ü‚éŠÂ‹«‚Ì•û‚Í‚±‚ÌƒoƒO‚ğC³Ï‚İ‚Ì‚½‚ß–³‹‚Å‚«‚Ü‚·BˆÈ‰º‚Ì‚¢‚¸‚ê‚©‚ÌŠÂ‹«‚É“–‚Ä‚Í‚Ü‚Á‚Ä‚¢‚Ü‚·‚©H\n"
-"EŠg’£•ÒW v0.92 ‚©‚Â patch.aul ‚ğ“±“üÏ‚İ\n"
-"EŠg’£•ÒWv0.93rc1ˆÈã ‚ğ“±“üÏ‚İ"
-msgstr "If your environment matches one of the following, this bug has already been fixed, and you can ignore this message:\n"
+"ä»¥ä¸‹ã«å½“ã¦ã¯ã¾ã‚‹ç’°å¢ƒã®æ–¹ã¯ã“ã®ãƒã‚°ã‚’ä¿®æ­£æ¸ˆã¿ã®ãŸã‚ç„¡è¦–ã§ãã¾ã™ã€‚ä»¥ä¸‹ã®ã„ãšã‚Œ"
+"ã‹ã®ç’°å¢ƒã«å½“ã¦ã¯ã¾ã£ã¦ã„ã¾ã™ã‹ï¼Ÿ\n"
+"ãƒ»æ‹¡å¼µç·¨é›† v0.92 ã‹ã¤ patch.aul ã‚’å°å…¥æ¸ˆã¿\n"
+"ãƒ»æ‹¡å¼µç·¨é›†v0.93rc1ä»¥ä¸Š ã‚’å°å…¥æ¸ˆã¿"
+msgstr ""
+"If your environment matches one of the following, this bug has already been "
+"fixed, and you can ignore this message:\n"
 "- Extended Editing v0.92 with patch.aul installed\n"
 "- Extended Editing v0.93rc1 or later installed\n"
 "\n"
 "Does your environment match one of the above conditions?"
+
 #: main.py:39
-msgid "š‘I‘ğ‚ğ‹L˜^‚µ‚Ü‚µ‚½B¡ŒãŠg’£•ÒW‚ÌƒoƒO‚É‚æ‚éEXO¶¬ƒGƒ‰[‚ÍƒRƒ“ƒ\[ƒ‹ã‚É’Ê’m‚³‚ê‚Ü‚·B"
-msgstr "*Your selection has been recorded. Any future EXO file generation errors due to bugs in extended editing will be notified on the console."
+msgid ""
+"â˜…é¸æŠã‚’è¨˜éŒ²ã—ã¾ã—ãŸã€‚ä»Šå¾Œæ‹¡å¼µç·¨é›†ã®ãƒã‚°ã«ã‚ˆã‚‹EXOç”Ÿæˆã‚¨ãƒ©ãƒ¼ã¯ã‚³ãƒ³ã‚½ãƒ¼ãƒ«ä¸Šã«é€š"
+"çŸ¥ã•ã‚Œã¾ã™ã€‚"
+msgstr ""
+"*Your selection has been recorded. Any future EXO file generation errors due "
+"to bugs in extended editing will be notified on the console."
 
 #: main.py:62 main.py:195 main.py:1165
-msgid "¶¬İ’è"
+msgid "ç”Ÿæˆè¨­å®š"
 msgstr "Settings"
 
 #: main.py:64 main.py:197 main.py:1316
-msgid "ƒwƒ‹ƒv"
+msgid "ãƒ˜ãƒ«ãƒ—"
 msgstr "Help"
 
 #: main.py:67 main.py:85 main.py:90 main.py:93 main.py:96 main.py:101
 #: main.py:104 main.py:107
-msgid "Às’†"
+msgid "å®Ÿè¡Œä¸­"
 msgstr "Running..."
 
 #: main.py:113 main.py:115 main.py:117 main.py:120 main.py:124 main.py:126
-#: main.py:129 main.py:131 main.py:134 main.py:254 main.py:309 main.py:312
-#: main.py:331 main.py:334 main.py:338 main.py:349 main.py:412 main.py:645
-#: main.py:649 main.py:661 main.py:666 main.py:673 main.py:678 main.py:685
-#: main.py:690 main.py:716 main.py:723 main.py:734 main.py:744 main.py:771
-#: main.py:775 main.py:779 main.py:783 main.py:787 main.py:791 main.py:795
-#: main.py:800 main.py:815 main.py:830 main.py:864 main.py:1342
-msgid "ƒGƒ‰["
+#: main.py:129 main.py:131 main.py:134 main.py:254 main.py:308 main.py:311
+#: main.py:329 main.py:332 main.py:336 main.py:347 main.py:410 main.py:643
+#: main.py:647 main.py:659 main.py:664 main.py:671 main.py:676 main.py:683
+#: main.py:688 main.py:714 main.py:721 main.py:732 main.py:742 main.py:769
+#: main.py:773 main.py:777 main.py:781 main.py:785 main.py:789 main.py:793
+#: main.py:798 main.py:813 main.py:828 main.py:862 main.py:1342
+msgid "ã‚¨ãƒ©ãƒ¼"
 msgstr "Error"
 
 #: main.py:113 main.py:254
-msgid "ã‘‚«æ‚ÌEXOƒtƒ@ƒCƒ‹‚ªŠJ‚©‚ê‚Ä‚¢‚é‚©A“Ç‚İæ‚èê—p‚É‚È‚Á‚Ä‚¢‚Ü‚·B"
+msgid "ä¸Šæ›¸ãå…ˆã®EXOãƒ•ã‚¡ã‚¤ãƒ«ãŒé–‹ã‹ã‚Œã¦ã„ã‚‹ã‹ã€èª­ã¿å–ã‚Šå°‚ç”¨ã«ãªã£ã¦ã„ã¾ã™ã€‚"
 msgstr "The EXO file to be overwritten is open or read-only."
 
-#: main.py:115 main.py:309 main.py:331
-msgid ""
-"‰º‹Lƒtƒ@ƒCƒ‹‚Ì“Ç‚İŒ ŒÀ‚ª‚ ‚è‚Ü‚¹‚ñB\n"
+#: main.py:115 main.py:308 main.py:329
+msgid "ä¸‹è¨˜ãƒ•ã‚¡ã‚¤ãƒ«ã®èª­è¾¼ã¿æ¨©é™ãŒã‚ã‚Šã¾ã›ã‚“ã€‚\n"
 msgstr "You don't have permission to read the following file. \n"
 
-#: main.py:117 main.py:313 main.py:335
-msgid ""
-"‰º‹LƒpƒX“à‚Ìƒtƒ@ƒCƒ‹/ƒtƒHƒ‹ƒ_‚Í‘¶İ‚µ‚Ü‚¹‚ñ‚Å‚µ‚½B\n"
+#: main.py:117 main.py:312 main.py:333
+msgid "ä¸‹è¨˜ãƒ‘ã‚¹å†…ã®ãƒ•ã‚¡ã‚¤ãƒ«/ãƒ•ã‚©ãƒ«ãƒ€ã¯å­˜åœ¨ã—ã¾ã›ã‚“ã§ã—ãŸã€‚\n"
 msgstr "The file/folder in the path below did not exist. \n"
 
 #: main.py:120
 msgid ""
-"AviUtlã‚Åg—p‚Å‚«‚È‚¢•¶š‚ªƒpƒX–¼‚ÉŠÜ‚Ü‚ê‚Ä‚¢‚Ü‚·B\n"
-"ƒpƒX–¼‚ÉŠÜ‚Ü‚ê‚éŠY“–•¶š‚ğíœ‚µAÄ“xÀs‚µ’¼‚µ‚Ä‚­‚¾‚³‚¢B\n"
+"AviUtlä¸Šã§ä½¿ç”¨ã§ããªã„æ–‡å­—ãŒãƒ‘ã‚¹åã«å«ã¾ã‚Œã¦ã„ã¾ã™ã€‚\n"
+"ãƒ‘ã‚¹åã«å«ã¾ã‚Œã‚‹è©²å½“æ–‡å­—ã‚’å‰Šé™¤ã—ã€å†åº¦å®Ÿè¡Œã—ç›´ã—ã¦ãã ã•ã„ã€‚\n"
 "\n"
-msgstr "The pathname contains characters that cannot be used on AviUtl. \nDelete the corresponding characters in the pathname and re-run the command again. \n"
+msgstr ""
+"The pathname contains characters that cannot be used on AviUtl. \n"
+"Delete the corresponding characters in the pathname and re-run the command "
+"again. \n"
 
 #: main.py:124
 msgid ""
-"‰º‹L‚ÌƒGƒCƒŠƒAƒXƒtƒ@ƒCƒ‹‚ª•s³‚Å‚·B³‹K‚Ì•û–@‚ÅEXAƒtƒ@ƒCƒ‹‚ğ¶¬‚µ‚Ä‚­‚¾‚³‚¢B\n"
-msgstr "The alias / object file is invalid. Please generate the EXA file using the proper method."
+"ä¸‹è¨˜ã®ã‚¨ã‚¤ãƒªã‚¢ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«ãŒä¸æ­£ã§ã™ã€‚æ­£è¦ã®æ–¹æ³•ã§EXAãƒ•ã‚¡ã‚¤ãƒ«ã‚’ç”Ÿæˆã—ã¦ãã ã•"
+"ã„ã€‚\n"
+msgstr ""
+"The alias / object file is invalid. Please generate the EXA file using the "
+"proper method."
 
 #: main.py:126
 msgid ""
-"o—Í”ÍˆÍ“à‚É•ÏŠ·‘ÎÛ‚ÌƒAƒCƒeƒ€‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ‚Å‚µ‚½B\n"
-"o—Í‘ÎÛƒgƒ‰ƒbƒNAŠÔ‘I‘ğ‚Ìİ’è‚ğŒ©’¼‚µ‚Ä‚­‚¾‚³‚¢B"
-msgstr "No items to convert were found in the output range. \nReview the settings for the track and time selection for the output target."
+"å‡ºåŠ›ç¯„å›²å†…ã«å¤‰æ›å¯¾è±¡ã®ã‚¢ã‚¤ãƒ†ãƒ ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã§ã—ãŸã€‚\n"
+"å‡ºåŠ›å¯¾è±¡ãƒˆãƒ©ãƒƒã‚¯ã€æ™‚é–“é¸æŠã®è¨­å®šã‚’è¦‹ç›´ã—ã¦ãã ã•ã„ã€‚"
+msgstr ""
+"No items to convert were found in the output range. \n"
+"Review the settings for the track and time selection for the output target."
 
 #: main.py:129
-msgid "ƒGƒCƒŠƒAƒX‚Éw’è‚³‚ê‚Ä‚¢‚éƒeƒ“ƒvƒŒ[ƒg‚Í‘¶İ‚µ‚Ü‚¹‚ñ‚Å‚µ‚½B"
+msgid "ã‚¨ã‚¤ãƒªã‚¢ã‚¹ã«æŒ‡å®šã•ã‚Œã¦ã„ã‚‹ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆã¯å­˜åœ¨ã—ã¾ã›ã‚“ã§ã—ãŸã€‚"
 msgstr "The template specified in the alias did not exist."
 
-#: main.py:131 main.py:864
-msgid "¶¬‚ªƒLƒƒƒ“ƒZƒ‹‚³‚ê‚Ü‚µ‚½B"
+#: main.py:131 main.py:862
+msgid "ç”ŸæˆãŒã‚­ãƒ£ãƒ³ã‚»ãƒ«ã•ã‚Œã¾ã—ãŸã€‚"
 msgstr "Generation has been canceled."
 
-#: main.py:134 main.py:349
+#: main.py:134 main.py:347
 msgid ""
-"—\Šú‚¹‚ÊƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½B•s³‚ÈRPPƒtƒ@ƒCƒ‹‚Ì‰Â”\«‚ª‚ ‚è‚Ü‚·B\n"
-"ÅVƒo[ƒWƒ‡ƒ“‚ÌREAPER‚ğƒCƒ“ƒXƒg[ƒ‹‚µARPPƒtƒ@ƒCƒ‹‚ğÄ•Û‘¶‚µ‚ÄÄs‚µ‚Ä‚­‚¾‚³‚¢B\n"
-msgstr "An unexpected error has occurred. Possible invalid RPP file. \nInstall the latest version of REAPER, re-save the RPP file and try again.\n"
+"äºˆæœŸã›ã¬ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸã€‚ä¸æ­£ãªRPPãƒ•ã‚¡ã‚¤ãƒ«ã®å¯èƒ½æ€§ãŒã‚ã‚Šã¾ã™ã€‚\n"
+"æœ€æ–°ãƒãƒ¼ã‚¸ãƒ§ãƒ³ã®REAPERã‚’ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã—ã€RPPãƒ•ã‚¡ã‚¤ãƒ«ã‚’å†ä¿å­˜ã—ã¦å†è©¦è¡Œã—ã¦ãã "
+"ã•ã„ã€‚\n"
+msgstr ""
+"An unexpected error has occurred. Possible invalid RPP file. \n"
+"Install the latest version of REAPER, re-save the RPP file and try again.\n"
 
 #: main.py:141
-msgid "šŒx: RPP“à‚ÉƒZƒNƒVƒ‡ƒ“E‹tÄ¶•t‚«‚ÌƒAƒCƒeƒ€‚ª‘¶İ‚µ‚½‚½‚ßAŠY“–ƒAƒCƒeƒ€‚ª³í‚É¶¬‚Å‚«‚Ü‚¹‚ñ‚Å‚µ‚½B"
-msgstr "*Warning: The item in question could not be successfully generated due to the presence of an item with section and reverse playback in the RPP file."
+msgid ""
+"â˜…è­¦å‘Š: RPPå†…ã«ã‚»ã‚¯ã‚·ãƒ§ãƒ³ãƒ»é€†å†ç”Ÿä»˜ãã®ã‚¢ã‚¤ãƒ†ãƒ ãŒå­˜åœ¨ã—ãŸãŸã‚ã€è©²å½“ã‚¢ã‚¤ãƒ†ãƒ ãŒ"
+"æ­£å¸¸ã«ç”Ÿæˆã§ãã¾ã›ã‚“ã§ã—ãŸã€‚"
+msgstr ""
+"*Warning: The item in question could not be successfully generated due to "
+"the presence of an item with section and reverse playback in the RPP file."
 
 #: main.py:145 main.py:153 main.py:161
-msgid "‚»‚Ì‘¼ %sŒÂ"
+msgid "ãã®ä»– %så€‹"
 msgstr "and %s item(s)"
 
 #: main.py:149
-msgid "šŒx: RPP“à‚ÉLkƒ}[ƒJ[‚ªİ’è‚³‚ê‚Ä‚¢‚éƒAƒCƒeƒ€‚ª‘¶İ‚µ‚½‚½‚ßAŠY“–ƒAƒCƒeƒ€‚ª³í‚É¶¬‚Å‚«‚Ü‚¹‚ñ‚Å‚µ‚½B"
-msgstr "*Warning: The item could not be successfully generated due to the presence of an item with a stretch marker set in the RPP file."
+msgid ""
+"â˜…è­¦å‘Š: RPPå†…ã«ä¼¸ç¸®ãƒãƒ¼ã‚«ãƒ¼ãŒè¨­å®šã•ã‚Œã¦ã„ã‚‹ã‚¢ã‚¤ãƒ†ãƒ ãŒå­˜åœ¨ã—ãŸãŸã‚ã€è©²å½“ã‚¢ã‚¤ãƒ†"
+"ãƒ ãŒæ­£å¸¸ã«ç”Ÿæˆã§ãã¾ã›ã‚“ã§ã—ãŸã€‚"
+msgstr ""
+"*Warning: The item could not be successfully generated due to the presence "
+"of an item with a stretch marker set in the RPP file."
 
 #: main.py:157
 msgid ""
-"šŒx: ƒtƒ@ƒCƒ‹–¼EƒtƒHƒ‹ƒ_–¼‚ª•¡G‚Ì‚½‚ßAŠY“–ƒAƒCƒeƒ€‚ª³í‚É¶¬‚Å‚«‚Ü‚¹‚ñ‚Å‚µ‚½B\n"
-"ˆÈ‰ºƒtƒ@ƒCƒ‹‚ğŠÈŒ‰‚ÈêŠ‚ÉˆÚ“®‚µ‚Ä‚­‚¾‚³‚¢B"
-msgstr "*Warning: The corresponding item could not be successfully generated due to the complexity of the file/folder name.\n Please move the following file to a simpler location."
+"â˜…è­¦å‘Š: ãƒ•ã‚¡ã‚¤ãƒ«åãƒ»ãƒ•ã‚©ãƒ«ãƒ€åãŒè¤‡é›‘ã®ãŸã‚ã€è©²å½“ã‚¢ã‚¤ãƒ†ãƒ ãŒæ­£å¸¸ã«ç”Ÿæˆã§ãã¾ã›ã‚“"
+"ã§ã—ãŸã€‚\n"
+"ä»¥ä¸‹ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ç°¡æ½”ãªå ´æ‰€ã«ç§»å‹•ã—ã¦ãã ã•ã„ã€‚"
+msgstr ""
+"*Warning: The corresponding item could not be successfully generated due to "
+"the complexity of the file/folder name.\n"
+" Please move the following file to a simpler location."
 
 #: main.py:165
-msgid "šŒx: o—Íˆ—‚ÉEXO‚ÌƒŒƒCƒ„[”‚ª100‚ğ’´‚¦‚½‚½‚ßA³í‚É¶¬‚Å‚«‚Ü‚¹‚ñ‚Å‚µ‚½B"
-msgstr "*Warning: The number of layers in EXO exceeded 100 during the output process and could not be generated successfully."
+msgid ""
+"â˜…è­¦å‘Š: å‡ºåŠ›å‡¦ç†æ™‚ã«EXOã®ãƒ¬ã‚¤ãƒ¤ãƒ¼æ•°ãŒ100ã‚’è¶…ãˆãŸãŸã‚ã€æ­£å¸¸ã«ç”Ÿæˆã§ãã¾ã›ã‚“ã§ã—"
+"ãŸã€‚"
+msgstr ""
+"*Warning: The number of layers in EXO exceeded 100 during the output process "
+"and could not be generated successfully."
 
 #: main.py:168
-msgid "šŒx: ƒGƒCƒŠƒAƒXƒtƒ@ƒCƒ‹‚É’†ŠÔ“_‚ª‘¶İ‚µ‚½‚½‚ßA³í‚É¶¬‚Å‚«‚Ü‚¹‚ñ‚Å‚µ‚½B"
-msgstr "*Warning: An midpoint existed in the alias file and could not be generated successfully."
+msgid ""
+"â˜…è­¦å‘Š: ã‚¨ã‚¤ãƒªã‚¢ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã«ä¸­é–“ç‚¹ãŒå­˜åœ¨ã—ãŸãŸã‚ã€æ­£å¸¸ã«ç”Ÿæˆã§ãã¾ã›ã‚“ã§ã—ãŸã€‚"
+msgstr ""
+"*Warning: An midpoint existed in the alias file and could not be generated "
+"successfully."
 
 #: main.py:171
-msgid "šŒx: ƒGƒCƒŠƒAƒXƒtƒ@ƒCƒ‹iEXOƒtƒ@ƒCƒ‹j‚É•¡”ƒAƒCƒeƒ€‚ª‘¶İ‚µ‚Ä‚¢‚é‚½‚ßA‚P”Ô–Ú‚ÌƒAƒCƒeƒ€‚Ì‚İ¶¬‚³‚ê‚Ü‚·B"
-msgstr "*Warning: Only the first item is generated because multiple items exist in the alias file (EXO file)."
+msgid ""
+"â˜…è­¦å‘Š: ã‚¨ã‚¤ãƒªã‚¢ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«ï¼ˆEXOãƒ•ã‚¡ã‚¤ãƒ«ï¼‰ã«è¤‡æ•°ã‚¢ã‚¤ãƒ†ãƒ ãŒå­˜åœ¨ã—ã¦ã„ã‚‹ãŸã‚ã€ï¼‘"
+"ç•ªç›®ã®ã‚¢ã‚¤ãƒ†ãƒ ã®ã¿ç”Ÿæˆã•ã‚Œã¾ã™ã€‚"
+msgstr ""
+"*Warning: Only the first item is generated because multiple items exist in "
+"the alias file (EXO file)."
 
 #: main.py:174
+#, fuzzy
 msgid ""
-"šŒx: YMM4‚Å‚Íã‰º”½“]‹@”\‚ªÀ‘•‚³‚ê‚Ä‚¢‚È‚¢‚½‚ßAã‰º”½“]‚Ìİ’è‚Í”½‰f‚³‚ê‚Ü‚¹‚ñB\n"
-"    •`‰æ•ÏŠ·ƒvƒ‰ƒOƒCƒ“‚ğ“±“ü‚µAƒeƒ“ƒvƒŒ[ƒg‚ğÄ¶¬‚·‚é‚±‚Æ‚Å“Ç‚İ‚Ş‚±‚Æ‚ª‚Å‚«‚Ü‚·B"
-msgstr "*Warning: The flip vertical is not reflected in YMM4 because the function is not implemented in YMM4.\n Install a drawing conversion plug-in."
+"â˜…è­¦å‘Š: YMM4ã§ã¯ä¸Šä¸‹åè»¢æ©Ÿèƒ½ãŒå®Ÿè£…ã•ã‚Œã¦ã„ãªã„ãŸã‚ã€ä¸Šä¸‹åè»¢ã®è¨­å®šã¯åæ˜ ã•ã‚Œã¾"
+"ã›ã‚“ã€‚\n"
+"    YMM4éé…å»¶æç”»ãƒ—ãƒ©ã‚°ã‚¤ãƒ³ã‚’å°å…¥ã—ã€ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆã‚’å†ç”Ÿæˆã™ã‚‹ã“ã¨ã§èª­ã¿è¾¼ã‚€"
+"ã“ã¨ãŒã§ãã¾ã™ã€‚"
+msgstr ""
+"*Warning: The flip vertical is not reflected in YMM4 because the function is "
+"not implemented in YMM4.\n"
+" Install a drawing conversion plug-in."
 
 #: main.py:178
 msgid ""
-"šŒx: ˆê•”ƒgƒ‰ƒbƒNƒo[‚ÌŠÔ§Œäİ’è‚Í”½‰f‚³‚ê‚Ü‚¹‚ñB\n"
-"EXO‚ÌƒCƒ“ƒ|[ƒgŒãAŒÂ•Ê‚Éİ’è‚µ‚Ä‚­‚¾‚³‚¢B"
-msgstr "*Warning: Some trackbar time control settings are not reflected.\nAfter importing the EXO, please configure them individually."
+"â˜…è­¦å‘Š: ä¸€éƒ¨ãƒˆãƒ©ãƒƒã‚¯ãƒãƒ¼ã®æ™‚é–“åˆ¶å¾¡è¨­å®šã¯åæ˜ ã•ã‚Œã¾ã›ã‚“ã€‚\n"
+"EXOã®ã‚¤ãƒ³ãƒãƒ¼ãƒˆå¾Œã€å€‹åˆ¥ã«è¨­å®šã—ã¦ãã ã•ã„ã€‚"
+msgstr ""
+"*Warning: Some trackbar time control settings are not reflected.\n"
+"After importing the EXO, please configure them individually."
 
 #: main.py:181
 msgid ""
-"šŒx: ƒNƒŠƒbƒsƒ“ƒOƒIƒuƒWƒFƒNƒg‚Ìİ’è‚Í”½‰f‚³‚ê‚Ü‚¹‚ñB\n"
-"EXO‚ÌƒCƒ“ƒ|[ƒgŒãAŒÂ•Ê‚Éİ’è‚µ‚Ä‚­‚¾‚³‚¢B"
-msgstr "*Warning: Clipping object settings are not reflected.\nAfter importing the EXO, please configure them individually."
+"â˜…è­¦å‘Š: ã‚¯ãƒªãƒƒãƒ”ãƒ³ã‚°ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®è¨­å®šã¯åæ˜ ã•ã‚Œã¾ã›ã‚“ã€‚\n"
+"EXOã®ã‚¤ãƒ³ãƒãƒ¼ãƒˆå¾Œã€å€‹åˆ¥ã«è¨­å®šã—ã¦ãã ã•ã„ã€‚"
+msgstr ""
+"*Warning: Clipping object settings are not reflected.\n"
+"After importing the EXO, please configure them individually."
 
 #: main.py:187
-msgid "AviUtl‚Å“Ç‚İ‚ß‚È‚¢ƒtƒ@ƒCƒ‹‚ªŠÜ‚Ü‚ê‚Ä‚¢‚½‚½‚ßARPP‚ğ•Û‘¶‚µ‚½ƒtƒHƒ‹ƒ_‚Éˆê•”‚Ì“®‰æƒtƒ@ƒCƒ‹‚ğƒRƒs[‚µ‚Ü‚µ‚½B"
-msgstr "Some video files were copied to the folder where RPP was saved because they contained files that could not be loaded by AviUtl."
+msgid ""
+"AviUtlã§èª­ã¿è¾¼ã‚ãªã„ãƒ•ã‚¡ã‚¤ãƒ«ãŒå«ã¾ã‚Œã¦ã„ãŸãŸã‚ã€RPPã‚’ä¿å­˜ã—ãŸãƒ•ã‚©ãƒ«ãƒ€ã«ä¸€éƒ¨ã®"
+"å‹•ç”»ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ã‚³ãƒ”ãƒ¼ã—ã¾ã—ãŸã€‚"
+msgstr ""
+"Some video files were copied to the folder where RPP was saved because they "
+"contained files that could not be loaded by AviUtl."
 
 #: main.py:187
-msgid "Šm”F"
+msgid "ç¢ºèª"
 msgstr "Confirm"
 
 #: main.py:201 main.py:1815
-msgid "Às"
+msgid "å®Ÿè¡Œ"
 msgstr "Run"
 
 #: main.py:222
 msgid ""
-"‚±‚ÌƒEƒBƒ“ƒhƒE‚©‚çAviUtl‚É’¼Úƒhƒ‰ƒbƒO&ƒhƒƒbƒv‚µ‚Ä‚­‚¾‚³‚¢B\n"
-"¦ ‘}“ü‚µ‚½‚¢ƒŒƒCƒ„[‚Ì0•b’n“_‚Éƒhƒ‰ƒbƒO&ƒhƒƒbƒv‚·‚é‚æ‚¤‚É‚µ‚Ä‚­‚¾‚³‚¢B"
-msgstr "Please drag and drop directly into AviUtl from this window.\n* Make sure to drag and drop to the 0-second mark of the layer you want to insert."
+"ã“ã®ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‹ã‚‰AviUtlã«ç›´æ¥ãƒ‰ãƒ©ãƒƒã‚°&ãƒ‰ãƒ­ãƒƒãƒ—ã—ã¦ãã ã•ã„ã€‚\n"
+"â€» æŒ¿å…¥ã—ãŸã„ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®0ç§’åœ°ç‚¹ã«ãƒ‰ãƒ©ãƒƒã‚°&ãƒ‰ãƒ­ãƒƒãƒ—ã™ã‚‹ã‚ˆã†ã«ã—ã¦ãã ã•ã„ã€‚"
+msgstr ""
+"Please drag and drop directly into AviUtl from this window.\n"
+"* Make sure to drag and drop to the 0-second mark of the layer you want to "
+"insert."
 
 #: main.py:224
 msgid ""
-"‚±‚ÌƒEƒBƒ“ƒhƒE‚©‚çYMM4‚É’¼Úƒhƒ‰ƒbƒO&ƒhƒƒbƒv‚µ‚Ä‚­‚¾‚³‚¢B\n"
-"‚»‚ÌŒãAu%svƒeƒ“ƒvƒŒ[ƒg‚ğ0•b’n“_‚É’Ç‰Á‚µ‚Ä‚­‚¾‚³‚¢B\n"
-"¦ã‘‚«Šm”Fƒ_ƒCƒAƒƒO‚ªo‚Ä‚«‚½ê‡Auã‘‚«‚·‚év‚ğ‘I‘ğ‚µ‚Ä‚­‚¾‚³‚¢B"
-msgstr "Please drag and drop directly into YMM4 from this window.\nAfterwards, please add the %s template at the 0-second mark.\n* If an overwrite confirmation dialog appears, select 'Overwrite'."
+"ã“ã®ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‹ã‚‰YMM4ã«ç›´æ¥ãƒ‰ãƒ©ãƒƒã‚°&ãƒ‰ãƒ­ãƒƒãƒ—ã—ã¦ãã ã•ã„ã€‚\n"
+"ãã®å¾Œã€ã€Œ%sã€ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆã‚’0ç§’åœ°ç‚¹ã«è¿½åŠ ã—ã¦ãã ã•ã„ã€‚\n"
+"â€»ä¸Šæ›¸ãç¢ºèªãƒ€ã‚¤ã‚¢ãƒ­ã‚°ãŒå‡ºã¦ããŸå ´åˆã€ã€Œä¸Šæ›¸ãã™ã‚‹ã€ã‚’é¸æŠã—ã¦ãã ã•ã„ã€‚"
+msgstr ""
+"Please drag and drop directly into YMM4 from this window.\n"
+"Afterwards, please add the %s template at the 0-second mark.\n"
+"* If an overwrite confirmation dialog appears, select 'Overwrite'."
 
 #: main.py:227
-msgid "‚±‚ÌƒEƒBƒ“ƒhƒE‚©‚çAviUtl2‚ÌƒV[ƒ“ƒŠƒXƒg‚É’¼Úƒhƒ‰ƒbƒO&ƒhƒƒbƒv‚µ‚Ä‚­‚¾‚³‚¢B"
-msgstr "Please drag and drop directly from this window into the AviUtl2 scene list."
+msgid ""
+"ã“ã®ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‹ã‚‰AviUtl2ã®ã‚·ãƒ¼ãƒ³ãƒªã‚¹ãƒˆã«ç›´æ¥ãƒ‰ãƒ©ãƒƒã‚°&ãƒ‰ãƒ­ãƒƒãƒ—ã—ã¦ãã ã•ã„ã€‚"
+msgstr ""
+"Please drag and drop directly from this window into the AviUtl2 scene list."
 
 #: main.py:243
-msgid "EXOƒtƒ@ƒCƒ‹•Û‘¶êŠ‚Ì‘I‘ğ"
+msgid "EXOãƒ•ã‚¡ã‚¤ãƒ«ä¿å­˜å ´æ‰€ã®é¸æŠ"
 msgstr "Select EXO file save location"
 
 #: main.py:245
-msgid "AviUtlƒIƒuƒWƒFƒNƒgƒtƒ@ƒCƒ‹"
+msgid "AviUtlã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆãƒ•ã‚¡ã‚¤ãƒ«"
 msgstr "AviUtl Object File"
 
 #: main.py:245 main.py:1556 main.py:1559 main.py:1561
-msgid "‚·‚×‚Ä‚Ìƒtƒ@ƒCƒ‹"
+msgid "ã™ã¹ã¦ã®ãƒ•ã‚¡ã‚¤ãƒ«"
 msgstr "All files"
 
 #: main.py:252
-msgid "•Û‘¶Ï‚İ"
+msgid "ä¿å­˜æ¸ˆã¿"
 msgstr "Saved"
 
 #: main.py:257
-msgid "EXOo—Í"
+msgid "EXOå‡ºåŠ›"
 msgstr "Export EXO"
 
 #: main.py:296
-msgid "–‘Sƒgƒ‰ƒbƒN"
+msgid "ï¼Šå…¨ãƒˆãƒ©ãƒƒã‚¯"
 msgstr "* ALL TRACKS"
 
-#: main.py:338
-msgid "MIDIƒtƒ@ƒCƒ‹‚Ì—e—Ê‚ª‹É’[‚É‘å‚«‚¢‚©¬‚³‚¢‚½‚ßA“Ç‚İ‚ß‚Ü‚¹‚ñ‚Å‚µ‚½B"
-msgstr "The MIDI file could not be loaded due to its extremely large or small file size."
+#: main.py:336
+msgid "MIDIãƒ•ã‚¡ã‚¤ãƒ«ã®å®¹é‡ãŒæ¥µç«¯ã«å¤§ãã„ã‹å°ã•ã„ãŸã‚ã€èª­ã¿è¾¼ã‚ã¾ã›ã‚“ã§ã—ãŸã€‚"
+msgstr ""
+"The MIDI file could not be loaded due to its extremely large or small file "
+"size."
 
-#: main.py:341
+#: main.py:339
 msgid ""
-"MIDI‚Ì ”q/ƒeƒ“ƒ| î•ñ‚ª³‚µ‚­“Ç‚İ‚ß‚È‚©‚Á‚½‰Â”\«‚ª‚ ‚è‚Ü‚·B\n"
-"¶¬ŒãAFPS‚Ì’l‚ª‡‚Á‚Ä‚¢‚é‚É‚àŠÖ‚í‚ç‚¸ƒeƒ“ƒ|‚ª‡‚í‚È‚¢ê‡ADomino‚ğg‚Á‚ÄMIDI‚ğÄo—Í‚µ‚Ä‚­‚¾‚³‚¢B"
-msgstr "MIDI beat/tempo information may not have been read correctly. \nAfter generation, if the tempo does not match even though the FPS value is correct, use DAW software to re-export the MIDI."
+"MIDIã® æ‹å­/ãƒ†ãƒ³ãƒ æƒ…å ±ãŒæ­£ã—ãèª­ã¿è¾¼ã‚ãªã‹ã£ãŸå¯èƒ½æ€§ãŒã‚ã‚Šã¾ã™ã€‚\n"
+"ç”Ÿæˆå¾Œã€FPSã®å€¤ãŒåˆã£ã¦ã„ã‚‹ã«ã‚‚é–¢ã‚ã‚‰ãšãƒ†ãƒ³ãƒãŒåˆã‚ãªã„å ´åˆã€Dominoã‚’ä½¿ã£ã¦"
+"MIDIã‚’å†å‡ºåŠ›ã—ã¦ãã ã•ã„ã€‚"
+msgstr ""
+"MIDI beat/tempo information may not have been read correctly. \n"
+"After generation, if the tempo does not match even though the FPS value is "
+"correct, use DAW software to re-export the MIDI."
 
-#: main.py:412
-msgid "ƒtƒBƒ‹ƒ^Œø‰Ê‚Í11ŒÂˆÈã’Ç‰Á‚Å‚«‚Ü‚¹‚ñB"
+#: main.py:410
+msgid "ãƒ•ã‚£ãƒ«ã‚¿åŠ¹æœã¯11å€‹ä»¥ä¸Šè¿½åŠ ã§ãã¾ã›ã‚“ã€‚"
 msgstr "You cannot add more than 11 filter effects."
 
-#: main.py:425 main.py:661 main.py:673 main.py:685 main.py:1713
-msgid "n“_"
+#: main.py:423 main.py:659 main.py:671 main.py:683 main.py:1713
+msgid "å§‹ç‚¹"
 msgstr "Start"
 
-#: main.py:433 main.py:666 main.py:678 main.py:690 main.py:1718
-msgid "I“_"
+#: main.py:431 main.py:664 main.py:676 main.py:688 main.py:1718
+msgid "çµ‚ç‚¹"
 msgstr "End"
 
-#: main.py:441 main.py:1723
-msgid "İ’è"
+#: main.py:439 main.py:1723
+msgid "è¨­å®š"
 msgstr "Setting"
 
-#: main.py:645
-msgid "“®‰æ‚Ì‘fŞƒpƒX‚ğ“ü—Í‚µ‚Ä‚­‚¾‚³‚¢B"
+#: main.py:643
+msgid "å‹•ç”»ã®ç´ æãƒ‘ã‚¹ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„ã€‚"
 msgstr "Enter the material path of the video."
 
-#: main.py:649
-msgid "Ä¶ˆÊ’uƒ‰ƒ“ƒ_ƒ€‚ÌI“_‚Ì’l‚ğ“ü—Í‚µ‚Ä‚­‚¾‚³‚¢B"
+#: main.py:647
+msgid "å†ç”Ÿä½ç½®ãƒ©ãƒ³ãƒ€ãƒ ã®çµ‚ç‚¹ã®å€¤ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„ã€‚"
 msgstr "Enter a value for the end point of the randomize playback position."
 
-#: main.py:661 main.py:666 main.py:673 main.py:678 main.py:685 main.py:690
-msgid "Ä¶ˆÊ’uƒ‰ƒ“ƒ_ƒ€"
+#: main.py:659 main.py:664 main.py:671 main.py:676 main.py:683 main.py:688
+msgid "å†ç”Ÿä½ç½®ãƒ©ãƒ³ãƒ€ãƒ "
 msgstr "Randomize playback position"
 
-#: main.py:661 main.py:666 main.py:673 main.py:678 main.py:685 main.py:690
-#: main.py:716 main.py:723 main.py:815
-msgid "%s : %s ‚Ì’l‚ª³‚µ‚­“ü—Í‚³‚ê‚Ä‚¢‚Ü‚¹‚ñB"
+#: main.py:659 main.py:664 main.py:671 main.py:676 main.py:683 main.py:688
+#: main.py:714 main.py:721 main.py:813
+msgid "%s : %s ã®å€¤ãŒæ­£ã—ãå…¥åŠ›ã•ã‚Œã¦ã„ã¾ã›ã‚“ã€‚"
 msgstr "The value of %s: %s is incorrect."
 
-#: main.py:727 main.py:738 main.py:822 main.py:836
-msgid "Eƒgƒ‰ƒbƒNƒo[‚Ì-1‰z0–¢– ( -0.* ) ‚Ì’l‚Í”½‰f‚³‚ê‚Ü‚¹‚ñB"
+#: main.py:725 main.py:736 main.py:820 main.py:834
+msgid "ãƒ»ãƒˆãƒ©ãƒƒã‚¯ãƒãƒ¼ã®-1è¶Š0æœªæº€ ( -0.* ) ã®å€¤ã¯åæ˜ ã•ã‚Œã¾ã›ã‚“ã€‚"
 msgstr "- The trackbar values below -1 or above 0 ( -0.* ) are not reflected."
 
-#: main.py:734 main.py:745 main.py:830
-msgid "%s : %s ‚ÌI“_‚ª³‚µ‚­“ü—Í‚³‚ê‚Ä‚¢‚Ü‚¹‚ñB"
+#: main.py:732 main.py:743 main.py:828
+msgid "%s : %s ã®çµ‚ç‚¹ãŒæ­£ã—ãå…¥åŠ›ã•ã‚Œã¦ã„ã¾ã›ã‚“ã€‚"
 msgstr "The end point of %s: %s is incorrect."
 
-#: main.py:750
-msgid "EˆÚ“®•û–@‚Ìİ’è‚Ì’l‚Í”½‰f‚³‚ê‚Ü‚¹‚ñB"
+#: main.py:748
+msgid "ãƒ»ç§»å‹•æ–¹æ³•ã®è¨­å®šã®å€¤ã¯åæ˜ ã•ã‚Œã¾ã›ã‚“ã€‚"
 msgstr "- The values of the movement settings are not reflected."
 
-#: main.py:771
-msgid "“Ç‚İ‚ŞRPP‚ğ“ü—Í‚µ‚Ä‚­‚¾‚³‚¢B"
+#: main.py:769
+msgid "èª­ã¿è¾¼ã‚€RPPã‚’å…¥åŠ›ã—ã¦ãã ã•ã„ã€‚"
 msgstr "Input the RPP file to be loaded."
 
-#: main.py:775
-msgid "³‚µ‚¢FPS‚Ì’l‚ğ“ü—Í‚µ‚Ä‚­‚¾‚³‚¢B"
+#: main.py:773
+msgid "æ­£ã—ã„FPSã®å€¤ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„ã€‚"
 msgstr "Enter a correct value of FPS."
 
-#: main.py:779
-msgid "o—Í‚·‚éƒgƒ‰ƒbƒN‚ğ‘I‘ğ‚µ‚Ä‚­‚¾‚³‚¢B"
+#: main.py:777
+msgid "å‡ºåŠ›ã™ã‚‹ãƒˆãƒ©ãƒƒã‚¯ã‚’é¸æŠã—ã¦ãã ã•ã„ã€‚"
 msgstr "Select the track you wish to output."
 
-#: main.py:783 main.py:787
-msgid "ŠÔ‘I‘ğ (•b) ‚Ì’l‚ª³‚µ‚­“ü—Í‚³‚ê‚Ä‚¢‚Ü‚¹‚ñB"
+#: main.py:781 main.py:785
+msgid "æ™‚é–“é¸æŠ (ç§’) ã®å€¤ãŒæ­£ã—ãå…¥åŠ›ã•ã‚Œã¦ã„ã¾ã›ã‚“ã€‚"
 msgstr "Enter a correct value of time selection."
 
-#: main.py:791 main.py:795
-msgid "³‚µ‚¢ƒGƒCƒŠƒAƒX‚ÌƒpƒX‚ğ“ü—Í‚µ‚Ä‚­‚¾‚³‚¢B"
+#: main.py:789 main.py:793
+msgid "æ­£ã—ã„ã‚¨ã‚¤ãƒªã‚¢ã‚¹ã®ãƒ‘ã‚¹ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„ã€‚"
 msgstr "Enter the correct alias path."
 
-#: main.py:800
-msgid "³‚µ‚¢ƒV[ƒ“”Ô†‚ğ“ü—Í‚µ‚Ä‚­‚¾‚³‚¢Bi”ÍˆÍ : 1 ~ 49j"
+#: main.py:798
+msgid "æ­£ã—ã„ã‚·ãƒ¼ãƒ³ç•ªå·ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„ã€‚ï¼ˆç¯„å›² : 1 ~ 49ï¼‰"
 msgstr "Enter the correct scene number. (Range: 1-49)"
 
-#: main.py:804
-msgid "EƒV[ƒ“”Ô†‚Í”½‰f‚³‚ê‚Ü‚¹‚ñB"
+#: main.py:802
+msgid "ãƒ»ã‚·ãƒ¼ãƒ³ç•ªå·ã¯åæ˜ ã•ã‚Œã¾ã›ã‚“ã€‚"
 msgstr "- Scene number is not reflected."
 
-#: main.py:845
-msgid "EˆÚ“®‚Ìİ’è‚Ì’l‚Í”½‰f‚³‚ê‚Ü‚¹‚ñB"
+#: main.py:843
+msgid "ãƒ»ç§»å‹•ã®è¨­å®šã®å€¤ã¯åæ˜ ã•ã‚Œã¾ã›ã‚“ã€‚"
 msgstr "- The values of the movement settings are not reflected."
 
-#: main.py:888
+#: main.py:886
 msgid ""
-"–¢•Û‘¶ó‘Ô‚Ì‰Â”\«‚Ì‚ ‚éREAPER‚ğŒŸo‚µ‚Ü‚µ‚½B\n"
-"–¢•Û‘¶ƒvƒƒWƒFƒNƒg‚ğ•Û‘¶ŒãAuÄsvƒ{ƒ^ƒ“‚ğ‰Ÿ‚µ‚Ä‚­‚¾‚³‚¢B"
-msgstr "Detected a REAPER project that may be in an unsaved state.\n Please save the unsaved project and then press the 'Retry' button."
+"æœªä¿å­˜çŠ¶æ…‹ã®å¯èƒ½æ€§ã®ã‚ã‚‹REAPERã‚’æ¤œå‡ºã—ã¾ã—ãŸã€‚\n"
+"æœªä¿å­˜ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ãƒˆã‚’ä¿å­˜å¾Œã€ã€Œå†è©¦è¡Œã€ãƒœã‚¿ãƒ³ã‚’æŠ¼ã—ã¦ãã ã•ã„ã€‚"
+msgstr ""
+"Detected a REAPER project that may be in an unsaved state.\n"
+" Please save the unsaved project and then press the 'Retry' button."
 
-#: main.py:997
-msgid "’ˆÓ"
+#: main.py:995
+msgid "æ³¨æ„"
 msgstr "Attention"
 
-#: main.py:997
-msgid "İ’è‚ğ”½‰f‚·‚é‚É‚Íƒ\ƒtƒg‚ğÄ‹N“®‚·‚é•K—v‚ª‚ ‚è‚Ü‚·BÄ‹N“®‚µ‚Ü‚·‚©H"
-msgstr "The software needs to be restarted for the changes to take effect. Do you want to restart?"
+#: main.py:995
+msgid "è¨­å®šã‚’åæ˜ ã™ã‚‹ã«ã¯ã‚½ãƒ•ãƒˆã‚’å†èµ·å‹•ã™ã‚‹å¿…è¦ãŒã‚ã‚Šã¾ã™ã€‚å†èµ·å‹•ã—ã¾ã™ã‹ï¼Ÿ"
+msgstr ""
+"The software needs to be restarted for the changes to take effect. Do you "
+"want to restart?"
 
-#: main.py:998
-msgid "Œ»İİ’è’†‚Ì€–Ú‚Í¸‚í‚ê‚Ü‚·B"
+#: main.py:996
+msgid "ç¾åœ¨è¨­å®šä¸­ã®é …ç›®ã¯å¤±ã‚ã‚Œã¾ã™ã€‚"
 msgstr "The currently set options will be lost."
 
-#: main.py:1029
-msgid "‰æ‘œƒTƒCƒY"
+#: main.py:1031
+msgid "ç”»åƒã‚µã‚¤ã‚º"
 msgstr "Image size"
 
-#: main.py:1039
-msgid "FPS(‰Šú’l)"
+#: main.py:1041
+msgid "FPS(åˆæœŸå€¤)"
 msgstr "FPS (Default)"
 
-#: main.py:1046 main.py:1062
-msgid "‰¹ºƒŒ[ƒg"
+#: main.py:1048 main.py:1064
+msgid "éŸ³å£°ãƒ¬ãƒ¼ãƒˆ"
 msgstr "Audio rate"
 
-#: main.py:1054
-msgid "%s‚Ì’l‚ª“ü—Í‚³‚ê‚Ä‚¢‚Ü‚¹‚ñB"
+#: main.py:1056
+msgid "%sã®å€¤ãŒå…¥åŠ›ã•ã‚Œã¦ã„ã¾ã›ã‚“ã€‚"
 msgstr "The value for %s has not been entered."
 
-#: main.py:1060
-msgid "‰æ‘œƒTƒCƒY(‰¡)"
+#: main.py:1062
+msgid "ç”»åƒã‚µã‚¤ã‚º(æ¨ª)"
 msgstr "Image Width"
 
-#: main.py:1061
-msgid "‰æ‘œƒTƒCƒY(c)"
+#: main.py:1063
+msgid "ç”»åƒã‚µã‚¤ã‚º(ç¸¦)"
 msgstr "Image Height"
 
-#: main.py:1080
-msgid "ƒLƒƒƒ“ƒZƒ‹"
+#: main.py:1082
+msgid "ã‚­ãƒ£ãƒ³ã‚»ãƒ«"
 msgstr "Cancel"
 
 #: main.py:1104
-msgid "šRPPtoEXOÀs’†‚Í‚±‚ÌƒRƒ“ƒ\[ƒ‹‰æ–Ê‚ğ•Â‚¶‚È‚¢‚Å‚­‚¾‚³‚¢B"
+msgid "â˜…RPPtoEXOå®Ÿè¡Œä¸­ã¯ã“ã®ã‚³ãƒ³ã‚½ãƒ¼ãƒ«ç”»é¢ã‚’é–‰ã˜ãªã„ã§ãã ã•ã„ã€‚"
 msgstr "*Do not close this console screen while RPPtoEXO is running."
 
 #: main.py:1146
-msgid "ƒtƒ@ƒCƒ‹"
+msgid "ãƒ•ã‚¡ã‚¤ãƒ«"
 msgstr "File"
 
 #: main.py:1150
-msgid "‘Î‰ƒtƒ@ƒCƒ‹"
+msgid "å¯¾å¿œãƒ•ã‚¡ã‚¤ãƒ«"
 msgstr "Supported File"
 
 #: main.py:1151
-msgid "REAPERƒvƒƒWƒFƒNƒgƒtƒ@ƒCƒ‹"
+msgid "REAPERãƒ—ãƒ­ã‚¸ã‚§ã‚¯ãƒˆãƒ•ã‚¡ã‚¤ãƒ«"
 msgstr "REAPER Project File"
 
 #: main.py:1152
-msgid "MIDIƒtƒ@ƒCƒ‹"
+msgid "MIDIãƒ•ã‚¡ã‚¤ãƒ«"
 msgstr "MIDI File"
 
-#: main.py:1155 rpp2exo/rpp.py:63
-msgid "RPPEMIDIƒtƒ@ƒCƒ‹‚ğ‘I‘ğ"
+#: main.py:1155 rpp2exo\rpp.py:63
+msgid "RPPãƒ»MIDIãƒ•ã‚¡ã‚¤ãƒ«ã‚’é¸æŠ"
 msgstr "Select the REAPER Project file or MIDI file"
 
 #: main.py:1160
-msgid "RPP‚ğŠJ‚­..."
+msgid "RPPã‚’é–‹ã..."
 msgstr "Open RPP files"
 
 #: main.py:1161
-msgid "I—¹"
+msgid "çµ‚äº†"
 msgstr "Exit"
 
 #: main.py:1169
-msgid "¶‰Eã‰º”½“]‚Ì‰ñ“]•ûŒü"
+msgid "å·¦å³ä¸Šä¸‹åè»¢æ™‚ã®å›è»¢æ–¹å‘"
 msgstr "Rotation direction for 4-way flip"
 
 #: main.py:1170
-msgid "Œv‰ñ‚è"
+msgid "æ™‚è¨ˆå›ã‚Š"
 msgstr "Clockwise"
 
 #: main.py:1174
-msgid "”½Œv‰ñ‚è"
+msgid "åæ™‚è¨ˆå›ã‚Š"
 msgstr "Counter clockwise"
 
 #: main.py:1180
-msgid "ƒIƒuƒWƒFƒNƒg‚ğAviUtlƒOƒŠƒbƒh‚É‡‚í‚¹‚é"
+msgid "ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’AviUtlã‚°ãƒªãƒƒãƒ‰ã«åˆã‚ã›ã‚‹"
 msgstr "Snap to the AviUtl grid"
 
 #: main.py:1187
-msgid "Šg’£•ÒWv0.92—R—ˆ‚ÌƒGƒ‰[‚ğ–³‹"
+msgid "æ‹¡å¼µç·¨é›†v0.92ç”±æ¥ã®ã‚¨ãƒ©ãƒ¼ã‚’ç„¡è¦–"
 msgstr "Ignore errors derived from Adv.Edit v0.92"
 
 #: main.py:1193
-msgid "‚³‚ç‚ÉÚ×‚È”½“]İ’è‚ğ’Ç‰Á"
+msgid "ã•ã‚‰ã«è©³ç´°ãªåè»¢è¨­å®šã‚’è¿½åŠ "
 msgstr "Add advanced inversion settings"
 
 #: main.py:1202
-msgid "‚ä‚Á‚­‚èMovieMaker4Àsƒtƒ@ƒCƒ‹"
+msgid "ã‚†ã£ãã‚ŠMovieMaker4å®Ÿè¡Œãƒ•ã‚¡ã‚¤ãƒ«"
 msgstr "Yukkuri Movie Maker 4 executable file"
 
 #: main.py:1205
-msgid "‚ä‚Á‚­‚èMovieMaker4‚ÌÀsƒtƒ@ƒCƒ‹‚ğ‘I‘ğ"
+msgid "ã‚†ã£ãã‚ŠMovieMaker4ã®å®Ÿè¡Œãƒ•ã‚¡ã‚¤ãƒ«ã‚’é¸æŠ"
 msgstr "Select the Yukkuri Movie Maker 4 executable file"
 
 #: main.py:1231
-msgid "AviUtlƒ‚[ƒh‚Åg‚¤"
+msgid "AviUtlãƒ¢ãƒ¼ãƒ‰ã§ä½¿ã†"
 msgstr "Use AviUtl mode"
 
 #: main.py:1234
-msgid "AviUtl2ƒ‚[ƒh‚Åg‚¤ (beta)"
+msgid "AviUtl2ãƒ¢ãƒ¼ãƒ‰ã§ä½¿ã† (beta)"
 msgstr "Use AviUtl2 mode (beta)"
 
 #: main.py:1237
-msgid "‚ä‚Á‚­‚èMovieMaker4ƒ‚[ƒh‚Åg‚¤"
+msgid "ã‚†ã£ãã‚ŠMovieMaker4ãƒ¢ãƒ¼ãƒ‰ã§ä½¿ã†"
 msgstr "Use Yukkuri Movie Maker 4"
 
 #: main.py:1242
-msgid "EXOƒCƒ“ƒ|[ƒg‚Ìİ’è"
+msgid "EXOã‚¤ãƒ³ãƒãƒ¼ãƒˆæ™‚ã®è¨­å®š"
 msgstr "EXO Import Settings"
 
 #: main.py:1253
-msgid "YMM4‚Ì“Ç‚İêŠ‚ğ•ÏX"
+msgid "YMM4ã®èª­è¾¼ã¿å ´æ‰€ã‚’å¤‰æ›´"
 msgstr "Change the loading location of Yukkuri Movie Maker 4"
 
 #: main.py:1257
-msgid "•Û‘¶ƒeƒ“ƒvƒŒ[ƒg–¼‚ğ“ü—Í‚µ‚Ä‚­‚¾‚³‚¢"
+msgid "ä¿å­˜ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆåã‚’å…¥åŠ›ã—ã¦ãã ã•ã„"
 msgstr "Please enter the name of the save template."
 
 #: main.py:1266
-msgid "•Û‘¶ƒeƒ“ƒvƒŒ[ƒg–¼‚ğ•ÏX"
+msgid "ä¿å­˜ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆåã‚’å¤‰æ›´"
 msgstr "Change Save Template Name"
 
 #: main.py:1286
-msgid "•\¦Œ¾Œê"
+msgid "è¡¨ç¤ºè¨€èª"
 msgstr "Display language"
 
 #: main.py:1301
-msgid "Šg’£•ÒW‚ÌŒ¾Œê"
+msgid "æ‹¡å¼µç·¨é›†ã®è¨€èª"
 msgstr "Adv.Edit language"
 
 #: main.py:1318
-msgid "g‚¢•û(Cosense/Scrapbox)"
+msgid "ä½¿ã„æ–¹(Cosense/Scrapbox)"
 msgstr "How to use (Cosense/Scrapbox)"
 
 #: main.py:1320
-msgid "https://cosen.se/Garech/RPPtoEXO%E3%81%AE%E7%94%BB%E9%9D%A2%E3%81%AE%E8%AA%AC%E6%98%8E_(v2.08~)"
+msgid ""
+"https://cosen.se/Garech/RPPtoEXO%E3%81%AE%E7%94%BB%E9%9D%A2%E3%81%AE%E8%AA%AC"
+"%E6%98%8E_(v2.08~)"
 msgstr "https://cosen.se/Garech/How_To_Use_RPPtoEXO_(v2.08+)"
 
 #: main.py:1327
-msgid "ÅVƒo[ƒWƒ‡ƒ“‚ªŒ©‚Â‚©‚è‚Ü‚µ‚½Bƒ_ƒEƒ“ƒ[ƒh‚µ‚Ü‚·‚©H"
+msgid "æœ€æ–°ãƒãƒ¼ã‚¸ãƒ§ãƒ³ãŒè¦‹ã¤ã‹ã‚Šã¾ã—ãŸã€‚ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ã—ã¾ã™ã‹ï¼Ÿ"
 msgstr "A new version has been found. Would you like to download it?"
 
 #: main.py:1330
-msgid "ÅVƒo[ƒWƒ‡ƒ“‚ÌƒCƒ“ƒXƒg[ƒ‹‚ªŠ®—¹‚µ‚Ü‚µ‚½B"
+msgid "æœ€æ–°ãƒãƒ¼ã‚¸ãƒ§ãƒ³ã®ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ãŒå®Œäº†ã—ã¾ã—ãŸã€‚"
 msgstr "The installation of the latest version is complete."
 
 #: main.py:1334
-msgid "‚¨g‚¢‚ÌRPPtoEXO‚ÍÅV‚Å‚·B"
+msgid "ãŠä½¿ã„ã®RPPtoEXOã¯æœ€æ–°ã§ã™ã€‚"
 msgstr "Your RPPtoEXO is up to date."
 
 #: main.py:1337
 msgid ""
-"ÅVƒo[ƒWƒ‡ƒ“‚ªŒ©‚Â‚©‚è‚Ü‚µ‚½BPY”Å‚Í©“®ƒCƒ“ƒXƒg[ƒ‹”ñ‘Î‰‚Ì‚½‚ßA‚²©g‚Å’u‚«Š·‚¦‚é•K—v‚ª‚ ‚è‚Ü‚·B\n"
-"GitHub‚ÌƒŠƒ“ƒN‚ğŠJ‚«‚Ü‚·‚©H"
-msgstr "A new version has been found. Since the PY version does not support automatic installation, you will need to replace it manually.\nWould you like to open the GitHub link?"
+"æœ€æ–°ãƒãƒ¼ã‚¸ãƒ§ãƒ³ãŒè¦‹ã¤ã‹ã‚Šã¾ã—ãŸã€‚PYç‰ˆã¯è‡ªå‹•ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«éå¯¾å¿œã®ãŸã‚ã€ã”è‡ªèº«ã§"
+"ç½®ãæ›ãˆã‚‹å¿…è¦ãŒã‚ã‚Šã¾ã™ã€‚\n"
+"GitHubã®ãƒªãƒ³ã‚¯ã‚’é–‹ãã¾ã™ã‹ï¼Ÿ"
+msgstr ""
+"A new version has been found. Since the PY version does not support "
+"automatic installation, you will need to replace it manually.\n"
+"Would you like to open the GitHub link?"
 
 #: main.py:1342
-msgid "ƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½: %s"
+msgid "ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸ: %s"
 msgstr "An error has occurred: %s"
 
 #: main.py:1343
-msgid "ÅVƒo[ƒWƒ‡ƒ“‚ğŠm”F(GitHub)"
+msgid "æœ€æ–°ãƒãƒ¼ã‚¸ãƒ§ãƒ³ã‚’ç¢ºèª(GitHub)"
 msgstr "Check the latest version (GitHub)"
 
 #: main.py:1344
-msgid "§ìÒ‚Ì˜A—æ(%s/Twitter)"
+msgid "åˆ¶ä½œè€…ã®é€£çµ¡å…ˆ(%s/Twitter)"
 msgstr "Contact developer (%s/Twitter)"
 
 #: main.py:1351
-msgid "‚±‚Ìƒ\ƒtƒg‚É‚Â‚¢‚Ä"
+msgid "ã“ã®ã‚½ãƒ•ãƒˆã«ã¤ã„ã¦"
 msgstr "About RPPtoEXO"
 
 #: main.py:1390 main.py:1400 main.py:1404 main.py:1575 main.py:1577
-#: main.py:1663 rpp2exo/rpp.py:63
-msgid "QÆc"
+#: main.py:1663 rpp2exo\rpp.py:63
+msgid "å‚ç…§â€¦"
 msgstr "Browse..."
 
 #: main.py:1422
-msgid "¶‰E”½“]"
+msgid "å·¦å³åè»¢"
 msgstr "Flip horizontal"
 
 #: main.py:1425
-msgid "ã‰º”½“]"
+msgid "ä¸Šä¸‹åè»¢"
 msgstr "Flip vertical"
 
 #: main.py:1429
 msgid ""
-"@“¯‰¹’ö‚ª\n"
-"@˜A‘±‚µ‚½..."
-msgstr "   When the \n   same pitch repeats..."
+"ã€€åŒéŸ³ç¨‹ãŒ\n"
+"ã€€é€£ç¶šã—ãŸæ™‚..."
+msgstr ""
+"   When the \n"
+"   same pitch repeats..."
 
 #: main.py:1432
-msgid "”½“]‚µ‚È‚¢"
+msgid "åè»¢ã—ãªã„"
 msgstr "No inversion"
 
 #: main.py:1435
-msgid "‹t•ûŒü‚É”½“]"
+msgid "é€†æ–¹å‘ã«åè»¢"
 msgstr "Reverse inversion"
 
 #: main.py:1439
-msgid "Œ„ŠÔ‚È‚­”z’u"
+msgid "éš™é–“ãªãé…ç½®"
 msgstr "Fill gaps"
 
 #: main.py:1443
 msgid ""
-"‹ô””Ô–ÚObj‚ğ\n"
-"•ÊƒŒƒCƒ„”z’u"
-msgstr "Split even objects\n to separate layer"
+"å¶æ•°ç•ªç›®Objã‚’\n"
+"åˆ¥ãƒ¬ã‚¤ãƒ¤é…ç½®"
+msgstr ""
+"Split even objects\n"
+" to separate layer"
 
 #: main.py:1468
-msgid "ŠÔ‘I‘ğ (•b)"
+msgid "æ™‚é–“é¸æŠ (ç§’)"
 msgstr "Time selection(sec)"
 
 #: main.py:1516
-msgid "ƒGƒCƒŠƒAƒX : "
+msgid "ã‚¨ã‚¤ãƒªã‚¢ã‚¹ : "
 msgstr "Alias File : "
 
 #: main.py:1520 main.py:1533 main.py:1603
-msgid "%01.0f”Ô–Ú"
+msgid "%01.0fç•ªç›®"
 msgstr "%01.0fth Alias"
 
 #: main.py:1555
-msgid "AviUtl ƒGƒCƒŠƒAƒX/Œø‰Êƒtƒ@ƒCƒ‹"
+msgid "AviUtl ã‚¨ã‚¤ãƒªã‚¢ã‚¹/åŠ¹æœãƒ•ã‚¡ã‚¤ãƒ«"
 msgstr "AviUtl Alias / Object File"
 
 #: main.py:1558
-msgid "AviUtl2 ƒGƒCƒŠƒAƒXƒtƒ@ƒCƒ‹"
+msgid "AviUtl2 ã‚¨ã‚¤ãƒªã‚¢ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«"
 msgstr "AviUtl2 Alias File"
 
 #: main.py:1561
-msgid "‚ä‚Á‚­‚èMovieMaker4 ƒGƒCƒŠƒAƒXƒtƒ@ƒCƒ‹"
+msgid "ã‚†ã£ãã‚ŠMovieMaker4 ã‚¨ã‚¤ãƒªã‚¢ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«"
 msgstr "Yukkuri Movie Maker 4 Alias File"
 
 #: main.py:1563
-msgid "QÆ‚·‚éƒGƒCƒŠƒAƒX/Œø‰Êƒtƒ@ƒCƒ‹‚Ì‘I‘ğ"
+msgid "å‚ç…§ã™ã‚‹ã‚¨ã‚¤ãƒªã‚¢ã‚¹/åŠ¹æœãƒ•ã‚¡ã‚¤ãƒ«ã®é¸æŠ"
 msgstr "Select the AviUtl Alias / Object file"
 
 #: main.py:1612
-msgid "ƒXƒNƒŠƒvƒg§Œä "
+msgid "ã‚¹ã‚¯ãƒªãƒ—ãƒˆåˆ¶å¾¡ "
 msgstr "Script control "
 
 #: main.py:1623
-msgid "’Ç‰Á‘ÎÛ : "
+msgid "è¿½åŠ å¯¾è±¡ : "
 msgstr "Target : "
 
 #: main.py:1625
-msgid "©“®ŒŸo"
+msgid "è‡ªå‹•æ¤œå‡º"
 msgstr "Auto"
 
 #: main.py:1627
-msgid "“®‰æ"
+msgid "å‹•ç”»"
 msgstr "Video"
 
 #: main.py:1629
-msgid "‰æ‘œ"
+msgid "ç”»åƒ"
 msgstr "Image"
 
 #: main.py:1631
-msgid "ƒtƒBƒ‹ƒ^"
+msgid "ãƒ•ã‚£ãƒ«ã‚¿"
 msgstr "Filter"
 
 #: main.py:1638
-msgid "ƒV[ƒ“”Ô†: "
+msgid "ã‚·ãƒ¼ãƒ³ç•ªå·: "
 msgstr "Scene No."
 
 #: main.py:1643
-msgid "ƒV[ƒ“"
+msgid "ã‚·ãƒ¼ãƒ³"
 msgstr "Scene"
 
 #: main.py:1648
-msgid "‘fŞ : "
+msgid "ç´ æ : "
 msgstr "Reference : "
 
 #: main.py:1657
-msgid "“®‰æƒtƒ@ƒCƒ‹"
+msgid "å‹•ç”»ãƒ•ã‚¡ã‚¤ãƒ«"
 msgstr "Video File"
 
 #: main.py:1657
-msgid "‰æ‘œƒtƒ@ƒCƒ‹"
+msgid "ç”»åƒãƒ•ã‚¡ã‚¤ãƒ«"
 msgstr "Image file"
 
 #: main.py:1659
-msgid "QÆ‚·‚é‘fŞƒtƒ@ƒCƒ‹‚Ì‘I‘ğ"
+msgid "å‚ç…§ã™ã‚‹ç´ æãƒ•ã‚¡ã‚¤ãƒ«ã®é¸æŠ"
 msgstr "Select the referenced material file"
 
 #: main.py:1672
-msgid "Ä¶ˆÊ’uƒ‰ƒ“ƒ_ƒ€ : "
-msgstr "Randomize \nplayback pos : "
+msgid "å†ç”Ÿä½ç½®ãƒ©ãƒ³ãƒ€ãƒ  : "
+msgstr ""
+"Randomize \n"
+"playback pos : "
 
 #: main.py:1757
-msgid "•s“§–¾“x"
+msgid "ä¸é€æ˜åº¦"
 msgstr "Opacity"
 
 #: main.py:1758
-msgid "‰ñ“]Šp"
+msgid "å›è»¢è§’"
 msgstr "Rotation"
 
 #: main.py:1799
-msgid "Œø‰Ê‚ÌƒNƒŠƒA"
+msgid "åŠ¹æœã®ã‚¯ãƒªã‚¢"
 msgstr "Clear filter"
 
-#: rpp2exo/exo.py:72
+#: rpp2exo\exo.py:72 rpp2exo\exo2.py:72
 msgid ""
-"šŒx: “®‰æ‚Æ‚µ‚Ä“Ç‚İ‚ß‚Ü‚¹‚ñ‚Å‚µ‚½B“®‰æƒtƒ@ƒCƒ‹‚Ìê‡AÄ¶ˆÊ’u‚ª³í‚É”½‰f‚³‚ê‚Ü‚¹‚ñB\n"
-"‘ÎÛƒtƒ@ƒCƒ‹: %s"
-msgstr "*Warning: Could not load as video. In the case of a video file, the playback position is not reflected correctly. \nTarget : %s"
+"â˜…è­¦å‘Š: å‹•ç”»ã¨ã—ã¦èª­ã¿è¾¼ã‚ã¾ã›ã‚“ã§ã—ãŸã€‚å‹•ç”»ãƒ•ã‚¡ã‚¤ãƒ«ã®å ´åˆã€å†ç”Ÿä½ç½®ãŒæ­£å¸¸ã«å"
+"æ˜ ã•ã‚Œã¾ã›ã‚“ã€‚\n"
+"å¯¾è±¡ãƒ•ã‚¡ã‚¤ãƒ«: %s"
+msgstr ""
+"*Warning: Could not load as video. In the case of a video file, the playback "
+"position is not reflected correctly. \n"
+"Target : %s"
 
-#: rpp2exo/rpp.py:81
-msgid "šƒtƒ@ƒCƒ‹‚ğŠJ‚­‚±‚Æ‚ª‚Å‚«‚Ü‚¹‚ñ‚Å‚µ‚½B: %s"
+#: rpp2exo\midi.py:29 rpp2exo\rpp.py:81
+msgid "â˜…ãƒ•ã‚¡ã‚¤ãƒ«ã‚’é–‹ãã“ã¨ãŒã§ãã¾ã›ã‚“ã§ã—ãŸã€‚: %s"
 msgstr "*Warning: Could not open file. : %s"
 
-#: rpp2exo/rpp.py:98
-msgid "‘I‘ğŠÔ (%s~%s)"
+#: rpp2exo\midi.py:35
+msgid "æ­Œè©"
+msgstr "Lyrics"
+
+#: rpp2exo\rpp.py:98
+msgid "é¸æŠæ™‚é–“ (%s~%s)"
 msgstr "Selection time (%s~%s)"
 
-#: rpp2exo/rpp.py:308 rpp2exo/rpp.py:330
-msgid "ƒgƒ‰ƒbƒN: %s / ŠJnˆÊ’u(•b): %s"
+#: rpp2exo\rpp.py:308 rpp2exo\rpp.py:330
+msgid "ãƒˆãƒ©ãƒƒã‚¯: %s / é–‹å§‹ä½ç½®(ç§’): %s"
 msgstr "Track: %s / Start pos.(sec): %s"
-
