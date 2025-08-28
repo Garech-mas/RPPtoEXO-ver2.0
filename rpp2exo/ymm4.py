@@ -103,6 +103,14 @@ class YMM4:
             else:
                 end_frame = videoload.get(cv2.CAP_PROP_FRAME_COUNT)  # フレーム数
 
+        obj_frame_pos = objdict["pos"][1] * self.mydict["fps"] + 1 \
+            if len(objdict["pos"]) > 1 else -1
+        if obj_frame_pos > 0:  # 最初のオブジェクトが1フレーム目以降の場合
+            items = [deepcopy(self.default_text_item)]
+            items[0]['Length'] = self.sur_round(obj_frame_pos) - 1
+            items[0]['Remark'] = '位置合わせした後は消してください'
+            items[0]['IsHidden'] = True
+            items[0]['Text'] = '位置調整用'
         for index in range(1, len(objdict["length"])):
             add_layer = 0
             # オブジェクト最初のフレームと長さの計算
@@ -281,7 +289,6 @@ class YMM4:
         if item_count == 0:
             raise utils.ItemNotFoundError
 
-        # 保存する名前のテンプレートがあるかを検索、あれば上書き確認
         catalog = deepcopy(self.default_ymmt)
 
         save_template = self.mydict['TemplateName']
@@ -572,8 +579,8 @@ class YMM4:
         "IsAlwaysOnTop": False,
         "IsZOrderEnabled": False,
         "VideoEffects": [],
-        "Group": 0,
-        "Frame": 0,
+        "Group": 1,
+        "Frame": 1,
         "Layer": 0,
         "KeyFrames": {
             "Frames": [],
