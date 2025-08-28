@@ -10,7 +10,7 @@ from tkinter import messagebox
 
 from rpp2exo.dict import mydict
 
-R2E_VERSION = '2.10.1'
+R2E_VERSION = '2.10.2'
 R2E_TITLE = 'RPPtoEXO v' + R2E_VERSION
 
 if os.path.abspath(sys.argv[0]).endswith('.py'):
@@ -180,6 +180,6 @@ def restart_software(root=None, *args):
     if os.path.abspath(sys.argv[0]).endswith('.py'):
         subprocess.call([sys.executable] +  [sys.argv[0], *args])
     else:
-        subprocess.Popen([os.path.abspath(sys.argv[0])] + [mydict['RPPPath'].replace('\\\\','\\')])
+        subprocess.Popen([os.path.abspath(sys.argv[0])] + [*args])
     sys.exit()
 

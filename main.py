@@ -172,7 +172,7 @@ def main():
 
         if 'byoga_henkan_not_exists' in end:
             warn_msgs.append(_("★警告: YMM4では上下反転機能が実装されていないため、上下反転の設定は反映されません。\n"
-                             "    描画変換プラグインを導入し、テンプレートを再生成することで読み込むことができます。"))
+                             "    YMM4非遅延描画プラグインを導入し、テンプレートを再生成することで読み込むことができます。"))
 
         if 'time_tra_exists' in end:
             warn_msgs.append(_("★警告: 一部トラックバーの時間制御設定は反映されません。\nEXOのインポート後、個別に設定してください。"))
@@ -997,6 +997,7 @@ def confirm_restart():
     if ret:
         mydict["RPPPath"] = svr_rpp_input.get().replace('"', '')
         mydict["SrcPath"] = to_absolute(svr_src_input.get().replace('"', '')).replace('/', '\\')
+        mydict["OutputType"] = ivr_trgt_mode.get()
         write_cfg(mydict['OutputType'], "output_type", "Param")
         restart_software(root, mydict["RPPPath"], mydict["SrcPath"])
 
