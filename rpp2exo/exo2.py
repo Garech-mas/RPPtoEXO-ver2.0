@@ -133,6 +133,7 @@ class Exo2:
                               exo_4 + '1' + exo_4_1 + exo_4_2 + str(item_count) + exo_5 + exo_6 +
                               str(item_count) + exo_7)
             item_count = 1
+            bfidx -= 1
 
         for index in range(1, len(objdict["length"])):
             exo_4_1 = ""
