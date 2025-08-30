@@ -1,6 +1,6 @@
 #####################################################################################
-#               RPP to EXO ver 2.10.1                                               #
-#                                                                       2025/08/21  #
+#               RPP to EXO ver 2.10.2                                               #
+#                                                                       2025/08/30  #
 #       Original Written by Maimai (@Maimai22015/YTPMV.info)                        #
 #       Forked by Garech (@Garec_)                                                  #
 #                                                                                   #
@@ -999,7 +999,7 @@ def confirm_restart():
         mydict["SrcPath"] = to_absolute(svr_src_input.get().replace('"', '')).replace('/', '\\')
         mydict["OutputType"] = ivr_trgt_mode.get()
         write_cfg(mydict['OutputType'], "output_type", "Param")
-        restart_software(root, mydict["RPPPath"], mydict["SrcPath"])
+        restart_software(root)
 
 
 # EXOインポート時の設定

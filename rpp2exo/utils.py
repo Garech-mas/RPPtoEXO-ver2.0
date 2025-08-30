@@ -173,13 +173,13 @@ def write_cfg(value, setting_type, section):  # 設定保存
         with open(CONFIG_PATH, 'w', encoding='utf-8') as file:
             config_ini.write(file)
 
-def restart_software(root=None, *args):
+def restart_software(root=None):
     if root:
         root.quit()
         root.destroy()
     if os.path.abspath(sys.argv[0]).endswith('.py'):
-        subprocess.call([sys.executable] +  [sys.argv[0], *args])
+        subprocess.call([sys.executable] + [sys.argv[0]])
     else:
-        subprocess.Popen([os.path.abspath(sys.argv[0])] + [*args])
+        subprocess.Popen([os.path.abspath(sys.argv[0])] + sys.argv[1])
     sys.exit()
 
