@@ -75,15 +75,12 @@ class Exo2:
 
     def make_exo(self, objdict):
         end = {}
-        exo_result = ["[exedit]\nwidth=" + str(self.mydict["res_x"]) + "\nheight=" + str(self.mydict["res_y"]) + \
-                     "\nrate=" + str(Fraction(self.mydict["fps"]).limit_denominator().numerator) + \
-                     "\nscale=" + str(Fraction(self.mydict["fps"]).limit_denominator().denominator) + \
-                     "\nlength=99999\naudio_rate=" + str(self.mydict["audio_rate"]) + "\naudio_ch=2"]
+        exo_result = []
         item_count = 0
         exo_1 = "\n["  # item_count
-        exo_2 = "]\nstart="  # StartFrame
-        exo_3 = "\nend="  # EndFrame
-        exo_4 = "\nlayer="  # layer
+        exo_2 = "]\nlayer="  # layer
+        exo_3 = "\nframe="  # StartFrame
+        exo_4 = ","  # EndFrame
         exo_4_1 = ""  # オブジェクト種類別差分
         exo_4_2 = "\ngroup=1\nclipping=" + str(self.mydict["clipping"]) + \
                   "\ncamera=" + str(self.mydict["IsExSet"]) + "\n["  # item_count
@@ -118,20 +115,19 @@ class Exo2:
 
         obj_frame_pos = objdict["pos"][1] * self.mydict["fps"] + 1 \
             if len(objdict["pos"]) > 1 else -1
-        if obj_frame_pos > 0:  # 最初のオブジェクトが1フレーム目以降の場合
+        if obj_frame_pos > 1:  # 最初のオブジェクトが1フレーム目以降の場合
             exo_5 = (".0]\n"
-                     + "_name=" + self.t("テキスト") + "\n_disable=1\n" + self.t("サイズ") + "=34\n"
-                     + self.t("表示速度") + "=0.0\n" + self.t("文字毎に個別オブジェクト") + "=0\n"
-                     + self.t("移動座標上に表示する") + "=0\nB=0\nI=0\ntype=0\nautoadjust=0\nsoft=1\nmonospace=0\n"
-                        "align=0\nspacing_x=0\nspacing_y=0\nprecision=1\ncolor=ffffff\ncolor2=000000\n"
-                        "font=" + self.txt_default_font + "\ntext=" +
-                     encode_txt("位置調整用/位置合わせした後は消してください"))
+                     + "effect.name=テキスト\neffect.disable=1\nサイズ=100.00\n"
+                     + "字間=0.00\n行間=0.00\n表示速度=0.00\nフォント=Noto Sans JP Black\n"
+                     + "文字色=ffffff\n影・縁色=000000\n文字装飾=標準文字\n文字揃え=中央揃え[中]\nB=0\nI=0\n"
+                     + "テキスト=位置調整用/位置合わせした後は消してください\n"
+                     + "文字毎に個別オブジェクト=0\n移動座標上に表示=0\nオブジェクトの長さを自動調節=0")
             exo_7 = '.' + str(1) + ']'
             for txt in self.mydict['Param']:
                 exo_7 += '\n' + txt
-            exo_result.append(exo_1 + str(item_count) + exo_2 + '1' + exo_3 + str(self.sur_round(obj_frame_pos) - 1) +
-                              exo_4 + '1' + exo_4_1 + exo_4_2 + str(item_count) + exo_5 + exo_6 +
-                              str(item_count) + exo_7)
+            exo_result.append(exo_1 + str(item_count) + exo_2 + '1' + exo_3 + '1' +
+                              exo_4 + str(self.sur_round(obj_frame_pos) - 1) + exo_4_1 + exo_4_2 + str(item_count) +
+                              exo_5)
             item_count = 1
             bfidx -= 1
 
@@ -219,18 +215,18 @@ class Exo2:
             # 偶数番目オブジェクトをひとつ下のレイヤに配置する
             if self.mydict["SepLayerEvenObj"] == 1:
                 if (bfidx + item_count) % 2 == 0:
-                    exo_4 = "\nlayer=" + str(layer + add_layer * 2)  # layer
+                    exo_2 = "]\nlayer=" + str(layer + add_layer * 2)  # layer
                 else:
-                    exo_4 = "\nlayer=" + str(layer + add_layer * 2 + 1)  # layer
+                    exo_2 = "]\nlayer=" + str(layer + add_layer * 2 + 1)  # layer
             else:
-                exo_4 = "\nlayer=" + str(layer + add_layer)
+                exo_2 = "]\nlayer=" + str(layer + add_layer)
 
             # エフェクトを追加している場合の設定
             if len(self.mydict["Effect"]) != 0:
                 for eff in self.mydict["Effect"]:
                     filter_count += 1
                     exo_eff += "\n[" + str(item_count) + "." + \
-                               str(filter_count) + "]\n_name=" + str(eff[0])
+                               str(filter_count) + "]\neffect.name=" + str(eff[0])
                     for x in range(1, len(eff)):
                         exo_eff += "\n" + str(eff[x][0]) + "=" + str(eff[x][1])
 
@@ -264,41 +260,6 @@ class Exo2:
                             exo_eff += '\n[' + str(item_count) + "." + str(filter_count) + ']\n'
                             continue
 
-                        # AviUtl2形式→EXO形式の変換
-                        if exa[idx].startswith('effect.name'):
-                            exa[idx] = exa[idx].replace('effect.', '_')
-                        if ',' in exa[idx]:  # 移動方法の変換
-                            exa_1 = exa_2 = None
-                            if '|' in exa[idx]:
-                                exa_1, exa_2 = exa[idx].split('|', 1)
-                                exa_1 = exa_1.split(',')
-
-                                if exa_2.count(',') > 0:  # |以降にカンマがある場合 (時間制御のバンドル情報がある場合)
-                                    end['time_tra_exists'] = True
-                            else:
-                                exa_1 = exa[idx].split(',')
-
-                            # 移動方法を2→1に変換
-                            move_check = 0  # まずは加速・減速のチェックボックスを判定
-                            move2_check = int(exa_1.pop(-1))
-                            if move2_check & 1:  # 1の位が立っていれば64を加算 (加算チェックボックス)
-                                move_check += 64
-                            if move2_check & 2:  # 2の位が立っていれば32を加算 (減算チェックボックス)
-                                move_check += 32
-                            if move2_check & 4 and exa[-1] == '直線移動':  # 4の位が立っていれば中間点無視 (直線移動の場合のみ設定)
-                                exa[-1] = '中間点無視'
-
-                            for key in dict.XDict['2to1'].keys():  # 移動方法名→移動方法Noの変換
-                                value = dict.XDict['2to1'][key]
-                                if exa_1[-1] == key:
-                                    exa_1[-1] = str(value + move_check)
-                                    break
-                            else:
-                                exa_1[-1] = str(15 + move_check) + '@' + exa_1[-1]
-
-                            # 設定値へ変換
-                            exa[idx] = ','.join(exa_1 + ([exa_2] if exa_2 else [])) + '\n'
-
                         if condition == 'exo_5':
                             exo_5 += exa[idx]
                         elif condition == 'exo_eff':
@@ -310,7 +271,7 @@ class Exo2:
                         elif exa[idx] == 'audio=1\n':
                             exo_4_1 = "\naudio=1"
                         elif exa[idx] == 'clipping=1\n':
-                            end['clipping_object_exists'] = True
+                            exo_4_1 = "\nclipping=1"
 
                 # それぞれ末尾の\nを削除
                 exo_5 = exo_5[:-1]
@@ -341,15 +302,15 @@ class Exo2:
 
             if self.mydict["ScriptText"] != "":  # スクリプト制御追加する場合
                 exo_script = ("\n[" + str(item_count) + "." + str(1 + filter_count) +
-                              "]\n_name=" + self.t("スクリプト制御") + "\nスクリプト=" + self.mydict["ScriptText"])
+                              "]\neffect.name=" + self.t("スクリプト制御") + "\nスクリプト=" + self.mydict["ScriptText"])
                 filter_count += 1
 
             # EXA読み込み部でexo_5部分が読み込まれていた場合、EXAファイルの中身のオブジェクトをそのまま反映する (この先の処理は無視)
             if exo_5 != '':  # メディアオブジェクト
                 exo_7 = "." + str(1 + filter_count) + exo_7_
-                exo_result.append(exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) +
-                              exo_4 + exo_4_1 + exo_4_2 + str(item_count) + exo_5 + exo_eff + exo_script + exo_6 +
-                              str(item_count) + exo_7)
+                exo_result.append(exo_1 + str(item_count) + exo_2 + exo_3 + str(obj_frame_pos) + exo_4 + str(bf) +
+                              exo_4_1 + exo_4_2 + str(item_count) + exo_5 + exo_eff + exo_script +
+                                  ((exo_6 + str(item_count) + exo_7) if exo_7_ != '' else ''))
 
                 item_count = item_count + 1
                 continue
@@ -364,7 +325,7 @@ class Exo2:
                 # 空アイテム (テキスト) の場合の処理
                 if objdict["filetype"][index].startswith('TEXT'):
                     exo_5 = (".0]\n"
-                           + "_name=" + self.t("テキスト") + "\n" + self.t("サイズ") + "=34\n"
+                           + "effect.name=" + self.t("テキスト") + "\n" + self.t("サイズ") + "=34\n"
                            + self.t("表示速度") + "=0.0\n" + self.t("文字毎に個別オブジェクト") + "=0\n"
                            + self.t("移動座標上に表示する") + "=0\nB=0\nI=0\ntype=0\nautoadjust=0\nsoft=1\nmonospace=0\n"
                              "align=0\nspacing_x=0\nspacing_y=0\nprecision=1\ncolor=ffffff\ncolor2=000000\n"
@@ -372,7 +333,7 @@ class Exo2:
 
                 # 空アイテム (画像) の場合の処理
                 elif objdict["filetype"][index].startswith('IMAGE'):
-                    exo_5 = ".0]\n_name=" + self.t("画像ファイル") + \
+                    exo_5 = ".0]\neffect.name=" + self.t("画像ファイル") + \
                             "\nfile=" + file
 
                 else:
@@ -383,7 +344,7 @@ class Exo2:
                     play_pos = objdict["soffs"][index]
                     play_rate = int(objdict["playrate"][index] * 1000) / 10.0
 
-                    exo_5 = ".0]\n_name=" + self.t("動画ファイル") + \
+                    exo_5 = ".0]\neffect.name=" + self.t("動画ファイル") + \
                             "\n" + self.t("再生位置") + "=" + str(play_pos) + \
                             "\n" + self.t("再生速度") + "=" + str(play_rate) + \
                             "\n" + self.t("ループ再生") + "=" + \
@@ -393,7 +354,7 @@ class Exo2:
             elif self.mydict["OutputType"] == 1:  # 動画オブジェクト
                 if self.mydict["RandomPlay"]:   # 再生位置ランダム
                     self.mydict["SrcPosition"] = random.uniform(float(self.mydict['RandomStart']), float(self.mydict['RandomEnd']))
-                exo_5 = ".0]\n_name=" + self.t("動画ファイル") + \
+                exo_5 = ".0]\neffect.name=" + self.t("動画ファイル") + \
                         "\n" + self.t("再生位置") + "=" + str(self.mydict["SrcPosition"]) + \
                         "\n" + self.t("再生速度") + "=" + str(self.mydict["SrcRate"]) + \
                         "\n" + self.t("ループ再生") + "=" + str(self.mydict["IsLoop"]) + \
@@ -401,12 +362,12 @@ class Exo2:
                         "\nfile=" + str(self.mydict["SrcPath"])
 
             elif self.mydict["OutputType"] == 2:  # 画像オブジェクト
-                exo_5 = ".0]\n_name=" + self.t("画像ファイル") + \
+                exo_5 = ".0]\neffect.name=" + self.t("画像ファイル") + \
                         "\nfile=" + str(self.mydict["SrcPath"])
             elif self.mydict["OutputType"] == 4:  # シーンオブジェクト
                 if self.mydict["RandomPlay"]:   # 再生位置ランダム
                     self.mydict["SrcPosition"] = random.uniform(float(self.mydict['RandomStart']), float(self.mydict['RandomEnd']))
-                exo_5 = ".0]\n_name=" + self.t("シーン") + \
+                exo_5 = ".0]\neffect.name=" + self.t("シーン") + \
                         "\n" + self.t("再生位置") + "=" + str(self.mydict["SrcPosition"]) + \
                         "\n" + self.t("再生速度") + "=" + str(self.mydict["SrcRate"]) + \
                         "\n" + self.t("ループ再生") + "=" + str(self.mydict["IsLoop"]) + \
@@ -417,36 +378,24 @@ class Exo2:
                 exo_7 = '.' + str(1 + filter_count) + ']'
                 for txt in self.mydict['Param']:
                     exo_7 += '\n' + txt
-
-                exo_result.append(exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) +
-                              exo_4 + exo_4_1 + exo_4_2 + str(item_count) + exo_5 + exo_eff + exo_script + exo_6 +
+                exo_result.append(exo_1 + str(item_count) + exo_2 + exo_3 + str(obj_frame_pos) + exo_4 + str(bf) +
+                              exo_4_1 + exo_4_2 + str(item_count) + exo_5 + exo_eff + exo_script + exo_6 +
                               str(item_count) + exo_7)
             # フィルタ効果
             elif self.mydict["OutputType"] == 3:
                 exo_4_2 = "\ngroup=1"
                 # 何も効果がかかっていないとエラー吐くので（多分）とりあえず座標0,0,0を掛けておく
-                exo_5 = "\n[" + str(item_count) + ".0]\n_name=" + self.t("座標") + "\nX=0.0\nY=0.0\nZ=0.0"
-                exo_result.append(exo_1 + str(item_count) + exo_2 + str(obj_frame_pos) + exo_3 + str(bf) +
-                              exo_4 + exo_4_1 + exo_4_2 + exo_5 + exo_eff + exo_script)
+                exo_5 = "\n[" + str(item_count) + ".0]\neffect.name=" + self.t("座標") + "\nX=0.0\nY=0.0\nZ=0.0"
+                exo_result.append(exo_1 + str(item_count) + exo_2 + exo_3 + str(obj_frame_pos) + exo_4 + str(bf) +
+                              exo_4_1 + exo_4_2 + exo_5 + exo_eff + exo_script)
 
             item_count += 1
 
         if item_count == 0:
             raise utils.ItemNotFoundError
 
-        try:
-            with open(self.mydict["EXOPath"], mode='w', encoding=self.encoding) as f:
-                line = ""
-                # 一文字ずつファイルに書き込んでいく (詳細エラー表示をできるようにするため)
-                exo_result_text = ''.join(exo_result)
-                for t in exo_result_text:
-                    f.write(t)
-                    line += t
-                    if t == '\n':
-                        line = ""
-
-        except UnicodeEncodeError:
-            raise UnicodeEncodeError('', t, 0, 0, line)  # objectとreasonにエラーの文字情報を渡して返す (本来の使い方じゃなさそう…)
+        with open(self.mydict["EXOPath"], mode='w', encoding='utf-8') as f:
+            f.write(''.join(exo_result)[1:])
         return end
 
     def add_reversal(self, ud=0, lr=0):  # 反転エフェクト追加用
@@ -454,7 +403,7 @@ class Exo2:
         t_result = self.t("反転_ITEM")
         item = t_result if t_result != "反転_ITEM" else ['上下反転', '左右反転', '輝度反転', '色相反転', '透明度反転']
 
-        result = ("]\n_name=" + self.t("反転") + "\n"
+        result = ("]\neffect.name=" + self.t("反転") + "\n"
                   + item[0] + "=" + str(ud) + "\n"
                   + item[1] + "=" + str(lr) + "\n"
                   + item[2] + "=0\n"

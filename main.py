@@ -619,7 +619,9 @@ def toggle_media_label(flg):
 
 def run():
     mydict["RPPPath"] = svr_rpp_input.get().replace('"', '')
-    mydict["EXOPath"] = os.path.join(tempfile.gettempdir(), 'RPPtoYMMT_temp.ymmt' if mydict['OutputApp'] == 'YMM4' else 'RPPtoEXO_temp.exo')
+    mydict["EXOPath"] = os.path.join(tempfile.gettempdir(), 'RPPtoEXO_temp.exo')
+    if mydict['OutputApp'] == 'AviUtl2': mydict["EXOPath"] = os.path.join(tempfile.gettempdir(), 'RPPtoEXO_temp.object')
+    if mydict['OutputApp'] == 'YMM4': mydict["EXOPath"] = os.path.join(tempfile.gettempdir(), 'RPPtoYMMT_temp.ymmt')
     mydict["OutputType"] = ivr_trgt_mode.get()
     mydict["SrcPath"] = to_absolute(svr_src_input.get().replace('"', '')).replace('/', '\\')
     mydict["EffPaths"][0] = to_absolute(svr_alias_input.get().replace('"', ''))
@@ -752,7 +754,11 @@ def run():
     try:
         show_mv, show_tp = (1, 1)  # -1越0未満エラー(mv)・移動設定値エラー(tp)を表示する場合は1 一度表示したら0になる
         if mydict['OutputType'] != 3 or mydict['OutputApp'] == 'YMM4':
-            if ivr_adv_draw.get():
+            if mydict['OutputApp'] == 'AviUtl2':
+                mydict['Param'].append('effect.name=' + ExDict['標準描画'])
+                for i in [0, 1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14]:
+                    show_mv, show_tp = set_mparam(i, show_mv, show_tp)
+            elif ivr_adv_draw.get():
                 mydict['Param'].append('_name=' + ExDict['拡張描画'])
                 for i in [0, 1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14]:
                     show_mv, show_tp = set_mparam(i, show_mv, show_tp)
@@ -1129,6 +1135,8 @@ if __name__ == '__main__':
         try:
             if os.path.isfile(os.path.join(tempfile.gettempdir(), 'RPPtoEXO_temp.exo')):
                 os.remove(os.path.join(tempfile.gettempdir(), 'RPPtoEXO_temp.exo'))
+            if os.path.isfile(os.path.join(tempfile.gettempdir(), 'RPPtoEXO_temp.object')):
+                os.remove(os.path.join(tempfile.gettempdir(), 'RPPtoEXO_temp.object'))
             if os.path.isfile(os.path.join(tempfile.gettempdir(), 'RPPtoYMMT_temp.ymmt')):
                 os.remove(os.path.join(tempfile.gettempdir(), 'RPPtoYMMT_temp.ymmt'))
             if os.path.isfile(os.path.join(tempfile.gettempdir(), 'catalog.json')):
