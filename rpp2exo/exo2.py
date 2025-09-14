@@ -118,7 +118,7 @@ class Exo2:
         if obj_frame_pos > 1:  # 最初のオブジェクトが1フレーム目以降の場合
             exo_5 = (".0]\n"
                      + "effect.name=テキスト\neffect.disable=1\nサイズ=100.00\n"
-                     + "字間=0.00\n行間=0.00\n表示速度=0.00\nフォント=Noto Sans JP Black\n"
+                     + "字間=0.00\n行間=0.00\n表示速度=0.00\nフォント=Yu Gothic UI\n"
                      + "文字色=ffffff\n影・縁色=000000\n文字装飾=標準文字\n文字揃え=中央揃え[中]\nB=0\nI=0\n"
                      + "テキスト=位置調整用/位置合わせした後は消してください\n"
                      + "文字毎に個別オブジェクト=0\n移動座標上に表示=0\nオブジェクトの長さを自動調節=0")
@@ -230,9 +230,9 @@ class Exo2:
                     for x in range(1, len(eff)):
                         exo_eff += "\n" + str(eff[x][0]) + "=" + str(eff[x][1])
 
-            # EXA読み込み
+            # Object読み込み
             eff_path = self.mydict['EffPaths'][(bfidx + item_count) % len(self.mydict['EffPaths'])]
-            if not eff_path:  # EXAファイルがブランクのときは後続処理に回す
+            if not eff_path:  # Objectファイルがブランクのときは後続処理に回す
                 exo_4_1 = '\noverlay=1'
             else:
                 condition = ''
@@ -283,26 +283,26 @@ class Exo2:
                 pass
             elif self.mydict["ObjFlipType"] == 1 and (bfidx + item_count) % 2 == 1 and altidx % 2 == 0 or \
                  self.mydict["ObjFlipType"] == 2 and (bfidx + item_count) % 2 == 0 and altidx % 2 == 1:  # 左右反転
-                exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + self.add_reversal(lr=1)
+                exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + add_reversal(lr=1)
                 filter_count += 1
             elif self.mydict["ObjFlipType"] == 2 and (bfidx + item_count) % 2 == 1 and altidx % 2 == 0 or \
                  self.mydict["ObjFlipType"] == 1 and (bfidx + item_count) % 2 == 0 and altidx % 2 == 1:  # 上下反転
-                exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + self.add_reversal(ud=1)
+                exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + add_reversal(ud=1)
                 filter_count += 1
             elif self.mydict["ObjFlipType"] == 3:  # 時計回り反転
                 if (bfidx + item_count - altidx) % 4 == (3 if self.mydict['IsCCW'] else 1):
-                    exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + self.add_reversal(lr=1)
+                    exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + add_reversal(lr=1)
                     filter_count += 1
                 elif (bfidx + item_count - altidx) % 4 == 2:
-                    exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + self.add_reversal(ud=1, lr=1)
+                    exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + add_reversal(ud=1, lr=1)
                     filter_count += 1
                 elif (bfidx + item_count - altidx) % 4 == (1 if self.mydict['IsCCW'] else 3):
-                    exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + self.add_reversal(ud=1)
+                    exo_eff += "\n[" + str(item_count) + "." + str(1 + filter_count) + add_reversal(ud=1)
                     filter_count += 1
 
             if self.mydict["ScriptText"] != "":  # スクリプト制御追加する場合
                 exo_script = ("\n[" + str(item_count) + "." + str(1 + filter_count) +
-                              "]\neffect.name=" + self.t("スクリプト制御") + "\nスクリプト=" + self.mydict["ScriptText"])
+                              "]\neffect.name=スクリプト制御\nスクリプト=" + self.mydict["ScriptText"])
                 filter_count += 1
 
             # EXA読み込み部でexo_5部分が読み込まれていた場合、EXAファイルの中身のオブジェクトをそのまま反映する (この先の処理は無視)
@@ -325,53 +325,48 @@ class Exo2:
                 # 空アイテム (テキスト) の場合の処理
                 if objdict["filetype"][index].startswith('TEXT'):
                     exo_5 = (".0]\n"
-                           + "effect.name=" + self.t("テキスト") + "\n" + self.t("サイズ") + "=34\n"
-                           + self.t("表示速度") + "=0.0\n" + self.t("文字毎に個別オブジェクト") + "=0\n"
-                           + self.t("移動座標上に表示する") + "=0\nB=0\nI=0\ntype=0\nautoadjust=0\nsoft=1\nmonospace=0\n"
-                             "align=0\nspacing_x=0\nspacing_y=0\nprecision=1\ncolor=ffffff\ncolor2=000000\n"
-                             "font=" + self.txt_default_font + "\ntext=" + encode_txt(objdict["filetype"][index][5:]))
+                           + "effect.name=テキスト\nサイズ=34.00\n字間=0.00\n行間=0.00\n表示速度=0.00\nフォント=Yu Gothic UI"
+                           + "文字色=ffffff\n影・縁色=000000\n文字装飾=標準文字\n文字揃え=左寄せ[上]\nB=0\nI=0\nテキスト="
+                           + objdict["filetype"][index][5:].replace('\n', '\\n')
+                           + "\n文字毎に個別オブジェクト=0\n移動座標上に表示=0\nオブジェクトの長さを自動調節=0")
 
                 # 空アイテム (画像) の場合の処理
                 elif objdict["filetype"][index].startswith('IMAGE'):
-                    exo_5 = ".0]\neffect.name=" + self.t("画像ファイル") + \
-                            "\nfile=" + file
+                    exo_5 = ".0]\neffect.name=画像ファイル" + \
+                            "\nファイル=" + file + "\n表示番号=0\n連番ファイル=0"
 
                 else:
-                    is_alpha = 0
-                    if file[file.find('.'):] == ".avi":  # AVIファイルの場合だけ、透過AVIの可能性があるためアルファチャンネル有
-                        is_alpha = 1
-
                     play_pos = objdict["soffs"][index]
                     play_rate = int(objdict["playrate"][index] * 1000) / 10.0
 
-                    exo_5 = ".0]\neffect.name=" + self.t("動画ファイル") + \
-                            "\n" + self.t("再生位置") + "=" + str(play_pos) + \
-                            "\n" + self.t("再生速度") + "=" + str(play_rate) + \
-                            "\n" + self.t("ループ再生") + "=" + \
-                            (str(objdict["loop"][index]) if self.mydict["IsLoop"] else '0') + \
-                            "\n" + self.t("アルファチャンネルを読み込む") + "=" + str(is_alpha) + \
-                            "\nfile=" + file
+                    exo_5 = ".0]\neffect.name=動画ファイル" + \
+                            "\n再生位置=" + str(play_pos) + \
+                            "\n再生速度=" + str(play_rate) + \
+                            "\nファイル=" + file + \
+                            "\nトラック=0" + "\nループ再生=" + (str(objdict["loop"][index]) if self.mydict["IsLoop"] else '0') + \
+                            "\n音声付き=1\nYUV="
+
             elif self.mydict["OutputType"] == 1:  # 動画オブジェクト
                 if self.mydict["RandomPlay"]:   # 再生位置ランダム
                     self.mydict["SrcPosition"] = random.uniform(float(self.mydict['RandomStart']), float(self.mydict['RandomEnd']))
-                exo_5 = ".0]\neffect.name=" + self.t("動画ファイル") + \
-                        "\n" + self.t("再生位置") + "=" + str(self.mydict["SrcPosition"]) + \
-                        "\n" + self.t("再生速度") + "=" + str(self.mydict["SrcRate"]) + \
-                        "\n" + self.t("ループ再生") + "=" + str(self.mydict["IsLoop"]) + \
-                        "\n" + self.t("アルファチャンネルを読み込む") + "=" + str(self.mydict["IsAlpha"]) + \
-                        "\nfile=" + str(self.mydict["SrcPath"])
+                exo_5 = ".0]\neffect.name=動画ファイル" + \
+                        "\n再生位置=" + str(self.mydict["SrcPosition"]) + \
+                        "\n再生速度=" + str(self.mydict["SrcRate"]) + \
+                        "\nファイル=" + str(self.mydict["SrcPath"]) + \
+                        "\nトラック=0" + "\nループ再生=" + str(self.mydict["IsLoop"]) + \
+                        "\n音声付き=1\nYUV="
 
             elif self.mydict["OutputType"] == 2:  # 画像オブジェクト
-                exo_5 = ".0]\neffect.name=" + self.t("画像ファイル") + \
-                        "\nfile=" + str(self.mydict["SrcPath"])
+                exo_5 = ".0]\neffect.name=画像ファイル" + \
+                        "\nファイル=" + str(self.mydict["SrcPath"]) + "\n表示番号=0\n連番ファイル=0"
             elif self.mydict["OutputType"] == 4:  # シーンオブジェクト
                 if self.mydict["RandomPlay"]:   # 再生位置ランダム
                     self.mydict["SrcPosition"] = random.uniform(float(self.mydict['RandomStart']), float(self.mydict['RandomEnd']))
-                exo_5 = ".0]\neffect.name=" + self.t("シーン") + \
-                        "\n" + self.t("再生位置") + "=" + str(self.mydict["SrcPosition"]) + \
-                        "\n" + self.t("再生速度") + "=" + str(self.mydict["SrcRate"]) + \
-                        "\n" + self.t("ループ再生") + "=" + str(self.mydict["IsLoop"]) + \
-                        "\nシーン=" + str(self.mydict["SceneIdx"])
+                exo_5 = ".0]\neffect.name=シーン" + \
+                        "\n再生位置=" + str(self.mydict["SrcPosition"]) + \
+                        "\n再生速度=" + str(self.mydict["SrcRate"]) + \
+                        "\nシーン=" + str(self.mydict["SceneIdx"]) + \
+                        "\nループ再生=" + str(self.mydict["IsLoop"])
 
             # メディアオブジェクト
             if self.mydict["OutputType"] != 3:
@@ -385,7 +380,7 @@ class Exo2:
             elif self.mydict["OutputType"] == 3:
                 exo_4_2 = "\ngroup=1"
                 # 何も効果がかかっていないとエラー吐くので（多分）とりあえず座標0,0,0を掛けておく
-                exo_5 = "\n[" + str(item_count) + ".0]\neffect.name=" + self.t("座標") + "\nX=0.0\nY=0.0\nZ=0.0"
+                exo_5 = "\n[" + str(item_count) + ".0]\neffect.name=座標\nX=0.0\nY=0.0\nZ=0.0"
                 exo_result.append(exo_1 + str(item_count) + exo_2 + exo_3 + str(obj_frame_pos) + exo_4 + str(bf) +
                               exo_4_1 + exo_4_2 + exo_5 + exo_eff + exo_script)
 
@@ -398,27 +393,6 @@ class Exo2:
             f.write(''.join(exo_result)[1:])
         return end
 
-    def add_reversal(self, ud=0, lr=0):  # 反転エフェクト追加用
-        # 反転_ITEMのデータを持ってくる(なければオリジナルのものを使う)
-        t_result = self.t("反転_ITEM")
-        item = t_result if t_result != "反転_ITEM" else ['上下反転', '左右反転', '輝度反転', '色相反転', '透明度反転']
-
-        result = ("]\neffect.name=" + self.t("反転") + "\n"
-                  + item[0] + "=" + str(ud) + "\n"
-                  + item[1] + "=" + str(lr) + "\n"
-                  + item[2] + "=0\n"
-                  + item[3] + "=0\n"
-                  + item[4] + "=0"
-                  )
-        return result
-
-    # 海外版拡張編集を使用する際にDictから翻訳するための関数
-    def t(self, txt):
-        if self.exedit_lang != 'ja':
-            return dict.ExDict[self.exedit_lang][txt]
-        else:
-            return txt
-
     # iを設定内容の通りに丸める
     def sur_round(self, i):
         if self.mydict["UseRoundUp"] == 1:  # iを切り上げする
@@ -426,6 +400,15 @@ class Exo2:
         else:  # iを正確に四捨五入する
             result = Decimal(str(i)).quantize(Decimal('0'), rounding=ROUND_HALF_UP)
             return float(result)
+
+
+def add_reversal(ud=0, lr=0):  # 反転エフェクト追加用
+    result = ("]\neffect.name=反転" + "\n"
+              + "上下反転=" + str(ud) + "\n"
+              + "左右反転=" + str(lr) + "\n"
+              + "輝度反転=0\n色相反転=0\n透明度反転=0"
+              )
+    return result
 
 
 def encode_txt(text):  # textを拡張編集のテキストエンコード形式に直す

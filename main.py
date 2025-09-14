@@ -87,9 +87,6 @@ def main():
         elif mydict["OutputApp"] == 'AviUtl2':
             exo2_cl = Exo2(mydict, file_path)
 
-            btn_exec["text"] = _("実行中") + " (2/4)"
-            end2 = exo2_cl.fix_sjis_files()
-
             btn_exec["text"] = _("実行中") + " (3/4)"
             exo2_cl.fetch_fps()
 
@@ -225,7 +222,7 @@ def show_dropwindow():
                                   '※上書き確認ダイアログが出てきた場合、「上書きする」を選択してください。') % mydict['TemplateName']
     elif mydict['OutputApp'] == 'AviUtl2':
         lbl_drag_help['text'] = _(
-            'このウィンドウからAviUtl2のシーンリストに直接ドラッグ&ドロップしてください。')
+            'このウィンドウからAviUtl2に直接ドラッグ&ドロップしてください。\n※ 挿入したいレイヤーの0秒地点にドラッグ&ドロップするようにしてください。')
     lbl_drag_help.place(x=20,y=70)
 
     width = lbl_drag_help.winfo_reqwidth() + 40
@@ -1697,8 +1694,7 @@ if __name__ == '__main__':
     ivr_clipping = IntVar()
     chk_clipping = ttk.Checkbutton(frame_trgt, padding=5, text=ExDict['上のオブジェクトでクリッピング'],
                                    onvalue=1, offvalue=0, variable=ivr_clipping)
-    if mydict['OutputApp'] != 'AviUtl2':
-        chk_clipping.grid(row=3, column=0, columnspan=3, sticky=W)
+    chk_clipping.grid(row=3, column=0, columnspan=3, sticky=W)
     ivr_adv_draw = IntVar()
     ivr_adv_draw.set(0 if mydict['OutputApp'] != 'AviUtl2' else 1)
     chk_adv_draw = ttk.Checkbutton(frame_trgt, padding=5, text=ExDict['拡張描画'], onvalue=1, offvalue=0,
