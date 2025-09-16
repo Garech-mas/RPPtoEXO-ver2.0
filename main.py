@@ -899,7 +899,7 @@ def check_reaper_editing():
 
 
 def set_decimal(entry, unit):
-    if unit == 0:
+    if unit == 0 or unit == -2:
         return entry.get()
     try:
         m = float(entry.get())

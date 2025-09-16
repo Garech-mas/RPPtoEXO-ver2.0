@@ -107,6 +107,27 @@ class Exo:
             videoload = cv2.VideoCapture(str(self.mydict["SrcPath"]))  # 動画を読み込む
             self.mydict['RandomEnd'] = videoload.get(cv2.CAP_PROP_FRAME_COUNT)  # フレーム数
 
+        obj_frame_pos = objdict["pos"][1] * self.mydict["fps"] + 1 \
+            if len(objdict["pos"]) > 1 else -1
+        if obj_frame_pos > 1:  # 最初のオブジェクトが1フレーム目以降の場合
+            exo_5 = (".0]\n"
+                     + "_name=" + self.t("テキスト") + "\n_disable=1\n" + self.t("サイズ") + "=34\n"
+                     + self.t("表示速度") + "=0.0\n" + self.t("文字毎に個別オブジェクト") + "=0\n"
+                     + self.t("移動座標上に表示する") + "=0\nB=0\nI=0\ntype=0\nautoadjust=0\nsoft=1\nmonospace=0\n"
+                    "align=0\nspacing_x=0\nspacing_y=0\nprecision=1\ncolor=ffffff\ncolor2=000000\n"
+                    "font=" + self.txt_default_font + "\ntext=" + encode_txt(_('位置調整用/位置合わせした後は消してください')))
+            exo_7 = ('.' + str(1) + ']\n_name=' + self.t('標準描画')
+                     + '\nX=0.0\nY=0.0\nZ=0.0\n'
+                     + self.t('拡大率') + '=100.00\n'
+                     + self.t('透明度') + '=0.0\n'
+                     + self.t('回転') + '=0.00\nblend=0'
+                     )
+            exo_result.append(exo_1 + str(item_count) + exo_2 + '1' + exo_3 + str(self.sur_round(obj_frame_pos) - 1) +
+                          exo_4 + '1\noverlay=1' + exo_4_2 + str(item_count) + exo_5 + exo_eff + exo_script + exo_6 +
+                          str(item_count) + exo_7)
+            item_count = 1
+            bfidx -= 1
+
         for index in range(1, len(objdict["length"])):
             exo_4_1 = ""
             exo_5 = ""
