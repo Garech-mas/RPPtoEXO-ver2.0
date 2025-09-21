@@ -10,7 +10,7 @@ from tkinter import messagebox
 
 from rpp2exo.dict import mydict
 
-R2E_VERSION = '2.10.2'
+R2E_VERSION = '2.11'
 R2E_TITLE = 'RPPtoEXO v' + R2E_VERSION
 
 if os.path.abspath(sys.argv[0]).endswith('.py'):
@@ -80,7 +80,7 @@ def format_seconds(seconds):
 def read_cfg():
     try:
         # 設定ファイルの読み込み
-        config_ini = configparser.ConfigParser()
+        config_ini = configparser.ConfigParser(interpolation=None)
         config_ini.read(CONFIG_PATH, encoding='utf-8')
 
         # システムロケールの読込み
@@ -103,6 +103,7 @@ def read_cfg():
             ('', 'ymm4path', 'Param'),    # YMM4の実行ファイルパス
             ('RPPtoEXO', 'templ_name', 'Param'),  # YMM4のテンプレート保存名
             ('1', 'output_type', 'Param'),  # 「追加対象」のデフォルト値 0-4
+            ('1', 'make_adjust_object', 'Param'),  # 位置調整用オブジェクトを作成するか 0/1
             ('1920', 'res_x', 'ImportSetting'),  # 解像度X
             ('1080', 'res_y', 'ImportSetting'),  # 解像度Y
             ('', 'default_fps', 'ImportSetting'),  # FPS初期値
@@ -142,6 +143,7 @@ def read_cfg():
             mydict["YMM4Path"] = config_ini.get("Param", "ymm4path")
             mydict["TemplateName"] = config_ini.get("Param", "templ_name")
             mydict["OutputType"] = config_ini.get("Param", "output_type")
+            mydict["MakeAdjustObject"] = config_ini.get("Param", "make_adjust_object")
             mydict["res_x"] = int(config_ini.get("ImportSetting", "res_x"))
             mydict["res_y"] = int(config_ini.get("ImportSetting", "res_y"))
             mydict["default_fps"] = config_ini.get("ImportSetting", "default_fps")
@@ -165,7 +167,7 @@ def read_cfg():
 def write_cfg(value, setting_type, section):  # 設定保存
 
     if os.path.exists(CONFIG_PATH):
-        config_ini = configparser.ConfigParser()
+        config_ini = configparser.ConfigParser(interpolation=None)
         config_ini.read(CONFIG_PATH, encoding='utf-8')
         if section == "Directory":
             value = os.path.dirname(value)
@@ -180,6 +182,6 @@ def restart_software(root=None):
     if os.path.abspath(sys.argv[0]).endswith('.py'):
         subprocess.call([sys.executable] + [sys.argv[0]])
     else:
-        subprocess.Popen([os.path.abspath(sys.argv[0])] + sys.argv[1])
+        subprocess.Popen([os.path.abspath(sys.argv[0])] + sys.argv[1:])
     sys.exit()
 

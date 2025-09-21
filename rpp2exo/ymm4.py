@@ -105,7 +105,7 @@ class YMM4:
 
         obj_frame_pos = objdict["pos"][1] * self.mydict["fps"] + 1 \
             if len(objdict["pos"]) > 1 else -1
-        if obj_frame_pos > 1:  # 最初のオブジェクトが1フレーム目以降の場合
+        if self.mydict['MakeAdjustObject'] and obj_frame_pos > 1:  # 最初のオブジェクトが1フレーム目以降の場合
             items = [deepcopy(self.default_text_item)]
             items[0]['Length'] = self.sur_round(obj_frame_pos) - 1
             items[0]['Remark'] = '位置合わせした後は消してください'

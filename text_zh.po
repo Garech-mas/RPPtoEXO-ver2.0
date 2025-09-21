@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2025-08-28 13:28+0900\n"
+"POT-Creation-Date: 2025-09-21 18:53+0900\n"
 "PO-Revision-Date: 2025-03-09 22:50+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -26,7 +26,7 @@ msgstr ""
 "%s\n"
 "导入EXO文件时，请分别设置。"
 
-#: main.py:34 main.py:191 main.py:339 main.py:885
+#: main.py:34 main.py:188 main.py:353 main.py:905
 msgid "警告"
 msgstr "警告"
 
@@ -48,42 +48,42 @@ msgid ""
 "知されます。"
 msgstr "*已记录您的选择！未来由扩展编辑导致的EXO生成BUG将在控制台上通知您。"
 
-#: main.py:62 main.py:195 main.py:1165
+#: main.py:62 main.py:192 main.py:1187
 msgid "生成設定"
 msgstr "生成设置"
 
-#: main.py:64 main.py:197 main.py:1316
+#: main.py:64 main.py:194 main.py:1345
 msgid "ヘルプ"
 msgstr "帮助"
 
-#: main.py:67 main.py:85 main.py:90 main.py:93 main.py:96 main.py:101
-#: main.py:104 main.py:107
+#: main.py:67 main.py:85 main.py:90 main.py:93 main.py:98 main.py:101
+#: main.py:104
 msgid "実行中"
 msgstr "运行中"
 
-#: main.py:113 main.py:115 main.py:117 main.py:120 main.py:124 main.py:126
-#: main.py:129 main.py:131 main.py:134 main.py:254 main.py:308 main.py:311
-#: main.py:329 main.py:332 main.py:336 main.py:347 main.py:410 main.py:643
-#: main.py:647 main.py:659 main.py:664 main.py:671 main.py:676 main.py:683
-#: main.py:688 main.py:714 main.py:721 main.py:732 main.py:742 main.py:769
-#: main.py:773 main.py:777 main.py:781 main.py:785 main.py:789 main.py:793
-#: main.py:798 main.py:813 main.py:828 main.py:862 main.py:1342
+#: main.py:110 main.py:112 main.py:114 main.py:117 main.py:121 main.py:123
+#: main.py:126 main.py:128 main.py:131 main.py:265 main.py:322 main.py:325
+#: main.py:343 main.py:346 main.py:350 main.py:361 main.py:424 main.py:659
+#: main.py:663 main.py:675 main.py:680 main.py:687 main.py:692 main.py:699
+#: main.py:704 main.py:730 main.py:737 main.py:748 main.py:758 main.py:789
+#: main.py:793 main.py:797 main.py:801 main.py:805 main.py:809 main.py:813
+#: main.py:818 main.py:833 main.py:848 main.py:882 main.py:1371
 msgid "エラー"
 msgstr "错误"
 
-#: main.py:113 main.py:254
+#: main.py:110 main.py:265
 msgid "上書き先のEXOファイルが開かれているか、読み取り専用になっています。"
 msgstr "要覆盖的EXO文件是只读的。"
 
-#: main.py:115 main.py:308 main.py:329
+#: main.py:112 main.py:322 main.py:343
 msgid "下記ファイルの読込み権限がありません。\n"
 msgstr "没有读取此路径下文件的权限。 \n"
 
-#: main.py:117 main.py:312 main.py:333
+#: main.py:114 main.py:326 main.py:347
 msgid "下記パス内のファイル/フォルダは存在しませんでした。\n"
 msgstr "此路径下的文件/文件夹不存在。\n"
 
-#: main.py:120
+#: main.py:117
 msgid ""
 "AviUtl上で使用できない文字がパス名に含まれています。\n"
 "パス名に含まれる該当文字を削除し、再度実行し直してください。\n"
@@ -92,13 +92,13 @@ msgstr ""
 "路径包含无法被AviUtl使用的字符。 \n"
 "请删除路径中的这些字符并重试。\n"
 
-#: main.py:124
+#: main.py:121
 msgid ""
 "下記のエイリアスファイルが不正です。正規の方法でEXAファイルを生成してくださ"
 "い。\n"
 msgstr "此预设不正确。请使用正确的方法生成 EXA 文件。\n"
 
-#: main.py:126
+#: main.py:123
 msgid ""
 "出力範囲内に変換対象のアイテムが見つかりませんでした。\n"
 "出力対象トラック、時間選択の設定を見直してください。"
@@ -106,15 +106,15 @@ msgstr ""
 "输出范围内没有发现可转换物件。 \n"
 "请查看并修改目标轨道和时间范围。"
 
-#: main.py:129
+#: main.py:126
 msgid "エイリアスに指定されているテンプレートは存在しませんでした。"
 msgstr "预设中指定的模板不存在。"
 
-#: main.py:131 main.py:862
+#: main.py:128 main.py:882
 msgid "生成がキャンセルされました。"
 msgstr "已取消生成。"
 
-#: main.py:134 main.py:347
+#: main.py:131 main.py:361
 msgid ""
 "予期せぬエラーが発生しました。不正なRPPファイルの可能性があります。\n"
 "最新バージョンのREAPERをインストールし、RPPファイルを再保存して再試行してくだ"
@@ -123,23 +123,23 @@ msgstr ""
 "发生了预期以外的错误，可能是不正确的RPP文件导致。 \n"
 "请安装最新版REAPER并重新保存RPP文件后重试。\n"
 
-#: main.py:141
+#: main.py:138
 msgid ""
 "★警告: RPP内にセクション・逆再生付きのアイテムが存在したため、該当アイテムが"
 "正常に生成できませんでした。"
 msgstr "*警告: 因RPP文件内有切分过或倒放的项，无法正确生成相关物件。"
 
-#: main.py:145 main.py:153 main.py:161
+#: main.py:142 main.py:150 main.py:158
 msgid "その他 %s個"
 msgstr "其他 %s 个文件"
 
-#: main.py:149
+#: main.py:146
 msgid ""
 "★警告: RPP内に伸縮マーカーが設定されているアイテムが存在したため、該当アイテ"
 "ムが正常に生成できませんでした。"
 msgstr "*警告: 因RPP文件内有打了伸缩标记的项，无法正确生成相关物件。"
 
-#: main.py:157
+#: main.py:154
 msgid ""
 "★警告: ファイル名・フォルダ名が複雑のため、該当アイテムが正常に生成できません"
 "でした。\n"
@@ -148,25 +148,24 @@ msgstr ""
 "*警告: 因文件名或路径过于复杂，无法正确生成相关物件.\n"
 " 请将这些文件移动到简洁命名的目录下。"
 
-#: main.py:165
+#: main.py:162
 msgid ""
 "★警告: 出力処理時にEXOのレイヤー数が100を超えたため、正常に生成できませんでし"
 "た。"
 msgstr "*警告: 因导出时EXO的图层数超过了100，无法正常生成。"
 
-#: main.py:168
+#: main.py:165
 msgid ""
 "★警告: エイリアスファイルに中間点が存在したため、正常に生成できませんでした。"
 msgstr "*警告: 因预设文件中有中心点，无法正常生成物件。"
 
-#: main.py:171
+#: main.py:168
 msgid ""
 "★警告: エイリアスファイル（EXOファイル）に複数アイテムが存在しているため、１"
 "番目のアイテムのみ生成されます。"
 msgstr "*警告: 因预设文件（EXO文件）内存在多个物件，只有1个物件被成功生成。"
 
-#: main.py:174
-#, fuzzy
+#: main.py:171
 msgid ""
 "★警告: YMM4では上下反転機能が実装されていないため、上下反転の設定は反映されま"
 "せん。\n"
@@ -176,7 +175,7 @@ msgstr ""
 "*警告: 因YMM4没有加装上下反转功能，上下反转的设置无法应用。\n"
 "您可以通过安装属性变换（描画変換）插件并重新生成模板来应用设置。"
 
-#: main.py:178
+#: main.py:175
 msgid ""
 "★警告: 一部トラックバーの時間制御設定は反映されません。\n"
 "EXOのインポート後、個別に設定してください。"
@@ -184,7 +183,7 @@ msgstr ""
 "*警告: 部分轨道条的时间控制设置无法应用。\n"
 "请在导入EXO后单独设置。"
 
-#: main.py:181
+#: main.py:178
 msgid ""
 "★警告: クリッピングオブジェクトの設定は反映されません。\n"
 "EXOのインポート後、個別に設定してください。"
@@ -192,22 +191,22 @@ msgstr ""
 "*警告: 裁剪物件的设置无法应用。\n"
 "请在导入EXO后单独设置。"
 
-#: main.py:187
+#: main.py:184
 msgid ""
 "AviUtlで読み込めないファイルが含まれていたため、RPPを保存したフォルダに一部の"
 "動画ファイルをコピーしました。"
 msgstr ""
 "有一些视频文件包含无法被Aviutl识别的文件，它们将被保存到RPP所在的文件夹。"
 
-#: main.py:187
+#: main.py:184
 msgid "確認"
 msgstr "确认"
 
-#: main.py:201 main.py:1815
+#: main.py:198 main.py:1843
 msgid "実行"
 msgstr "开始生成"
 
-#: main.py:222
+#: main.py:216
 msgid ""
 "このウィンドウからAviUtlに直接ドラッグ&ドロップしてください。\n"
 "※ 挿入したいレイヤーの0秒地点にドラッグ&ドロップするようにしてください。"
@@ -215,7 +214,7 @@ msgstr ""
 "请从此窗口直接拖拽到AviUtl。\n"
 "* 请拖拽到想要插入图层的0秒标记处。"
 
-#: main.py:224
+#: main.py:218
 msgid ""
 "このウィンドウからYMM4に直接ドラッグ&ドロップしてください。\n"
 "その後、「%s」テンプレートを0秒地点に追加してください。\n"
@@ -225,40 +224,59 @@ msgstr ""
 "之后请在0秒标记处添加模板%s。\n"
 "* 如果出现了确认覆盖的弹窗， 请选择 “覆盖”（上書きする）。"
 
-#: main.py:227
+#: main.py:221
 msgid ""
-"このウィンドウからAviUtl2のシーンリストに直接ドラッグ&ドロップしてください。"
-msgstr "请从此窗口直接拖拽到AviUtl2的场景列表。"
+"このウィンドウからAviUtl2に直接ドラッグ&ドロップしてください。\n"
+"※ 挿入したいレイヤーの0秒地点にドラッグ&ドロップするようにしてください。"
+msgstr ""
+"请从此窗口直接拖拽到AviUtl2。\n"
+"* 请拖拽到想要插入图层的0秒标记处。"
 
 #: main.py:243
-msgid "EXOファイル保存場所の選択"
-msgstr "选择EXO文件保存路径"
+msgid "Objectファイル保存場所の選択"
+msgstr "选择Object文件保存路径"
 
 #: main.py:245
-msgid "AviUtlオブジェクトファイル"
-msgstr "Aviutl物件文件"
+msgid "AviUtl2オブジェクトファイル"
+msgstr "Aviutl2物件文件"
 
-#: main.py:245 main.py:1556 main.py:1559 main.py:1561
+#: main.py:245 main.py:249 main.py:1585 main.py:1588 main.py:1590
 msgid "すべてのファイル"
 msgstr "所有文件"
 
-#: main.py:252
+#: main.py:247
+msgid "EXOファイル保存場所の選択"
+msgstr "选择EXO文件保存路径"
+
+#: main.py:249
+msgid "AviUtlオブジェクトファイル"
+msgstr "Aviutl物件文件"
+
+#: main.py:263
 msgid "保存済み"
 msgstr "已保存"
 
-#: main.py:257
+#: main.py:268
 msgid "EXO出力"
 msgstr "导出EXO文件"
 
-#: main.py:296
+#: main.py:270
+msgid "Object出力"
+msgstr "导出Object"
+
+#: main.py:272
+msgid "YMM4実行"
+msgstr "运行YMM4"
+
+#: main.py:310
 msgid "＊全トラック"
 msgstr "* 所有轨道"
 
-#: main.py:336
+#: main.py:350
 msgid "MIDIファイルの容量が極端に大きいか小さいため、読み込めませんでした。"
 msgstr "此MIDI文件过大或过小，无法加载。"
 
-#: main.py:339
+#: main.py:353
 msgid ""
 "MIDIの 拍子/テンポ 情報が正しく読み込めなかった可能性があります。\n"
 "生成後、FPSの値が合っているにも関わらずテンポが合わない場合、Dominoを使って"
@@ -268,84 +286,84 @@ msgstr ""
 "文件生成后，如果在FPS正确的情况下物件仍然不合拍，请使用宿主软件将MIDI文件重新"
 "导出。"
 
-#: main.py:410
+#: main.py:424
 msgid "フィルタ効果は11個以上追加できません。"
 msgstr "滤镜效果最多只能添加11个。"
 
-#: main.py:423 main.py:659 main.py:671 main.py:683 main.py:1713
+#: main.py:437 main.py:675 main.py:687 main.py:699 main.py:1741
 msgid "始点"
 msgstr "起始点"
 
-#: main.py:431 main.py:664 main.py:676 main.py:688 main.py:1718
+#: main.py:445 main.py:680 main.py:692 main.py:704 main.py:1746
 msgid "終点"
 msgstr "终点"
 
-#: main.py:439 main.py:1723
+#: main.py:453 main.py:1751
 msgid "設定"
 msgstr "设置"
 
-#: main.py:643
+#: main.py:659
 msgid "動画の素材パスを入力してください。"
 msgstr "请输入视频素材路径。"
 
-#: main.py:647
+#: main.py:663
 msgid "再生位置ランダムの終点の値を入力してください。"
 msgstr "请输入播放位置的随机终点值。"
 
-#: main.py:659 main.py:664 main.py:671 main.py:676 main.py:683 main.py:688
+#: main.py:675 main.py:680 main.py:687 main.py:692 main.py:699 main.py:704
 msgid "再生位置ランダム"
 msgstr "随机播放位置"
 
-#: main.py:659 main.py:664 main.py:671 main.py:676 main.py:683 main.py:688
-#: main.py:714 main.py:721 main.py:813
+#: main.py:675 main.py:680 main.py:687 main.py:692 main.py:699 main.py:704
+#: main.py:730 main.py:737 main.py:833
 msgid "%s : %s の値が正しく入力されていません。"
 msgstr "值 %s: %s 输入不正确。"
 
-#: main.py:725 main.py:736 main.py:820 main.py:834
+#: main.py:741 main.py:752 main.py:840 main.py:854
 msgid "・トラックバーの-1越0未満 ( -0.* ) の値は反映されません。"
 msgstr "- 滑块不接受大于-1、小于0（-0.*）的数。"
 
-#: main.py:732 main.py:743 main.py:828
+#: main.py:748 main.py:759 main.py:848
 msgid "%s : %s の終点が正しく入力されていません。"
 msgstr "终点值 %s: %s 输入不正确。"
 
-#: main.py:748
+#: main.py:764
 msgid "・移動方法の設定の値は反映されません。"
 msgstr "- 无法使用此移动方法。"
 
-#: main.py:769
+#: main.py:789
 msgid "読み込むRPPを入力してください。"
 msgstr "请输入要读取的RPP文件路径。"
 
-#: main.py:773
+#: main.py:793
 msgid "正しいFPSの値を入力してください。"
 msgstr "请输入正确的FPS值。"
 
-#: main.py:777
+#: main.py:797
 msgid "出力するトラックを選択してください。"
 msgstr "选择您要输出的轨道。"
 
-#: main.py:781 main.py:785
+#: main.py:801 main.py:805
 msgid "時間選択 (秒) の値が正しく入力されていません。"
 msgstr "请输入正确的时间范围（秒）。"
 
-#: main.py:789 main.py:793
+#: main.py:809 main.py:813
 msgid "正しいエイリアスのパスを入力してください。"
 msgstr "请输入正确的预设文件路径。"
 
-#: main.py:798
+#: main.py:818
 msgid "正しいシーン番号を入力してください。（範囲 : 1 ~ 49）"
 msgstr "请输入正确的预合成编号。 (范围 : 1-49)"
 
-#: main.py:802
+#: main.py:822
 msgid "・シーン番号は反映されません。"
 msgstr "- 次合成编号无法应用。"
 
-#: main.py:843
+#: main.py:863
 msgid "・移動の設定の値は反映されません。"
 msgstr "- 无法应用此移动值。"
 
-#: main.py:886
+#: main.py:906
 msgid ""
 "未保存状態の可能性のあるREAPERを検出しました。\n"
 "未保存プロジェクトを保存後、「再試行」ボタンを押してください。"
@@ -353,169 +371,173 @@ msgstr ""
 "检测到REAPER文件可能处于未保存状态。\n"
 " 请保存REAPER项目后点击“重试”按钮。"
 
-#: main.py:995
+#: main.py:1015
 msgid "注意"
 msgstr "注意"
 
-#: main.py:995
+#: main.py:1015
 msgid "設定を反映するにはソフトを再起動する必要があります。再起動しますか？"
 msgstr "程序需重启以应用更改。要重新启动程序吗？"
 
-#: main.py:996
+#: main.py:1016
 msgid "現在設定中の項目は失われます。"
 msgstr "现在设置的项目将会丢失。"
 
-#: main.py:1031
+#: main.py:1051
 msgid "画像サイズ"
 msgstr "图像大小"
 
-#: main.py:1041
+#: main.py:1061
 msgid "FPS(初期値)"
 msgstr "FPS（默认值）"
 
-#: main.py:1048 main.py:1064
+#: main.py:1068 main.py:1084
 msgid "音声レート"
 msgstr "音频比特率"
 
-#: main.py:1056
+#: main.py:1076
 msgid "%sの値が入力されていません。"
 msgstr "%s 的值未输入。"
 
-#: main.py:1062
+#: main.py:1082
 msgid "画像サイズ(横)"
 msgstr "图像宽度"
 
-#: main.py:1063
+#: main.py:1083
 msgid "画像サイズ(縦)"
 msgstr "图像高度"
 
-#: main.py:1082
+#: main.py:1102
 msgid "キャンセル"
 msgstr "取消"
 
-#: main.py:1104
+#: main.py:1124
 msgid "★RPPtoEXO実行中はこのコンソール画面を閉じないでください。"
 msgstr "*请不要在RPPtoEXO运行时关闭这个窗口。"
 
-#: main.py:1146
+#: main.py:1168
 msgid "ファイル"
 msgstr "文件"
 
-#: main.py:1150
+#: main.py:1172
 msgid "対応ファイル"
 msgstr "指定文件"
 
-#: main.py:1151
+#: main.py:1173
 msgid "REAPERプロジェクトファイル"
 msgstr "REAPER项目文件"
 
-#: main.py:1152
+#: main.py:1174
 msgid "MIDIファイル"
 msgstr "MIDI文件"
 
-#: main.py:1155 rpp2exo\rpp.py:63
+#: main.py:1177 rpp2exo\rpp.py:63
 msgid "RPP・MIDIファイルを選択"
 msgstr "选择RPP或MIDI文件"
 
-#: main.py:1160
+#: main.py:1182
 msgid "RPPを開く..."
 msgstr "打开RPP..."
 
-#: main.py:1161
+#: main.py:1183
 msgid "終了"
 msgstr "退出"
 
-#: main.py:1169
+#: main.py:1191
 msgid "左右上下反転時の回転方向"
 msgstr "左右上下反转时的反转方向"
 
-#: main.py:1170
+#: main.py:1192
 msgid "時計回り"
 msgstr "顺时针"
 
-#: main.py:1174
+#: main.py:1196
 msgid "反時計回り"
 msgstr "逆时针"
 
-#: main.py:1180
+#: main.py:1202
 msgid "オブジェクトをAviUtlグリッドに合わせる"
 msgstr "吸附至AviUtl网格"
 
-#: main.py:1187
+#: main.py:1209
+msgid "位置調整用オブジェクトを作成する"
+msgstr "创建用于位置调整的物件"
+
+#: main.py:1216
 msgid "拡張編集v0.92由来のエラーを無視"
 msgstr "忽略由扩展编辑v0.92引发的错误"
 
-#: main.py:1193
+#: main.py:1222
 msgid "さらに詳細な反転設定を追加"
 msgstr "显示详细反转设置"
 
-#: main.py:1202
+#: main.py:1231
 msgid "ゆっくりMovieMaker4実行ファイル"
 msgstr "Yukkuri Movie Maker 4 executable file"
 
-#: main.py:1205
+#: main.py:1234
 msgid "ゆっくりMovieMaker4の実行ファイルを選択"
 msgstr "选择 油库里 MovieMaker4(YMM4)  的可执行文件"
 
-#: main.py:1231
+#: main.py:1260
 msgid "AviUtlモードで使う"
 msgstr "使用AviUtl模式"
 
-#: main.py:1234
+#: main.py:1263
 msgid "AviUtl2モードで使う (beta)"
 msgstr "使用AviUtl2模式 (测试版)"
 
-#: main.py:1237
+#: main.py:1266
 msgid "ゆっくりMovieMaker4モードで使う"
 msgstr "使用 油库里 MovieMaker4(YMM4) 模式"
 
-#: main.py:1242
+#: main.py:1271
 msgid "EXOインポート時の設定"
 msgstr "EXO导入设置"
 
-#: main.py:1253
+#: main.py:1282
 msgid "YMM4の読込み場所を変更"
 msgstr "修改YMM4导入路径"
 
-#: main.py:1257
+#: main.py:1286
 msgid "保存テンプレート名を入力してください"
 msgstr "请输入要保存的预设名称"
 
-#: main.py:1266
+#: main.py:1295
 msgid "保存テンプレート名を変更"
 msgstr "修改保存预设名称"
 
-#: main.py:1286
+#: main.py:1315
 msgid "表示言語"
 msgstr "显示语言"
 
-#: main.py:1301
+#: main.py:1330
 msgid "拡張編集の言語"
 msgstr "扩展编辑语言"
 
-#: main.py:1318
+#: main.py:1347
 msgid "使い方(Cosense/Scrapbox)"
 msgstr "如何使用(Cosense/Scrapbox)"
 
-#: main.py:1320
+#: main.py:1349
 msgid ""
 "https://cosen.se/Garech/RPPtoEXO%E3%81%AE%E7%94%BB%E9%9D%A2%E3%81%AE%E8%AA%AC"
 "%E6%98%8E_(v2.08~)"
 msgstr "https://cosen.se/Garech/How_To_Use_RPPtoEXO_(v2.08+)"
 
-#: main.py:1327
+#: main.py:1356
 msgid "最新バージョンが見つかりました。ダウンロードしますか？"
 msgstr "发现更新的版本，需要下载它吗？"
 
-#: main.py:1330
+#: main.py:1359
 msgid "最新バージョンのインストールが完了しました。"
 msgstr "已更新至最新版本。"
 
-#: main.py:1334
+#: main.py:1363
 msgid "お使いのRPPtoEXOは最新です。"
 msgstr "RPPtoEXO已是最新版本。"
 
-#: main.py:1337
+#: main.py:1366
 msgid ""
 "最新バージョンが見つかりました。PY版は自動インストール非対応のため、ご自身で"
 "置き換える必要があります。\n"
@@ -524,36 +546,36 @@ msgstr ""
 "发现更新的版本。因为PY版本无法自动适配更新，您需要手动替换新版本。\n"
 "要进入Github链接吗？"
 
-#: main.py:1342
+#: main.py:1371
 msgid "エラーが発生しました: %s"
 msgstr "发生了错误： %s"
 
-#: main.py:1343
+#: main.py:1372
 msgid "最新バージョンを確認(GitHub)"
 msgstr "查看最近版本 (GitHub)"
 
-#: main.py:1344
+#: main.py:1373
 msgid "制作者の連絡先(%s/Twitter)"
 msgstr "开发者的联系方式 (%s/Twitter)"
 
-#: main.py:1351
+#: main.py:1380
 msgid "このソフトについて"
 msgstr "关于本软件"
 
-#: main.py:1390 main.py:1400 main.py:1404 main.py:1575 main.py:1577
-#: main.py:1663 rpp2exo\rpp.py:63
+#: main.py:1419 main.py:1429 main.py:1433 main.py:1604 main.py:1606
+#: main.py:1692 rpp2exo\rpp.py:63
 msgid "参照…"
 msgstr "浏览…"
 
-#: main.py:1422
+#: main.py:1451
 msgid "左右反転"
 msgstr "左右反转"
 
-#: main.py:1425
+#: main.py:1454
 msgid "上下反転"
 msgstr "上下反转"
 
-#: main.py:1429
+#: main.py:1458
 msgid ""
 "　同音程が\n"
 "　連続した時..."
@@ -561,19 +583,19 @@ msgstr ""
 "   当相同音调 \n"
 "   连续时..."
 
-#: main.py:1432
+#: main.py:1461
 msgid "反転しない"
 msgstr "无反转"
 
-#: main.py:1435
+#: main.py:1464
 msgid "逆方向に反転"
 msgstr "向反方向反转"
 
-#: main.py:1439
+#: main.py:1468
 msgid "隙間なく配置"
 msgstr "物件间无缝隙"
 
-#: main.py:1443
+#: main.py:1472
 msgid ""
 "偶数番目Objを\n"
 "別レイヤ配置"
@@ -581,96 +603,96 @@ msgstr ""
 "将第偶数个物件\n"
 "放在另一轨道上"
 
-#: main.py:1468
+#: main.py:1497
 msgid "時間選択 (秒)"
 msgstr "时间范围 (秒)"
 
-#: main.py:1516
+#: main.py:1545
 msgid "エイリアス : "
 msgstr "预设文件: "
 
 #
-#: main.py:1520 main.py:1533 main.py:1603
+#: main.py:1549 main.py:1562 main.py:1632
 msgid "%01.0f番目"
 msgstr "%01.0f号预设"
 
-#: main.py:1555
+#: main.py:1584
 msgid "AviUtl エイリアス/効果ファイル"
 msgstr "AviUtl预设 / 效果文件"
 
-#: main.py:1558
+#: main.py:1587
 msgid "AviUtl2 エイリアスファイル"
 msgstr "AviUtl2 预设文件"
 
-#: main.py:1561
+#: main.py:1590
 msgid "ゆっくりMovieMaker4 エイリアスファイル"
 msgstr "油库里MovieMaker4(YMM4)  Alias File"
 
-#: main.py:1563
+#: main.py:1592
 msgid "参照するエイリアス/効果ファイルの選択"
 msgstr "选择AviUtl预设/效果文件"
 
-#: main.py:1612
+#: main.py:1641
 msgid "スクリプト制御 "
 msgstr "脚本控制 "
 
-#: main.py:1623
+#: main.py:1652
 msgid "追加対象 : "
 msgstr "添加对象: "
 
-#: main.py:1625
+#: main.py:1654
 msgid "自動検出"
 msgstr "自动检测"
 
-#: main.py:1627
+#: main.py:1656
 msgid "動画"
 msgstr "视频"
 
-#: main.py:1629
+#: main.py:1658
 msgid "画像"
 msgstr "图片"
 
-#: main.py:1631
+#: main.py:1660
 msgid "フィルタ"
 msgstr "滤镜物件"
 
-#: main.py:1638
+#: main.py:1667
 msgid "シーン番号: "
 msgstr "次合成编号: "
 
-#: main.py:1643
+#: main.py:1672
 msgid "シーン"
 msgstr "次合成"
 
-#: main.py:1648
+#: main.py:1677
 msgid "素材 : "
 msgstr "素材 : "
 
-#: main.py:1657
+#: main.py:1686
 msgid "動画ファイル"
 msgstr "视频文件"
 
-#: main.py:1657
+#: main.py:1686
 msgid "画像ファイル"
 msgstr "图片文件"
 
-#: main.py:1659
+#: main.py:1688
 msgid "参照する素材ファイルの選択"
 msgstr "选择引用的素材文件"
 
-#: main.py:1672
+#: main.py:1701
 msgid "再生位置ランダム : "
 msgstr "随机播放位置: "
 
-#: main.py:1757
+#: main.py:1785
 msgid "不透明度"
 msgstr "不透明度"
 
-#: main.py:1758
+#: main.py:1786
 msgid "回転角"
 msgstr "角度"
 
-#: main.py:1799
+#: main.py:1827
 msgid "効果のクリア"
 msgstr "清除效果"
 
@@ -682,6 +704,10 @@ msgid ""
 msgstr ""
 "*警告: 无法作为视频文件打开。无法正确应用视频文件的“播放位置”属性。 \n"
 "目标文件: %s"
+
+#: rpp2exo\exo.py:118
+msgid "位置調整用/位置合わせした後は消してください"
+msgstr "用于位置调整/对齐后请删除"
 
 #: rpp2exo\midi.py:29 rpp2exo\rpp.py:81
 msgid "★ファイルを開くことができませんでした。: %s"
@@ -698,6 +724,11 @@ msgstr "时间范围 (%s~%s)"
 #: rpp2exo\rpp.py:308 rpp2exo\rpp.py:330
 msgid "トラック: %s / 開始位置(秒): %s"
 msgstr "轨道: %s / 开始位置(秒): %s"
+
+#~ msgid ""
+#~ "このウィンドウからAviUtl2のシーンリストに直接ドラッグ&ドロップしてくださ"
+#~ "い。"
+#~ msgstr "请从此窗口直接拖拽到AviUtl2的场景列表。"
 
 #~ msgid ""
 #~ "EXOの保存先パスにAviUtlでの使用不可能文字が混入しているか、保存先パスが長"

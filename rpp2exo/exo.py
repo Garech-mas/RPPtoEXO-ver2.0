@@ -109,7 +109,7 @@ class Exo:
 
         obj_frame_pos = objdict["pos"][1] * self.mydict["fps"] + 1 \
             if len(objdict["pos"]) > 1 else -1
-        if obj_frame_pos > 1:  # 最初のオブジェクトが1フレーム目以降の場合
+        if self.mydict['MakeAdjustObject'] and obj_frame_pos > 1:  # 最初のオブジェクトが1フレーム目以降の場合
             exo_5 = (".0]\n"
                      + "_name=" + self.t("テキスト") + "\n_disable=1\n" + self.t("サイズ") + "=34\n"
                      + self.t("表示速度") + "=0.0\n" + self.t("文字毎に個別オブジェクト") + "=0\n"

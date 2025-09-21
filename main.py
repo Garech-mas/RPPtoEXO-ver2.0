@@ -1,6 +1,6 @@
 #####################################################################################
-#               RPP to EXO ver 2.10.2                                               #
-#                                                                       2025/08/30  #
+#               RPP to EXO ver 2.11                                                 #
+#                                                                       2025/09/21  #
 #       Original Written by Maimai (@Maimai22015/YTPMV.info)                        #
 #       Forked by Garech (@Garec_)                                                  #
 #                                                                                   #
@@ -114,8 +114,8 @@ def main():
         messagebox.showerror(_("エラー"), _("下記パス内のファイル/フォルダは存在しませんでした。\n") + e.filename)
     except UnicodeEncodeError as e:
         # reasonに該当行の文字列、objectに該当文字を格納
-        messagebox.showerror(_("エラー"), _("AviUtl上で使用できない文字がパス名に含まれています。\n"
-                                         "パス名に含まれる該当文字を削除し、再度実行し直してください。\n\n")
+        messagebox.showerror(_("エラー"), _("AviUtl上で使用できない文字がパス名に含まれています。\n" 
+                                         "パス名に含まれる該当文字を削除し、再度実行し直してください。\n\n") 
                              + e.reason + '    "' + e.object + '"')
     except LoadFilterFileError as e:
         messagebox.showerror(_("エラー"), _("下記のエイリアスファイルが不正です。正規の方法でEXAファイルを生成してください。\n") + e.filename)
@@ -204,9 +204,6 @@ def show_dropwindow():
         window = pygetwindow.getWindowsWithTitle("ゆっくりMovieMaker v" + ymm4_cl.version)
     elif mydict['OutputApp'] == 'AviUtl2':
         window = pygetwindow.getWindowsWithTitle("AviUtl ExEdit2")
-    if window and window[0]:
-        window[0].activate()
-
     # drop_root
     drop_root = TkinterDnD.Tk()
     drop_root.title(R2E_TITLE)
@@ -227,7 +224,13 @@ def show_dropwindow():
 
     width = lbl_drag_help.winfo_reqwidth() + 40
     height = lbl_drag_help.winfo_reqheight() + 140
-    drop_root.geometry(f"{width}x{height}")
+    if window and window[0]:
+        window[0].activate()
+        x, y = window[0].topleft
+    else:
+        x = root.winfo_x()
+        y = root.winfo_y()
+    drop_root.geometry(f'{width}x{height}+{x}+{y}')
 
     exo_path = ''
     def export_exo():
@@ -236,15 +239,26 @@ def show_dropwindow():
             os.startfile(os.path.dirname(exo_path), operation='open')
             return
 
+        if mydict['OutputApp'] == 'AviUtl2':
+            title = _("Objectファイル保存場所の選択")
+            defaultextension = ".object"
+            filetypes = [(_("AviUtl2オブジェクトファイル"), "*.object"), (_("すべてのファイル"), "*.*")]
+        else:
+            title = _("EXOファイル保存場所の選択")
+            defaultextension = ".exo"
+            filetypes = [(_("AviUtlオブジェクトファイル"), "*.exo"), (_("すべてのファイル"), "*.*")]
+
         exo_path = filedialog.asksaveasfilename(
-            title=_("EXOファイル保存場所の選択"),
-            defaultextension=".exo",
-            filetypes=[(_("AviUtlオブジェクトファイル"), "*.exo"), (_("すべてのファイル"), "*.*")],
+            title=title,
+            defaultextension=defaultextension,
+            filetypes=filetypes,
             parent=drop_root
         )
         try:
             if exo_path:  # 保存先が選択された場合
                 temp_exo_path = os.path.join(tempfile.gettempdir(), 'RPPtoEXO_temp.exo')
+                if mydict['OutputApp'] == 'AviUtl2':
+                    temp_exo_path = os.path.join(tempfile.gettempdir(), 'RPPtoEXO_temp.object')
                 shutil.copy(temp_exo_path, exo_path)
                 btn_export_exo['text'] = _('保存済み')
         except PermissionError as e:
@@ -252,8 +266,11 @@ def show_dropwindow():
 
     # EXO出力ボタンを作成
     btn_export_exo = ttk.Button(drop_root, text=_("EXO出力"), command=export_exo)
-    if not mydict['OutputApp'] == 'YMM4':
-        btn_export_exo.place(x=width - 100, y=height - 50, width=80, height=30)
+    if mydict['OutputApp'] == 'AviUtl2':
+        btn_export_exo['text'] = _("Object出力")
+    elif mydict['OutputApp'] == 'YMM4':
+        btn_export_exo['text'] = _("YMM4実行")
+    btn_export_exo.place(x=width - 100, y=height - 50, width=80, height=30)
 
     # ドラッグ操作
     def drag_init(event):
@@ -1186,6 +1203,13 @@ if __name__ == '__main__':
                                  command=lambda: [
                                      write_cfg(int(ivr_use_roundup.get()), "use_roundup", "Param"),
                                      mydict.update(UseRoundUp=ivr_use_roundup.get())
+                                 ])
+    ivr_adjust_object = IntVar()
+    ivr_adjust_object.set(mydict['MakeAdjustObject'])
+    menu_setting.add_checkbutton(label=_('位置調整用オブジェクトを作成する'), variable=ivr_adjust_object,
+                                 command=lambda: [
+                                     write_cfg(int(ivr_adjust_object.get()), "make_adjust_object", "Param"),
+                                     mydict.update(MakeAdjustObject=ivr_adjust_object.get())
                                  ])
     ivr_patch_exists = IntVar()
     ivr_patch_exists.set(mydict['PatchExists'])

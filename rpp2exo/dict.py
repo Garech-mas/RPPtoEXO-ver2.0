@@ -643,6 +643,7 @@ mydict = {
     "SepLayerEvenObj": 0,  # 偶数オブジェクトを別レイヤ―に配置するか
     "NoGap": 0,  # オブジェクト間の隙間を埋めるか
     "UseRoundUp": 0,  # 0=四捨五入(RPPtoEXO基準)、1=切り上げ(AviUtlグリッド基準)
+    "MakeAdjustObject": 0,  # 位置調整オブジェクトを作成するか
     "RandomPlay": 0,  # 動画の再生位置を個別にランダムにするかどうか
     "RandomStart": 0,
     "RandomEnd": 0,

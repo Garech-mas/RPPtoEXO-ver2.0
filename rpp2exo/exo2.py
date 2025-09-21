@@ -115,7 +115,7 @@ class Exo2:
 
         obj_frame_pos = objdict["pos"][1] * self.mydict["fps"] + 1 \
             if len(objdict["pos"]) > 1 else -1
-        if obj_frame_pos > 1:  # 最初のオブジェクトが1フレーム目以降の場合
+        if self.mydict['MakeAdjustObject'] and obj_frame_pos > 1:  # 最初のオブジェクトが1フレーム目以降の場合
             exo_5 = (".0]\n"
                      + "effect.name=テキスト\neffect.disable=1\nサイズ=100.00\n"
                      + "字間=0.00\n行間=0.00\n表示速度=0.00\nフォント=Yu Gothic UI\n"
