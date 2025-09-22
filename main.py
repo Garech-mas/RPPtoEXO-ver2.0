@@ -1,6 +1,6 @@
 #####################################################################################
-#               RPP to EXO ver 2.11                                                 #
-#                                                                       2025/09/21  #
+#               RPP to EXO ver 2.11.1                                               #
+#                                                                       2025/09/22  #
 #       Original Written by Maimai (@Maimai22015/YTPMV.info)                        #
 #       Forked by Garech (@Garec_)                                                  #
 #                                                                                   #
@@ -751,15 +751,21 @@ def run():
         if mv and -1 < float(mEntryE[i].get()) < 0:
             mydict['HasPatchError'].append(_('・トラックバーの-1越0未満 ( -0.* ) の値は反映されません。'))
             mv = 0
-        mydict["Param"][-1] += ',' + set_decimal(mEntryE[i], prmlist[i][2]) + ','\
-            + str(XDict.get(mEntryX[i].get(), '15@' + mEntryX[i].get()))
+        mydict["Param"][-1] += ',' + set_decimal(mEntryE[i], prmlist[i][2]) + ','
+        if mydict["OutputApp"] == 'AviUtl2':
+            mydict["Param"][-1] += str(XDict.get(mEntryX[i].get(), mEntryX[i].get() + ',0'))
+        else:
+            mydict["Param"][-1] += str(XDict.get(mEntryX[i].get(), '15@' + mEntryX[i].get()))
         if mEntryConf[i].get() != '':
             if not is_float(mEntryE[i].get()):
                 messagebox.showinfo(_("エラー"),
                                     _("%s : %s の終点が正しく入力されていません。") % (mLabel[0].get(), mLabel[i + 1].get()))
                 mEntryEE[i].focus_set()
                 raise ValueError
-            mydict["Param"][-1] += ',' + str(int(mEntryConf[i].get()))
+            if mydict["OutputApp"] == 'AviUtl2':
+                mydict["Param"][-1] += '|' + str(int(mEntryConf[i].get()))
+            else:
+                mydict["Param"][-1] += ',' + str(int(mEntryConf[i].get()))
             if tp and not str(XDict.get(mEntryX[i].get(), mEntryX[i].get())).isascii():
                 mydict['HasPatchError'].append(_("・移動方法の設定の値は反映されません。"))
                 tp = 0
@@ -783,7 +789,10 @@ def run():
 
             mydict['SrcRate'] = mydict['Param'].pop()[5:]
             mydict['SrcPosition'] = mydict['Param'].pop()[5:]
-            mydict['Param'].append('blend=' + str(BlendDict[ParamCombo15.get()]))
+            if mydict['OutputApp'] == 'AviUtl2':
+                mydict['Param'].append('合成モード=' + str(BlendDict[ParamCombo15.get()]))
+            else:
+                mydict['Param'].append('blend=' + str(BlendDict[ParamCombo15.get()]))
 
         if mydict["RPPPath"] == "":
             messagebox.showinfo(_("エラー"), _("読み込むRPPを入力してください。"))
@@ -1301,8 +1310,8 @@ if __name__ == '__main__':
     elif mydict['OutputApp'] == 'AviUtl2':
         prmlist = dict.prmlist["2"]
         ExDict = dict.ExDict["2"]
-        XDict = dict.XDict['ja']
-        BlendDict = dict.BlendDict['ja']
+        XDict = dict.XDict['2']
+        BlendDict = dict.BlendDict['2']
         EffDict = dict.EffDict["2"]
         R2E_TITLE = 'RPPtoEXO (for AviUtl2) v' + R2E_VERSION
         root.title(R2E_TITLE)
