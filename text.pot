@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2025-09-21 18:53+0900\n"
+"POT-Creation-Date: 2026-02-15 11:16+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,7 +26,7 @@ msgid ""
 "EXOのインポート後、個別に設定してください。"
 msgstr ""
 
-#: main.py:34 main.py:188 main.py:353 main.py:905
+#: main.py:34 main.py:188 main.py:353 main.py:922
 msgid "警告"
 msgstr ""
 
@@ -41,11 +41,11 @@ msgstr ""
 msgid "★選択を記録しました。今後拡張編集のバグによるEXO生成エラーはコンソール上に通知されます。"
 msgstr ""
 
-#: main.py:62 main.py:192 main.py:1187
+#: main.py:62 main.py:192 main.py:1217
 msgid "生成設定"
 msgstr ""
 
-#: main.py:64 main.py:194 main.py:1345
+#: main.py:64 main.py:194 main.py:1395
 msgid "ヘルプ"
 msgstr ""
 
@@ -56,11 +56,11 @@ msgstr ""
 
 #: main.py:110 main.py:112 main.py:114 main.py:117 main.py:121 main.py:123
 #: main.py:126 main.py:128 main.py:131 main.py:265 main.py:322 main.py:325
-#: main.py:343 main.py:346 main.py:350 main.py:361 main.py:424 main.py:659
-#: main.py:663 main.py:675 main.py:680 main.py:687 main.py:692 main.py:699
-#: main.py:704 main.py:730 main.py:737 main.py:748 main.py:758 main.py:789
-#: main.py:793 main.py:797 main.py:801 main.py:805 main.py:809 main.py:813
-#: main.py:818 main.py:833 main.py:848 main.py:882 main.py:1371
+#: main.py:343 main.py:346 main.py:350 main.py:361 main.py:424 main.py:663
+#: main.py:667 main.py:679 main.py:684 main.py:691 main.py:696 main.py:703
+#: main.py:708 main.py:734 main.py:741 main.py:752 main.py:765 main.py:802
+#: main.py:806 main.py:810 main.py:814 main.py:818 main.py:822 main.py:826
+#: main.py:831 main.py:837 main.py:850 main.py:865 main.py:899 main.py:1421
 msgid "エラー"
 msgstr ""
 
@@ -100,7 +100,7 @@ msgstr ""
 msgid "エイリアスに指定されているテンプレートは存在しませんでした。"
 msgstr ""
 
-#: main.py:128 main.py:882
+#: main.py:128 main.py:899
 msgid "生成がキャンセルされました。"
 msgstr ""
 
@@ -166,7 +166,7 @@ msgstr ""
 msgid "確認"
 msgstr ""
 
-#: main.py:198 main.py:1843
+#: main.py:198 main.py:1897
 msgid "実行"
 msgstr ""
 
@@ -197,7 +197,7 @@ msgstr ""
 msgid "AviUtl2オブジェクトファイル"
 msgstr ""
 
-#: main.py:245 main.py:249 main.py:1585 main.py:1588 main.py:1590
+#: main.py:245 main.py:249 main.py:1635 main.py:1638 main.py:1640
 msgid "すべてのファイル"
 msgstr ""
 
@@ -243,401 +243,417 @@ msgstr ""
 msgid "フィルタ効果は11個以上追加できません。"
 msgstr ""
 
-#: main.py:437 main.py:675 main.py:687 main.py:699 main.py:1741
+#: main.py:437 main.py:679 main.py:691 main.py:703 main.py:1791
 msgid "始点"
 msgstr ""
 
-#: main.py:445 main.py:680 main.py:692 main.py:704 main.py:1746
+#: main.py:445 main.py:684 main.py:696 main.py:708 main.py:1796
 msgid "終点"
 msgstr ""
 
-#: main.py:453 main.py:1751
+#: main.py:453 main.py:1801
 msgid "設定"
 msgstr ""
 
-#: main.py:659
+#: main.py:663
 msgid "動画の素材パスを入力してください。"
 msgstr ""
 
-#: main.py:663
+#: main.py:667
 msgid "再生位置ランダムの終点の値を入力してください。"
 msgstr ""
 
-#: main.py:675 main.py:680 main.py:687 main.py:692 main.py:699 main.py:704
+#: main.py:679 main.py:684 main.py:691 main.py:696 main.py:703 main.py:708
 msgid "再生位置ランダム"
 msgstr ""
 
-#: main.py:675 main.py:680 main.py:687 main.py:692 main.py:699 main.py:704
-#: main.py:730 main.py:737 main.py:833
+#: main.py:679 main.py:684 main.py:691 main.py:696 main.py:703 main.py:708
+#: main.py:734 main.py:741 main.py:850
 msgid "%s : %s の値が正しく入力されていません。"
 msgstr ""
 
-#: main.py:741 main.py:752 main.py:840 main.py:854
+#: main.py:745 main.py:756 main.py:857 main.py:871
 msgid "・トラックバーの-1越0未満 ( -0.* ) の値は反映されません。"
 msgstr ""
 
-#: main.py:748 main.py:759 main.py:848
+#: main.py:752 main.py:766 main.py:865
 msgid "%s : %s の終点が正しく入力されていません。"
 msgstr ""
 
-#: main.py:764
+#: main.py:774
 msgid "・移動方法の設定の値は反映されません。"
 msgstr ""
 
-#: main.py:789
+#: main.py:802
 msgid "読み込むRPPを入力してください。"
 msgstr ""
 
-#: main.py:793
+#: main.py:806 main.py:837
 msgid "正しいFPSの値を入力してください。"
 msgstr ""
 
-#: main.py:797
+#: main.py:810
 msgid "出力するトラックを選択してください。"
 msgstr ""
 
-#: main.py:801 main.py:805
+#: main.py:814 main.py:818
 msgid "時間選択 (秒) の値が正しく入力されていません。"
 msgstr ""
 
-#: main.py:809 main.py:813
+#: main.py:822 main.py:826
 msgid "正しいエイリアスのパスを入力してください。"
 msgstr ""
 
-#: main.py:818
+#: main.py:831
 msgid "正しいシーン番号を入力してください。（範囲 : 1 ~ 49）"
 msgstr ""
 
-#: main.py:822
+#: main.py:835
 msgid "・シーン番号は反映されません。"
 msgstr ""
 
-#: main.py:863
+#: main.py:880
 msgid "・移動の設定の値は反映されません。"
 msgstr ""
 
-#: main.py:906
+#: main.py:923
 msgid ""
 "未保存状態の可能性のあるREAPERを検出しました。\n"
 "未保存プロジェクトを保存後、「再試行」ボタンを押してください。"
 msgstr ""
 
-#: main.py:1015
+#: main.py:1036
 msgid "注意"
 msgstr ""
 
-#: main.py:1015
+#: main.py:1036
 msgid "設定を反映するにはソフトを再起動する必要があります。再起動しますか？"
 msgstr ""
 
-#: main.py:1016
+#: main.py:1037
 msgid "現在設定中の項目は失われます。"
 msgstr ""
 
-#: main.py:1051
+#: main.py:1072
 msgid "画像サイズ"
 msgstr ""
 
-#: main.py:1061
+#: main.py:1082
 msgid "FPS(初期値)"
 msgstr ""
 
-#: main.py:1068 main.py:1084
+#: main.py:1089 main.py:1105
 msgid "音声レート"
 msgstr ""
 
-#: main.py:1076
+#: main.py:1097
 msgid "%sの値が入力されていません。"
 msgstr ""
 
-#: main.py:1082
+#: main.py:1103
 msgid "画像サイズ(横)"
 msgstr ""
 
-#: main.py:1083
+#: main.py:1104
 msgid "画像サイズ(縦)"
 msgstr ""
 
-#: main.py:1102
+#: main.py:1124
 msgid "キャンセル"
 msgstr ""
 
-#: main.py:1124
+#: main.py:1136
+msgid "AviUtl2言語ファイル"
+msgstr ""
+
+#: main.py:1139
+msgid "AviUtl2の言語ファイルを選択"
+msgstr ""
+
+#: main.py:1154
 msgid "★RPPtoEXO実行中はこのコンソール画面を閉じないでください。"
 msgstr ""
 
-#: main.py:1168
+#: main.py:1198
 msgid "ファイル"
 msgstr ""
 
-#: main.py:1172
+#: main.py:1202
 msgid "対応ファイル"
 msgstr ""
 
-#: main.py:1173
+#: main.py:1203
 msgid "REAPERプロジェクトファイル"
 msgstr ""
 
-#: main.py:1174
+#: main.py:1204
 msgid "MIDIファイル"
 msgstr ""
 
-#: main.py:1177 rpp2exo\rpp.py:63
+#: main.py:1207 rpp2exo\rpp.py:63
 msgid "RPP・MIDIファイルを選択"
 msgstr ""
 
-#: main.py:1182
+#: main.py:1212
 msgid "RPPを開く..."
 msgstr ""
 
-#: main.py:1183
+#: main.py:1213
 msgid "終了"
 msgstr ""
 
-#: main.py:1191
+#: main.py:1221
 msgid "左右上下反転時の回転方向"
 msgstr ""
 
-#: main.py:1192
+#: main.py:1222
 msgid "時計回り"
 msgstr ""
 
-#: main.py:1196
+#: main.py:1226
 msgid "反時計回り"
 msgstr ""
 
-#: main.py:1202
+#: main.py:1232
 msgid "オブジェクトをAviUtlグリッドに合わせる"
 msgstr ""
 
-#: main.py:1209
+#: main.py:1239
 msgid "位置調整用オブジェクトを作成する"
 msgstr ""
 
-#: main.py:1216
+#: main.py:1246
 msgid "拡張編集v0.92由来のエラーを無視"
 msgstr ""
 
-#: main.py:1222
+#: main.py:1252
 msgid "さらに詳細な反転設定を追加"
 msgstr ""
 
-#: main.py:1231
+#: main.py:1261
 msgid "ゆっくりMovieMaker4実行ファイル"
 msgstr ""
 
-#: main.py:1234
+#: main.py:1264
 msgid "ゆっくりMovieMaker4の実行ファイルを選択"
 msgstr ""
 
-#: main.py:1260
+#: main.py:1290
 msgid "AviUtlモードで使う"
 msgstr ""
 
-#: main.py:1263
+#: main.py:1293
 msgid "AviUtl2モードで使う (beta)"
 msgstr ""
 
-#: main.py:1266
+#: main.py:1296
 msgid "ゆっくりMovieMaker4モードで使う"
 msgstr ""
 
-#: main.py:1271
+#: main.py:1301
 msgid "EXOインポート時の設定"
 msgstr ""
 
-#: main.py:1282
+#: main.py:1312
 msgid "YMM4の読込み場所を変更"
 msgstr ""
 
-#: main.py:1286
+#: main.py:1316
 msgid "保存テンプレート名を入力してください"
 msgstr ""
 
-#: main.py:1295
+#: main.py:1325
 msgid "保存テンプレート名を変更"
 msgstr ""
 
-#: main.py:1315
-msgid "表示言語"
-msgstr ""
-
-#: main.py:1330
-msgid "拡張編集の言語"
-msgstr ""
-
 #: main.py:1347
-msgid "使い方(Cosense/Scrapbox)"
-msgstr ""
-
-#: main.py:1349
-msgid "https://cosen.se/Garech/RPPtoEXO%E3%81%AE%E7%94%BB%E9%9D%A2%E3%81%AE%E8%AA%AC%E6%98%8E_(v2.08~)"
+msgid "再生位置をフレーム番号で設定"
 msgstr ""
 
 #: main.py:1356
+msgid "表示言語"
+msgstr ""
+
+#: main.py:1371
+msgid "拡張編集の言語"
+msgstr ""
+
+#: main.py:1397
+msgid "使い方(Cosense/Scrapbox)"
+msgstr ""
+
+#: main.py:1399
+msgid "https://cosen.se/Garech/RPPtoEXO%E3%81%AE%E7%94%BB%E9%9D%A2%E3%81%AE%E8%AA%AC%E6%98%8E_(v2.08~)"
+msgstr ""
+
+#: main.py:1406
 msgid "最新バージョンが見つかりました。ダウンロードしますか？"
 msgstr ""
 
-#: main.py:1359
+#: main.py:1409
 msgid "最新バージョンのインストールが完了しました。"
 msgstr ""
 
-#: main.py:1363
+#: main.py:1413
 msgid "お使いのRPPtoEXOは最新です。"
 msgstr ""
 
-#: main.py:1366
+#: main.py:1416
 msgid ""
 "最新バージョンが見つかりました。PY版は自動インストール非対応のため、ご自身で置き換える必要があります。\n"
 "GitHubのリンクを開きますか？"
 msgstr ""
 
-#: main.py:1371
+#: main.py:1421
 msgid "エラーが発生しました: %s"
 msgstr ""
 
-#: main.py:1372
+#: main.py:1422
 msgid "最新バージョンを確認(GitHub)"
 msgstr ""
 
-#: main.py:1373
+#: main.py:1423
 msgid "制作者の連絡先(%s/Twitter)"
 msgstr ""
 
-#: main.py:1380
+#: main.py:1430
 msgid "このソフトについて"
 msgstr ""
 
-#: main.py:1419 main.py:1429 main.py:1433 main.py:1604 main.py:1606
-#: main.py:1692 rpp2exo\rpp.py:63
+#: main.py:1469 main.py:1479 main.py:1483 main.py:1654 main.py:1656
+#: main.py:1742 rpp2exo\rpp.py:63
 msgid "参照…"
 msgstr ""
 
-#: main.py:1451
+#: main.py:1501
 msgid "左右反転"
 msgstr ""
 
-#: main.py:1454
+#: main.py:1504
 msgid "上下反転"
 msgstr ""
 
-#: main.py:1458
+#: main.py:1508
 msgid ""
 "　同音程が\n"
 "　連続した時..."
 msgstr ""
 
-#: main.py:1461
+#: main.py:1511
 msgid "反転しない"
 msgstr ""
 
-#: main.py:1464
+#: main.py:1514
 msgid "逆方向に反転"
 msgstr ""
 
-#: main.py:1468
+#: main.py:1518
 msgid "隙間なく配置"
 msgstr ""
 
-#: main.py:1472
+#: main.py:1522
 msgid ""
 "偶数番目Objを\n"
 "別レイヤ配置"
 msgstr ""
 
-#: main.py:1497
+#: main.py:1547
 msgid "時間選択 (秒)"
 msgstr ""
 
-#: main.py:1545
+#: main.py:1595
 msgid "エイリアス : "
 msgstr ""
 
-#: main.py:1549 main.py:1562 main.py:1632
+#: main.py:1599 main.py:1612 main.py:1682
 msgid "%01.0f番目"
 msgstr ""
 
-#: main.py:1584
+#: main.py:1634
 msgid "AviUtl エイリアス/効果ファイル"
 msgstr ""
 
-#: main.py:1587
+#: main.py:1637
 msgid "AviUtl2 エイリアスファイル"
 msgstr ""
 
-#: main.py:1590
+#: main.py:1640
 msgid "ゆっくりMovieMaker4 エイリアスファイル"
 msgstr ""
 
-#: main.py:1592
+#: main.py:1642
 msgid "参照するエイリアス/効果ファイルの選択"
 msgstr ""
 
-#: main.py:1641
+#: main.py:1691
 msgid "スクリプト制御 "
 msgstr ""
 
-#: main.py:1652
+#: main.py:1702
 msgid "追加対象 : "
 msgstr ""
 
-#: main.py:1654
+#: main.py:1704
 msgid "自動検出"
 msgstr ""
 
-#: main.py:1656
+#: main.py:1706
 msgid "動画"
 msgstr ""
 
-#: main.py:1658
+#: main.py:1708
 msgid "画像"
 msgstr ""
 
-#: main.py:1660
+#: main.py:1710
 msgid "フィルタ"
 msgstr ""
 
-#: main.py:1667
+#: main.py:1717
 msgid "シーン番号: "
 msgstr ""
 
-#: main.py:1672
+#: main.py:1722
 msgid "シーン"
 msgstr ""
 
-#: main.py:1677
+#: main.py:1727
 msgid "素材 : "
 msgstr ""
 
-#: main.py:1686
+#: main.py:1736
 msgid "動画ファイル"
 msgstr ""
 
-#: main.py:1686
+#: main.py:1736
 msgid "画像ファイル"
 msgstr ""
 
-#: main.py:1688
+#: main.py:1738
 msgid "参照する素材ファイルの選択"
 msgstr ""
 
-#: main.py:1701
+#: main.py:1751
 msgid "再生位置ランダム : "
 msgstr ""
 
-#: main.py:1785
+#: main.py:1835
 msgid "不透明度"
 msgstr ""
 
-#: main.py:1786
+#: main.py:1836
 msgid "回転角"
 msgstr ""
 
-#: main.py:1827
+#: main.py:1877
 msgid "効果のクリア"
 msgstr ""
 
-#: rpp2exo\exo.py:72 rpp2exo\exo2.py:72
+#: main.py:1893
+msgid "シーンのFPS : "
+msgstr ""
+
+#: rpp2exo\exo.py:72 rpp2exo\exo2.py:41
 msgid ""
 "★警告: 動画として読み込めませんでした。動画ファイルの場合、再生位置が正常に反映されません。\n"
 "対象ファイル: %s"

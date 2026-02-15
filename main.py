@@ -115,7 +115,7 @@ def main():
     except UnicodeEncodeError as e:
         # reasonに該当行の文字列、objectに該当文字を格納
         messagebox.showerror(_("エラー"), _("AviUtl上で使用できない文字がパス名に含まれています。\n" 
-                                         "パス名に含まれる該当文字を削除し、再度実行し直してください。\n\n") 
+                                         "パス名に含まれる該当文字を削除し、再度実行し直してください。\n\n")
                              + e.reason + '    "' + e.object + '"')
     except LoadFilterFileError as e:
         messagebox.showerror(_("エラー"), _("下記のエイリアスファイルが不正です。正規の方法でEXAファイルを生成してください。\n") + e.filename)
@@ -646,7 +646,11 @@ def run():
     if is_float(svr_fps_input.get()):
         mydict["fps"] = float(svr_fps_input.get())
     else:
-        mydict["fps"] = ''
+        mydict["fps"] = 0.0
+    if is_float(svr_scene_fps_input.get()):
+        mydict["scene_fps"] = float(svr_scene_fps_input.get())
+    else:
+        mydict["scene_fps"] = 0.0
     mydict["ScriptText"] = txt_script.get('1.0', 'end-1c')
     mydict["ObjFlipType"] = ivr_v_flip.get() + ivr_h_flip.get()
     mydict["AltFlipType"] = ivr_alt_flip.get()
@@ -662,6 +666,7 @@ def run():
         if mydict["OutputType"] == 4 and svr_randplay_en.get() == '':
             messagebox.showinfo(_("エラー"), _("再生位置ランダムの終点の値を入力してください。"))
             ent_randplay_en.focus_set()
+            return 0
 
         if mydict['OutputApp'] == 'YMM4':
             if is_float(svr_randplay_st.get()):
@@ -680,7 +685,7 @@ def run():
                     messagebox.showinfo(_("エラー"), _("%s : %s の値が正しく入力されていません。") % (_('再生位置ランダム'), _('終点')))
                     ent_randplay_en.focus_set()
                     return 0
-        elif mydict['OutputApp'] == 'AviUtl2':
+        elif mydict['OutputApp'] == 'AviUtl2' and not mydict['PlayPosByFrame']:
             if svr_randplay_st.get() == '':
                 svr_randplay_st.set('0.0')
             if not is_float(svr_randplay_st.get()):
@@ -829,6 +834,10 @@ def run():
             return 0
         elif mydict["SceneIdx"] != 1 and mydict["OutputType"] == 4:
             mydict['HasPatchError'].append(_('・シーン番号は反映されません。'))
+        elif mydict["OutputApp"] == 'AviUtl2' and mydict["OutputType"] == 4 and mydict["scene_fps"] <= 0:
+            messagebox.showinfo(_("エラー"), _("正しいFPSの値を入力してください。"))
+            ent_scene_fps_input.focus_set()
+            return 0
 
         count = mydict["EffCount"]
         runcount = 0
@@ -963,8 +972,12 @@ def mode_command():  # 「追加対象」変更時の状態切り替え
 
     if ivr_trgt_mode.get() == 4:  # シーン番号
         ent_scene_idx['state'] = 'enable'
+        lbl_scene_fps_input.grid(row=0, column=2, sticky=W + E)
+        ent_scene_fps_input.grid(row=0, column=3, sticky=W + E, padx=10)
     else:
         ent_scene_idx['state'] = 'disable'
+        lbl_scene_fps_input.grid_remove()
+        ent_scene_fps_input.grid_remove()
 
     if ivr_trgt_mode.get() == 3 and mydict['OutputApp'] != 'YMM4':  # 上のオブジェクトでクリッピング・拡張描画・設定項目
         chk_clipping['state'] = 'disable'
@@ -1097,6 +1110,7 @@ def exo_import_setting():
                 write_cfg(mydict[key], key, "ImportSetting")
             if fps_entry.get():
                 svr_fps_input.set(fps_entry.get())
+                svr_scene_fps_input.set(fps_entry.get())
             import_setting_root.destroy()
         except ValueError:
             pass
@@ -1118,7 +1132,15 @@ def exo_import_setting():
     root.wait_window(import_setting_root)
 
 
-
+# aul2ファイル (AviUtl2 言語ファイル) の設定
+def setting_aul2():
+    filetype = [(_("AviUtl2言語ファイル"), "*.aul2")]
+    filepath = filedialog.askopenfilename(
+        filetypes=filetype, initialdir=os.path.dirname(mydict["Aul2Path"]),
+        title=_("AviUtl2の言語ファイルを選択"))
+    if filepath != '':
+        write_cfg(filepath, "aul2_path", "Language")
+        confirm_restart()
 
 if __name__ == '__main__':
     read_cfg()
@@ -1316,6 +1338,17 @@ if __name__ == '__main__':
         R2E_TITLE = 'RPPtoEXO (for AviUtl2) v' + R2E_VERSION
         root.title(R2E_TITLE)
 
+        ivr_playpos_by_frame = IntVar()
+        ivr_playpos_by_frame.set(mydict['PlayPosByFrame'])
+
+        def playpos_by_frame_toggle():
+            write_cfg(int(ivr_playpos_by_frame.get()), "playpos_by_frame", "Param")
+            mydict['PlayPosByFrame'] = ivr_playpos_by_frame.get()
+            prmlist[13][2] = 1 if ivr_playpos_by_frame.get() else 0.001
+        menu_setting.add_checkbutton(label=_('再生位置をフレーム番号で設定'), variable=ivr_playpos_by_frame,
+                                     command=playpos_by_frame_toggle)
+        playpos_by_frame_toggle()
+
     # 言語設定メニュー
     menu_lang = Menu(mbar, tearoff=0)
     mbar.add_cascade(label='Language', menu=menu_lang)
@@ -1348,6 +1381,15 @@ if __name__ == '__main__':
     menu_lang_aul.add_radiobutton(label='English', value='en', variable=svr_lang_aul, command=change_lang_aul)
     if locale.getencoding() == 'cp936':
         menu_lang_aul.add_radiobutton(label='简体中文', value='zh', variable=svr_lang_aul, command=change_lang_aul)
+
+    # menu_lang.add_command(label=_('AviUtl2の表示言語を設定'), command=setting_aul2)
+
+    def reset_aul2_setting():
+        if mydict['Aul2Path']:
+            write_cfg('', "aul2_path", "Language")
+            mydict['Aul2Path'] = ''
+            confirm_restart()
+    # menu_lang.add_command(label=_('AviUtl2の表示言語をリセット'), command=reset_aul2_setting)
 
     # ヘルプメニュー
     menu_help = Menu(mbar, tearoff=0)
@@ -1725,7 +1767,7 @@ if __name__ == '__main__':
     ent_randplay_en.grid(row=2, column=2, padx=(35, 0), columnspan=2, sticky=W)
 
     ivr_clipping = IntVar()
-    chk_clipping = ttk.Checkbutton(frame_trgt, padding=5, text=ExDict['上のオブジェクトでクリッピング'],
+    chk_clipping = ttk.Checkbutton(frame_trgt, padding=5, text=ExDict['上のオブジェクトでクリッピング'].split('\\n', 1)[0],
                                    onvalue=1, offvalue=0, variable=ivr_clipping)
     chk_clipping.grid(row=3, column=0, columnspan=3, sticky=W)
     ivr_adv_draw = IntVar()
@@ -1849,8 +1891,12 @@ if __name__ == '__main__':
     ent_fps_input = ttk.Entry(frame_exec, textvariable=svr_fps_input, width=10)
     ent_fps_input.grid(row=0, column=1, sticky=W + E, padx=10)
     ent_fps_input.insert(END, mydict['default_fps'])
+    lbl_scene_fps_input = ttk.Label(frame_exec, text=_('シーンのFPS : '))
+    svr_scene_fps_input = StringVar()
+    ent_scene_fps_input = ttk.Entry(frame_exec, textvariable=svr_scene_fps_input, width=10)
+    ent_scene_fps_input.insert(END, mydict['default_fps'])
     btn_exec = ttk.Button(frame_exec, text=_('実行'), command=run)
-    btn_exec.grid(row=0, column=2)
+    btn_exec.grid(row=0, column=4)
 
     # プログラムから開かれた場合 (パスを挿入)
     try:

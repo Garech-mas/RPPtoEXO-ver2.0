@@ -104,12 +104,14 @@ def read_cfg():
             ('RPPtoEXO', 'templ_name', 'Param'),  # YMM4のテンプレート保存名
             ('1', 'output_type', 'Param'),  # 「追加対象」のデフォルト値 0-4
             ('1', 'make_adjust_object', 'Param'),  # 位置調整用オブジェクトを作成するか 0/1
+            ('0', 'playpos_by_frame', 'Param'),  # (AviUtl2) 再生位置をフレーム番号で設定するか 0/1
             ('1920', 'res_x', 'ImportSetting'),  # 解像度X
             ('1080', 'res_y', 'ImportSetting'),  # 解像度Y
             ('', 'default_fps', 'ImportSetting'),  # FPS初期値
             ('44100', 'audio_rate', 'ImportSetting'),  # 音声レート
             (default_lang, 'display', 'Language'),  # 表示言語
             (default_lang, 'exedit', 'Language'),  # 拡張編集の言語
+            ('C:/ProgramData/aviutl2/Language/', 'aul2_path', 'Language'), # AviUtl2の言語ファイルパス
         ]:
 
             if not config_ini.has_section(section):
@@ -144,12 +146,14 @@ def read_cfg():
             mydict["TemplateName"] = config_ini.get("Param", "templ_name")
             mydict["OutputType"] = config_ini.get("Param", "output_type")
             mydict["MakeAdjustObject"] = config_ini.get("Param", "make_adjust_object")
+            mydict["PlayPosByFrame"] = config_ini.get("Param", "playpos_by_frame")
             mydict["res_x"] = int(config_ini.get("ImportSetting", "res_x"))
             mydict["res_y"] = int(config_ini.get("ImportSetting", "res_y"))
             mydict["default_fps"] = config_ini.get("ImportSetting", "default_fps")
             mydict["audio_rate"] = int(config_ini.get("ImportSetting", "audio_rate"))
             mydict["DisplayLang"] = config_ini.get("Language", "display")
             mydict["ExEditLang"] = config_ini.get("Language", "exedit")
+            mydict["Aul2Path"] = config_ini.get("Language", "aul2_path")
 
         global _
         _ = gettext.translation(

@@ -1,9 +1,7 @@
 import binascii
-import filecmp
 import math
 import random
 import os
-import shutil
 from decimal import Decimal, ROUND_HALF_UP
 from fractions import Fraction
 
@@ -25,35 +23,6 @@ class Exo2:
         # 翻訳用
         global _
         _ = utils.get_locale(mydict['DisplayLang'])
-
-    def fix_sjis_files(self):
-        end = {'file_copy_failed': []}
-        # 素材ファイルがSJIS非対応だった場合の処理
-        if self.mydict["SrcPath"] != utils.ignore_sjis(self.encoding, self.mydict["SrcPath"]):
-            os.makedirs(utils.ignore_sjis(self.encoding, self.mydict["RPPPath"][:-4]), exist_ok=True)
-            save_path = utils.ignore_sjis(self.encoding, self.mydict["RPPPath"][:-4] + '\\' + os.path.basename(self.mydict["SrcPath"]))
-            shutil.copy(self.mydict["SrcPath"], save_path)
-            end['file_copied'] = True
-
-        for i, file in enumerate(self.file_path):
-            sjis_file = utils.ignore_sjis(self.encoding, file)
-            if file != sjis_file and not is_audio(file):
-                os.makedirs(utils.ignore_sjis(self.encoding, self.mydict["RPPPath"][:-4]), exist_ok=True)
-                save_path = utils.ignore_sjis(self.encoding, self.mydict["RPPPath"][:-4] + '\\' + os.path.basename(file))
-                try:
-                    shutil.copy(file, save_path)
-                    self.file_path[i] = save_path
-                    end['file_copied'] = True
-                except (PermissionError, FileNotFoundError):
-                    # コピー先とコピー元が一致している(過去にコピー済の)場合は問題なしとする
-                    if filecmp.cmp(file, save_path):
-                        self.file_path[i] = save_path
-                    else:
-                        end['file_copy_failed'].append(file)
-                        self.file_path[i] = sjis_file
-
-        if not end['file_copy_failed']: del end['file_copy_failed']
-        return end
 
     def fetch_fps(self):
         # 各動画ファイルを読み込み、必要な情報を格納する
@@ -97,21 +66,35 @@ class Exo2:
         layer = 1  # オブジェクトのあるレイヤー（RPP上で複数トラックある場合は別トラックに配置する）
         bfidx = 0  # item_countの調整用 レイヤー頭のitem_count-bfidxが0になるような値を設定
         altidx = 0  # 同一音程判定の調整用
+        src_fps = 1.0  # 入力素材のFPS値
 
         opt_layer = []  # 1トラック内で重複が発生した場合の使用レイヤー状況をシミュレート
         opt_layer2 = []
-        if self.mydict['RandomPlay'] and not self.mydict['RandomEnd']:
+
+        if self.mydict['RandomPlay'] and not self.mydict['RandomEnd'] or self.mydict["PlayPosByFrame"]:
             videoload = cv2.VideoCapture(str(self.mydict["SrcPath"]))  # 動画を読み込む
             if videoload.isOpened():
                 frame_count = videoload.get(cv2.CAP_PROP_FRAME_COUNT)
-                fps = videoload.get(cv2.CAP_PROP_FPS)
-                if fps > 0:
-                    self.mydict['RandomEnd'] = frame_count / fps
+                src_fps = float(videoload.get(cv2.CAP_PROP_FPS))
+                if src_fps > 0:
+                    self.mydict['RandomEnd'] = frame_count / (1 if self.mydict["PlayPosByFrame"] else src_fps)
                 else:
                     self.mydict['RandomEnd'] = '0'
                 videoload.release()
             else:
                 self.mydict['RandomEnd'] = '0'
+
+        # フレーム番号→秒(AviUtl2管理)に変換
+        fps = self.mydict["scene_fps"] if self.mydict["OutputType"] == 4 else src_fps
+        if isinstance(self.mydict["SrcPosition"], str) and "," in self.mydict["SrcPosition"]:
+            # 移動ありの場合
+            parts = self.mydict["SrcPosition"].split(",")
+            parts[0] = str((float(parts[0]) - (fps != 1.0)) / fps)
+            parts[1] = str((float(parts[1]) - (fps != 1.0)) / fps)
+            self.mydict["SrcPosition"] = ",".join(parts)
+        else:
+            # 移動なしの場合
+            self.mydict["SrcPosition"] = (float(self.mydict["SrcPosition"]) - (fps != 1.0)) / fps
 
         obj_frame_pos = objdict["pos"][1] * self.mydict["fps"] + 1 \
             if len(objdict["pos"]) > 1 else -1
