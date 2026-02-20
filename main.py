@@ -1,6 +1,6 @@
 #####################################################################################
-#               RPP to EXO ver 2.11.1                                               #
-#                                                                       2026/02/15  #
+#               RPP to EXO ver 2.11.2                                               #
+#                                                                       2026/02/20  #
 #       Original Written by Maimai (@Maimai22015/YTPMV.info)                        #
 #       Forked by Garech (@Garec_)                                                  #
 #                                                                                   #
@@ -1406,9 +1406,12 @@ if __name__ == '__main__':
                 ret = messagebox.askyesno(R2E_TITLE,
                                           _('最新バージョンが見つかりました。ダウンロードしますか？'))
                 if ret:
-                    file_setup.rpp2exo_update()
-                    messagebox.showinfo(R2E_TITLE, _('最新バージョンのインストールが完了しました。'))
-                    confirm_restart()
+                    file_setup.rpp2exo_update(tempfile.gettempdir())
+                    if root:
+                        root.quit()
+                        root.destroy()
+                    subprocess.Popen(os.path.join(tempfile.gettempdir(), 'RPPtoEXO_setup.exe'))
+                    sys.exit()
 
             elif result == 0:
                 messagebox.showinfo(R2E_TITLE, _('お使いのRPPtoEXOは最新です。'))

@@ -34,23 +34,12 @@ def download_github(url, path):
         return op.join(path, asset_name)
 
 
-def rpp2exo_update():
-    r2e_dir = os.path.abspath('.')
-    r2e_zip = download_github("https://api.github.com/repos/Garech-mas/RPPtoEXO-ver2.0/releases/latest", r2e_dir)
+def rpp2exo_update(temp_dir):
+    r2e_zip = download_github("https://api.github.com/repos/Garech-mas/RPPtoEXO-ver2.0/releases/latest", temp_dir)
 
-    # 実行ファイル自体は上書きできないため、先にリネームしておく (後で再起動した際の初回で消す)
-    os.rename(os.path.abspath(sys.argv[0]), op.join(r2e_dir, 'RPPtoEXO.exe_old'))
-
-    has_readme = op.exists(op.join(r2e_dir, 'README.txt'))
-    has_changelog = op.exists(op.join(r2e_dir, 'changelog.txt'))
-
-    shutil.unpack_archive(r2e_zip, r2e_dir)
-
-    if not has_readme:
-        os.remove(op.join(r2e_dir, 'README.txt'))
-
-    if not has_changelog:
-        os.remove(op.join(r2e_dir, 'changelog.txt'))
+    shutil.unpack_archive(r2e_zip, temp_dir)
+    os.remove(op.join(temp_dir, 'README.txt'))
+    os.remove(op.join(temp_dir, 'changelog.txt'))
 
     os.remove(r2e_zip)
 
