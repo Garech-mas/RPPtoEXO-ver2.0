@@ -79,6 +79,8 @@ class Exo2:
                 if src_fps > 0:
                     self.mydict['RandomEnd'] = frame_count / (1 if self.mydict["PlayPosByFrame"] else src_fps)
                 else:
+                    # 正常なFPSを読めなかった場合、FPS=1.0に補正
+                    src_fps = 1.0
                     self.mydict['RandomEnd'] = '0'
                 videoload.release()
             else:
