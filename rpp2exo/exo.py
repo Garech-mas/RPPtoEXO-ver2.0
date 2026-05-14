@@ -138,35 +138,52 @@ class Exo:
             if layer > 100:
                 break
 
-            # オブジェクト最初のフレームと長さの計算
-            obj_frame_pos = objdict["pos"][index] * self.mydict["fps"] + 1
-            next_obj_frame_pos = objdict["pos"][index + 1] * self.mydict["fps"] + 1 \
-                if index != len(objdict["length"]) - 1 else -1
-            obj_frame_length = objdict["length"][index] * self.mydict["fps"]
-            # 一つ前のオブジェクトとフレームがかぶらないようにする処理
-            # if sur_round(obj_frame_pos) == bf:
-            #     obj_frame_pos += 1
-            #     obj_frame_length -= 1
-            #     ここで「1個前のオブジェクトのlength(bf)をマイナス１する」処理をしたい。抜本的な書き換えが必要
-            # 一つ後のオブジェクトとの間に1フレームの空きがある場合の処理
-            if self.sur_round(obj_frame_pos + obj_frame_length) == self.sur_round(next_obj_frame_pos) - 1:
-                obj_frame_length += 1
-            if obj_frame_pos < bf:
+            # トラック切替え
+            if objdict["pos"][index] < 0:
                 bf = 0
-                if obj_frame_pos < 0:  # 最後
-                    bfidx = -item_count
-                    # track += 1
-                    layer += len(opt_layer + opt_layer2)
-                    opt_layer = []
-                    opt_layer2 = []
-                    continue
-            bf = obj_frame_pos + obj_frame_length - 1
-            if self.mydict["NoGap"] == 1:
-                if obj_frame_pos < self.sur_round(next_obj_frame_pos) - 1:
-                    bf = next_obj_frame_pos - 1
+                bfidx = -item_count
 
-            obj_frame_pos = int(self.sur_round(obj_frame_pos))
-            if obj_frame_pos == 0: obj_frame_pos = 1
+                layer += len(opt_layer + opt_layer2)
+
+                opt_layer = []
+                opt_layer2 = []
+
+                continue
+
+            # 開始・終了フレーム
+            obj_frame_pos_f = objdict["pos"][index] * self.mydict["fps"]
+            obj_frame_end_f = (
+                                      objdict["pos"][index] + objdict["length"][index]
+                              ) * self.mydict["fps"]
+
+            next_obj_frame_pos_f = (
+                objdict["pos"][index + 1] * self.mydict["fps"]
+                if index != len(objdict["length"]) - 1
+                else -1
+            )
+
+            # 区間ベース丸め
+            obj_frame_pos = int(self.sur_round(obj_frame_pos_f)) + 1
+            obj_frame_end = int(self.sur_round(obj_frame_end_f))
+
+            # 0Fのオブジェクトにならないようにする
+            if obj_frame_end < obj_frame_pos:
+                obj_frame_end = obj_frame_pos
+
+            # 次オブジェクトとの1フレームの空きを埋める
+            if obj_frame_end == self.sur_round(next_obj_frame_pos_f) - 1:
+                obj_frame_end += 1
+
+            # 終了フレーム更新
+            next_obj_frame_pos = int(self.sur_round(next_obj_frame_pos_f)) + 1
+            if (
+                    self.mydict["NoGap"] == 1
+                    and next_obj_frame_pos_f >= 0
+                    and next_obj_frame_pos > obj_frame_pos
+            ):
+                bf = next_obj_frame_pos - 1
+            else:
+                bf = obj_frame_end
 
             # bfidxを調整 (同一開始フレームのオブジェクトを同じ反転状況にする)
             is_pitch_repeated = objdict['pitch'][index - 1] == objdict['pitch'][index]
@@ -182,7 +199,6 @@ class Exo:
             elif self.mydict["ObjFlipType"] != 3:
                 altidx = 0
 
-            bf = int(self.sur_round(bf))
             bpos = obj_frame_pos
 
             if self.mydict["SepLayerEvenObj"] == 1 and (bfidx + item_count) % 2 == 1:  # 偶数番目obj用のobj_layerに処理
