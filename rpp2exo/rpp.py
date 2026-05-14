@@ -137,7 +137,8 @@ class Rpp:
             if index >= len(self.rpp_ary):
                 return value, index, 0
 
-            for i in range(index + 1, index + 12):
+            i = index + 1
+            while self.rpp_ary[i - 1].split()[0] != 'ISBUS':
                 spl = re.split(' +|\r\n|\n|\r', self.rpp_ary[i])[1:-1]
                 key = spl.pop(0)
                 if key == 'NAME':
@@ -152,6 +153,7 @@ class Rpp:
                         name += "[M​]" * mute
                 elif key == 'ISBUS':
                     isbus = self.rpp_ary[i].split()  # [1] > フォルダ始端・終端 [2] > 階層を何個下るか
+                i += 1
 
             while name in value:
                 name += " "  # トラック名が被っていた場合、末尾に半角スペースを被った数分付加して後から区別できるように
@@ -250,6 +252,9 @@ class Rpp:
 
                 index -= 2
                 if not (self.start_pos <= float(itemdict["POSITION"][0]) < self.end_pos):
+                    continue
+                # 長さが0秒以上であることを確認 (正常アイテムチェック)
+                if float(itemdict["LENGTH"][0]) <= 0:
                     continue
 
                 self.objDict["pos"].append(float(itemdict["POSITION"][0]) - self.start_pos)

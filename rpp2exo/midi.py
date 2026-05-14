@@ -62,15 +62,18 @@ class Midi:
             for i, lyric in enumerate(lyrics):
                 if not (self.start_pos <= lyric.time < self.end_pos):
                     continue
-                self.objDict['pos'].append(lyric.time - self.start_pos)
-                
-                next_time = 0
+
                 if i + 1 < len(lyrics):
                     next_time = lyrics[i+1].time
                 else:
                     next_time = self.midi.get_end_time()
-                
-                self.objDict['length'].append(next_time - lyric.time)
+                length = next_time - lyric.time
+                # 長さが0秒以上であることを確認 (正常アイテムチェック)
+                if length <= 0:
+                    continue
+
+                self.objDict['pos'].append(lyric.time - self.start_pos)
+                self.objDict['length'].append(length)
                 self.objDict['pitch'].append(-99.9)
                 self.objDict["loop"].append(0)
                 self.objDict["soffs"].append(0.0)
@@ -95,8 +98,14 @@ class Midi:
             for note in instrument.notes:
                 if not (self.start_pos <= note.start < self.end_pos):
                     continue
+
+                length = note.end - note.start
+                # 長さが0秒以上であることを確認 (正常アイテムチェック)
+                if length <= 0:
+                    continue
+
                 self.objDict['pos'].append(note.start - self.start_pos)
-                self.objDict['length'].append(note.end - note.start)
+                self.objDict['length'].append(length)
                 self.objDict['pitch'].append(note.pitch)
                 self.objDict["loop"].append(0)
                 self.objDict["soffs"].append(0.0)
