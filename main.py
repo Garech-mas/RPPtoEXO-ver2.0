@@ -1,6 +1,6 @@
 #####################################################################################
-#               RPP to EXO ver 2.11.3                                               #
-#                                                                       2026/05/14  #
+#               RPP to EXO ver 2.11.4                                               #
+#                                                                       2026/06/30  #
 #       Original Written by Maimai (@Maimai22015/YTPMV.info)                        #
 #       Forked by Garech (@Garec_)                                                  #
 #                                                                                   #

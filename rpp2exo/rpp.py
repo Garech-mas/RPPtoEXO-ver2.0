@@ -100,11 +100,10 @@ class Rpp:
             if self.rpp_ary[index].split()[0] == "MARKER":
                 marker = self.rpp_ary[index].split()
                 # <7.0 仕様のリージョン終に要素数を合わせる
-                if '{' in marker[-1]:       # リージョン始/マーカー (RPP <7.0)
-                    del marker[-1]
-                elif '{' in marker[-2]:     # マーカー (RPP >7.0)
-                    del marker[-2:]
-                elif '""' in marker[-2]:    # リージョン終 (RPP >7.0)
+                brace_index = next((i for i, value in enumerate(marker) if "{" in value), None)
+                if brace_index is not None:
+                    del marker[brace_index:]
+                elif len(marker) >= 2 and '""' in marker[-2]:
                     marker += [1, 1, 1]
 
                 if int(marker[-4]) % 2 == 0:  # マーカー
